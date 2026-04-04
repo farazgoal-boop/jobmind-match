@@ -1,11 +1,44 @@
 # JobMind Match
 
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)
+![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
+
 JobMind Match is a personal job-matching assistant that helps you:
 - Parse your CV (PDF/DOCX)
 - Pull evidence from your GitHub repos
 - Fetch jobs from free public sources
 - Rank jobs using TF-IDF + cosine similarity + skill boosting
 - Send daily digest via email (optional Telegram-ready output)
+
+## Live Project Showcase
+
+### What this app solves
+- Turns your CV + GitHub profile into smart job matches.
+- Helps you track your pipeline (saved, applied, replied, interview, rejected).
+- Provides assisted apply links for LinkedIn, Upwork, Fiverr, and Google Jobs.
+
+### Add your visual proof (recommended)
+- Screenshot path: `docs/assets/dashboard.png`
+- Demo GIF path: `docs/assets/demo.gif`
+
+When you add files, use this section:
+
+```markdown
+![Dashboard Screenshot](docs/assets/dashboard.png)
+
+![Demo Walkthrough](docs/assets/demo.gif)
+```
+
+### Record a quick demo GIF (2 minutes)
+1. Open dashboard.
+2. Create/select profile.
+3. Upload CV.
+4. Run matching with filters.
+5. Save one job to tracker and update status.
+6. Export to GIF and place at `docs/assets/demo.gif`.
 
 ## 1) What You Need (Requirements)
 
@@ -234,3 +267,7 @@ Then combine inside `app/routes/jobs.py` and pass merged jobs to `rank_jobs(...)
 ---
 
 Current build already includes multi-source fetching, free-tier limiter, daily scheduler, and a dashboard UI.
+
+## License
+
+MIT
