@@ -1,0 +1,32 @@
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
+from app.config import settings
+from app.db import init_db
+from app.routes import applications, jobs, profile, web
+from app.scheduler import start_scheduler, stop_scheduler
+
+app = FastAPI(title=settings.app_name)
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    init_db()
+    start_scheduler()
+
+
+@app.on_event("shutdown")
+def on_shutdown() -> None:
+    stop_scheduler()
+
+
+@app.get("/")
+def health():
+    return {"app": settings.app_name, "status": "ok"}
+
+
+app.include_router(profile.router)
+app.include_router(jobs.router)
+app.include_router(applications.router)
+app.include_router(web.router)
+app.mount("/static", StaticFiles(directory="app/static"), name="static")

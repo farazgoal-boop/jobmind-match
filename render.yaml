@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: jobmind-match
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: DATABASE_URL
+        value: sqlite:///./jobmind.db
+      - key: FREE_MONTHLY_MATCH_LIMIT
+        value: "50"
+      - key: FREE_SOURCES
+        value: remotive,weworkremotely

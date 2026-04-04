@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Faraz Job Console | JobMind Match</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="layout">
+    <section class="hero card">
+      <h1>Faraz Job Console</h1>
+      <p>Your personal job hunting app powered by CV, GitHub, and smart matching.</p>
+      <p class="hint">This workspace is configured for Muhammad Faraz so your profile, tracker, and progress stay in one place.</p>
+    </section>
+
+    <section class="card grid-two">
+      <div>
+        <h2>Create or Update Your Profile</h2>
+        <form action="/dashboard/profile" method="post" class="stack-form">
+          <input type="text" name="full_name" placeholder="Full name" required />
+          <input type="email" name="email" placeholder="Email" required />
+          <input type="text" name="skills_csv" placeholder="Python,Django,FastAPI,SQL" required />
+          <input type="text" name="github_username" placeholder="GitHub username" />
+          <button type="submit">Save My Profile</button>
+        </form>
+      </div>
+
+      <div>
+        <h2>Upload Your CV</h2>
+        <form action="/dashboard/upload-cv" method="post" enctype="multipart/form-data" class="stack-form">
+          <select name="candidate_id" required>
+            <option value="">Select profile</option>
+            {% for p in profiles %}
+            <option value="{{ p.id }}" {% if selected and p.id == selected.id %}selected{% endif %}>
+              #{{ p.id }} - {{ p.full_name }}
+            </option>
+            {% endfor %}
+          </select>
+          <input type="file" name="file" accept=".pdf,.docx" required />
+          <button type="submit">Upload My CV</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Find Matching Jobs</h2>
+      <form action="/dashboard/matches" method="get" class="filters">
+        <select name="candidate_id" required>
+          <option value="">Select profile</option>
+          {% for p in profiles %}
+          <option value="{{ p.id }}" {% if selected and p.id == selected.id %}selected{% endif %}>
+            #{{ p.id }} - {{ p.full_name }}
+          </option>
+          {% endfor %}
+        </select>
+        <input type="number" name="top_k" value="5" min="1" max="20" />
+        <input type="text" name="sources" value="{{ sources or 'remotive,weworkremotely' }}" placeholder="remotive,weworkremotely" />
+        <select name="min_match_level">
+          <option value="all" {% if min_match_level == 'all' %}selected{% endif %}>All matches</option>
+          <option value="medium" {% if min_match_level == 'medium' %}selected{% endif %}>Medium+ only</option>
+          <option value="high" {% if min_match_level == 'high' %}selected{% endif %}>High only</option>
+        </select>
+        <label class="inline-check">
+          <input type="checkbox" name="backend_only" value="true" {% if backend_only %}checked{% endif %} />
+          Backend-focused only
+        </label>
+        <button type="submit">Run My Match</button>
+      </form>
+
+      {% if selected %}
+      <p class="hint">Active profile: {{ selected.full_name }} ({{ selected.email }})</p>
+      {% else %}
+      <p class="error">No active profile selected yet. Please choose your profile from the dropdown or create one above.</p>
+      {% endif %}
+
+      {% if usage %}
+      <p class="hint">Monthly usage: {{ usage.matches_used }} matches used in {{ usage.period }}</p>
+      {% endif %}
+
+      {% if error %}
+      <p class="error">{{ error }}</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Top Job Results</h2>
+      <div class="matches">
+        {% for item in matches %}
+          <article class="job">
+            <div>
+              <h3>{{ item.job.title }}</h3>
+              <p>{{ item.job.company }} · {{ item.job.location }}</p>
+              <p class="source">Source: {{ item.job.source }} | Score: {{ item.score }}</p>
+              <p class="source">Match level: {{ item.match_level|upper }}</p>
+              <p>{{ item.reason }}</p>
+              <div class="assisted-links">
+                <a href="{{ item.assisted_links.linkedin }}" target="_blank" rel="noopener">LinkedIn Search</a>
+                <a href="{{ item.assisted_links.upwork }}" target="_blank" rel="noopener">Upwork Search</a>
+                <a href="{{ item.assisted_links.fiverr }}" target="_blank" rel="noopener">Fiverr Search</a>
+              </div>
+              {% if selected %}
+              <form action="/dashboard/applications" method="post" class="save-form">
+                <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
+                <input type="hidden" name="job_title" value="{{ item.job.title }}" />
+                <input type="hidden" name="company" value="{{ item.job.company }}" />
+                <input type="hidden" name="source" value="{{ item.job.source }}" />
+                <input type="hidden" name="job_url" value="{{ item.job.url }}" />
+                <input type="hidden" name="status" value="saved" />
+                <input type="text" name="notes" placeholder="Optional note" />
+                <button type="submit">Save To Tracker</button>
+              </form>
+              {% endif %}
+            </div>
+            <a href="{{ item.job.url }}" target="_blank" rel="noopener">Open Apply Page</a>
+          </article>
+        {% else %}
+          <p class="hint">No matches yet. First select your profile, upload CV, then click Run My Match.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Your Application Tracker</h2>
+      {% if selected %}
+        <p class="hint">Tracking applications for {{ selected.full_name }}</p>
+      {% else %}
+        <p class="error">Tracker will appear after you select or create your profile.</p>
+      {% endif %}
+      <div class="status-grid">
+        <div class="status-card"><p>Total</p><strong>{{ status_summary.total }}</strong></div>
+        <div class="status-card"><p>Saved</p><strong>{{ status_summary.saved }}</strong></div>
+        <div class="status-card"><p>Applied</p><strong>{{ status_summary.applied }}</strong></div>
+        <div class="status-card"><p>Replied</p><strong>{{ status_summary.replied }}</strong></div>
+        <div class="status-card"><p>Interview</p><strong>{{ status_summary.interview }}</strong></div>
+        <div class="status-card"><p>Rejected</p><strong>{{ status_summary.rejected }}</strong></div>
+      </div>
+      <div class="tracker">
+        {% for row in applications %}
+          <article class="tracker-row">
+            <div>
+              <h3>{{ row.job_title }}</h3>
+              <p>{{ row.company }} · {{ row.source }}</p>
+              <a href="{{ row.job_url }}" target="_blank" rel="noopener">Open Job URL</a>
+            </div>
+            <form action="/dashboard/applications/{{ row.id }}" method="post" class="tracker-form">
+              <input type="hidden" name="candidate_id" value="{{ row.candidate_id }}" />
+              <select name="status" required>
+                <option value="saved" {% if row.status == 'saved' %}selected{% endif %}>saved</option>
+                <option value="applied" {% if row.status == 'applied' %}selected{% endif %}>applied</option>
+                <option value="replied" {% if row.status == 'replied' %}selected{% endif %}>replied</option>
+                <option value="interview" {% if row.status == 'interview' %}selected{% endif %}>interview</option>
+                <option value="rejected" {% if row.status == 'rejected' %}selected{% endif %}>rejected</option>
+              </select>
+              <input type="text" name="notes" value="{{ row.notes }}" placeholder="Notes" />
+              <button type="submit">Update</button>
+            </form>
+          </article>
+        {% else %}
+          <p class="hint">No tracked applications yet. Save a job from Top Job Results to start building your pipeline.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
