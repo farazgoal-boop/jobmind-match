@@ -59,6 +59,8 @@
           <input type="email" name="email" placeholder="Email" required />
           <input type="text" name="skills_csv" placeholder="Python,Django,FastAPI,SQL" required />
           <input type="text" name="github_username" placeholder="GitHub username" />
+          <input type="url" name="resume_url" placeholder="Resume URL https://..." />
+          <input type="url" name="portfolio_url" placeholder="Portfolio URL https://..." />
           <button type="submit">Save My Profile</button>
         </form>
       </div>
@@ -142,6 +144,12 @@
 
       {% if selected %}
       <p class="hint">Active profile: {{ selected.full_name }} ({{ selected.email }})</p>
+      {% if selected.resume_url or selected.portfolio_url %}
+      <div class="assisted-links">
+        {% if selected.resume_url %}<a href="{{ selected.resume_url }}" target="_blank" rel="noopener">Open Resume</a>{% endif %}
+        {% if selected.portfolio_url %}<a href="{{ selected.portfolio_url }}" target="_blank" rel="noopener">Open Portfolio</a>{% endif %}
+      </div>
+      {% endif %}
       {% else %}
       <p class="error">No active profile selected yet. Please choose your profile from the dropdown or create one above.</p>
       {% endif %}
@@ -204,8 +212,16 @@
                 <a href="{{ item.assisted_links.google_jobs }}" target="_blank" rel="noopener">Google Jobs</a>
                 <a href="{{ item.assisted_links.upwork }}" target="_blank" rel="noopener">Upwork Search</a>
                 <a href="{{ item.assisted_links.fiverr }}" target="_blank" rel="noopener">Fiverr Search</a>
+                <a href="{{ item.assisted_links.email_apply }}">Quick Apply Email</a>
                 <button type="button" class="ghost-action" data-copy-query="{{ item.search_query }}">Copy Search</button>
               </div>
+              {% if selected and (selected.resume_url or selected.portfolio_url) %}
+              <p class="source">
+                {% if selected.resume_url %}Resume ready{% endif %}
+                {% if selected.resume_url and selected.portfolio_url %} · {% endif %}
+                {% if selected.portfolio_url %}Portfolio ready{% endif %}
+              </p>
+              {% endif %}
               {% if selected %}
               <form action="/dashboard/applications" method="post" class="save-form">
                 <input type="hidden" name="candidate_id" value="{{ selected.id }}" />

@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const appUrl = process.env.JOBMIND_APP_URL || 'https://your-live-domain.com/dashboard';
+const appUrl = process.env.JOBMIND_APP_URL || 'https://jobmind-match.onrender.com/dashboard';
 
 const config: CapacitorConfig = {
   appId: 'com.jobmind.match',

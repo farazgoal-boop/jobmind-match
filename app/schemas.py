@@ -6,6 +6,8 @@ class CandidateCreate(BaseModel):
     email: EmailStr
     skills_csv: str = ""
     github_username: str = ""
+    resume_url: str = ""
+    portfolio_url: str = ""
 
 
 class CandidateOut(BaseModel):
@@ -14,6 +16,8 @@ class CandidateOut(BaseModel):
     email: EmailStr
     skills_csv: str
     github_username: str
+    resume_url: str
+    portfolio_url: str
 
 
 class JobOut(BaseModel):

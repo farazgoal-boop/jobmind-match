@@ -1,5 +1,6 @@
 ﻿from pathlib import Path
 
+from sqlalchemy import inspect
 from sqlmodel import SQLModel, Session, create_engine
 from sqlalchemy.pool import StaticPool
 
@@ -34,11 +35,32 @@ def _build_engine():
 
     return create_engine(database_url, echo=False)
 
+
+def _ensure_candidate_profile_columns() -> None:
+    column_names = {column["name"] for column in inspect(engine).get_columns("candidateprofile")}
+    missing_columns = []
+
+    if "resume_url" not in column_names:
+        missing_columns.append("resume_url")
+    if "portfolio_url" not in column_names:
+        missing_columns.append("portfolio_url")
+
+    if not missing_columns:
+        return
+
+    with engine.begin() as connection:
+        for column_name in missing_columns:
+            connection.exec_driver_sql(
+                f"ALTER TABLE candidateprofile ADD COLUMN {column_name} VARCHAR NOT NULL DEFAULT ''"
+            )
+
+
 engine = _build_engine()
 
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
+    _ensure_candidate_profile_columns()
 
 
 def get_session():

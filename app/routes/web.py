@@ -289,6 +289,8 @@ def create_profile_from_form(
     email: Annotated[str, Form(...)],
     skills_csv: Annotated[str, Form(...)],
     github_username: Annotated[str, Form()] = "",
+    resume_url: Annotated[str, Form()] = "",
+    portfolio_url: Annotated[str, Form()] = "",
     session: Annotated[Session, Depends(get_session)] = None,
 ):
     profile = CandidateProfile(
@@ -296,6 +298,8 @@ def create_profile_from_form(
         email=email,
         skills_csv=skills_csv,
         github_username=github_username,
+        resume_url=resume_url,
+        portfolio_url=portfolio_url,
     )
     session.add(profile)
     session.commit()
@@ -417,7 +421,15 @@ def dashboard_matches(
         enriched_matches.append(
             {
                 **item,
-                "assisted_links": build_assisted_links(job["title"], job["company"]),
+                "assisted_links": build_assisted_links(
+                    job["title"],
+                    job["company"],
+                    candidate_name=selected.full_name,
+                    candidate_email=selected.email,
+                    resume_url=selected.resume_url,
+                    portfolio_url=selected.portfolio_url,
+                    github_username=selected.github_username,
+                ),
                 "match_level": level,
                 "is_remote": is_remote_job(job),
                 "is_junior_friendly": is_junior_friendly_job(job),

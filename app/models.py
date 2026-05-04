@@ -9,6 +9,8 @@ class CandidateProfile(SQLModel, table=True):
     email: str
     skills_csv: str = ""
     github_username: str = ""
+    resume_url: str = ""
+    portfolio_url: str = ""
     cv_text: str = ""
     is_premium: bool = False
 
