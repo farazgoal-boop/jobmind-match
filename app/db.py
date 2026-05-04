@@ -4,15 +4,28 @@ from sqlalchemy.pool import StaticPool
 from app.config import settings
 
 
-if settings.database_url.strip().lower().startswith("sqlite:///:memory:"):
-    engine = create_engine(
-        settings.database_url,
-        echo=False,
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-else:
-    engine = create_engine(settings.database_url, echo=False)
+def _build_engine():
+    database_url = settings.database_url.strip()
+    normalized = database_url.lower()
+
+    if normalized.startswith("sqlite:///:memory:"):
+        return create_engine(
+            database_url,
+            echo=False,
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
+
+    if normalized.startswith("sqlite:///"):
+        return create_engine(
+            database_url,
+            echo=False,
+            connect_args={"check_same_thread": False},
+        )
+
+    return create_engine(database_url, echo=False)
+
+engine = _build_engine()
 
 
 def init_db() -> None:

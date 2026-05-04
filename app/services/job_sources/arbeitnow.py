@@ -18,6 +18,8 @@ def fetch_arbeitnow_jobs(limit: int = 50) -> List[Dict]:
                 "location": ", ".join(item.get("location", [])) or "Remote",
                 "url": item.get("url", ""),
                 "description": item.get("description", ""),
+                "salary": item.get("salary", ""),
+                "visa_support": bool(item.get("visa_sponsorship", False)),
             }
         )
     return jobs

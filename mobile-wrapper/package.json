@@ -1,0 +1,19 @@
+{
+  "name": "jobmind-match-mobile-wrapper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Capacitor Android wrapper for JobMind Match",
+  "scripts": {
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android",
+    "android:add": "npx cap add android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.1",
+    "@capacitor/app": "^7.0.1",
+    "@capacitor/core": "^7.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

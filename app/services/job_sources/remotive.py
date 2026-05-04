@@ -17,6 +17,8 @@ def fetch_remotive_jobs(limit: int = 50) -> List[Dict]:
                 "location": item.get("candidate_required_location", "Remote"),
                 "url": item.get("url", ""),
                 "description": item.get("description", ""),
+                "salary": item.get("salary", ""),
+                "visa_support": False,
             }
         )
     return jobs

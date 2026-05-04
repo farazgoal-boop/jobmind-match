@@ -32,6 +32,8 @@ def fetch_weworkremotely_jobs(limit: int = 50) -> List[Dict]:
                 "location": "Remote",
                 "url": link,
                 "description": description,
+                "salary": "",
+                "visa_support": False,
             }
         )
     return jobs

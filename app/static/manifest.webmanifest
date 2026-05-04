@@ -1,0 +1,19 @@
+{
+  "name": "JobMind Match",
+  "short_name": "JobMind",
+  "description": "AI-powered job matching and application tracking dashboard.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f1ea",
+  "theme_color": "#0b7285",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

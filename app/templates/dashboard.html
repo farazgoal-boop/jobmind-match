@@ -3,18 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b7285" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="JobMind Match" />
   <title>Faraz Job Console | JobMind Match</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="manifest" href="/static/manifest.webmanifest" />
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
   <main class="layout">
     <section class="hero card">
-      <h1>Faraz Job Console</h1>
-      <p>Your personal job hunting app powered by CV, GitHub, and smart matching.</p>
-      <p class="hint">This workspace is configured for Muhammad Faraz so your profile, tracker, and progress stay in one place.</p>
+      <div class="hero-copy">
+        <p class="eyebrow">Job Search Operating System</p>
+        <h1>Faraz Job Console</h1>
+        <p>Your personal job hunting app powered by CV, GitHub, and smart matching.</p>
+        <p class="hint">This workspace is configured for Muhammad Faraz so your profile, tracker, and progress stay in one place.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span>Profiles</span>
+          <strong>{{ profiles|length }}</strong>
+        </div>
+        <div class="hero-stat">
+          <span>Tracked Jobs</span>
+          <strong>{{ status_summary.total }}</strong>
+        </div>
+        <div class="hero-stat">
+          <span>Remote Matches</span>
+          <strong>{{ match_summary.remote if match_summary else 0 }}</strong>
+        </div>
+        <div class="hero-stat accent">
+          <span>Search Focus</span>
+          <strong>{{ (search_focus or 'python')|upper }}</strong>
+        </div>
+      </div>
+      <div class="preset-bar">
+        <button type="button" class="preset-chip" data-focus="python" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Python Remote</button>
+        <button type="button" class="preset-chip" data-focus="fastapi" data-backend="true" data-remote="true" data-junior="true" data-region="global">FastAPI Backend</button>
+        <button type="button" class="preset-chip" data-focus="flask" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Flask Roles</button>
+        <button type="button" class="preset-chip" data-focus="fullstack" data-backend="false" data-remote="true" data-junior="true" data-region="global">Full Stack</button>
+        <button type="button" class="preset-chip install-chip hidden" data-role="install-app">Install App</button>
+      </div>
     </section>
 
     <section class="card grid-two">
@@ -59,15 +93,50 @@
         </select>
         <input type="number" name="top_k" value="5" min="1" max="20" />
         <input type="text" name="sources" value="{{ sources or 'remotive,weworkremotely' }}" placeholder="remotive,weworkremotely" />
+        <select name="search_focus" data-role="search-focus">
+          <option value="python" {% if search_focus == 'python' %}selected{% endif %}>Python focus</option>
+          <option value="fastapi" {% if search_focus == 'fastapi' %}selected{% endif %}>FastAPI focus</option>
+          <option value="flask" {% if search_focus == 'flask' %}selected{% endif %}>Flask focus</option>
+          <option value="fullstack" {% if search_focus == 'fullstack' %}selected{% endif %}>Full Stack focus</option>
+          <option value="all" {% if search_focus == 'all' %}selected{% endif %}>All roles</option>
+        </select>
         <select name="min_match_level">
           <option value="all" {% if min_match_level == 'all' %}selected{% endif %}>All matches</option>
           <option value="medium" {% if min_match_level == 'medium' %}selected{% endif %}>Medium+ only</option>
           <option value="high" {% if min_match_level == 'high' %}selected{% endif %}>High only</option>
         </select>
-        <label class="inline-check">
+        <label class="inline-check toggle-check">
           <input type="checkbox" name="backend_only" value="true" {% if backend_only %}checked{% endif %} />
           Backend-focused only
         </label>
+        <label class="inline-check toggle-check">
+          <input type="checkbox" name="remote_only" value="true" {% if remote_only %}checked{% endif %} data-role="remote-only" />
+          Remote-first only
+        </label>
+        <label class="inline-check toggle-check">
+          <input type="checkbox" name="junior_only" value="true" {% if junior_only %}checked{% endif %} data-role="junior-only" />
+          Junior-friendly only
+        </label>
+        <label class="inline-check toggle-check">
+          <input type="checkbox" name="pakistan_friendly_only" value="true" {% if pakistan_friendly_only %}checked{% endif %} />
+          Pakistan-friendly only
+        </label>
+        <label class="inline-check toggle-check">
+          <input type="checkbox" name="salary_only" value="true" {% if salary_only %}checked{% endif %} />
+          Salary shown only
+        </label>
+        <label class="inline-check toggle-check">
+          <input type="checkbox" name="visa_support_only" value="true" {% if visa_support_only %}checked{% endif %} />
+          Visa support only
+        </label>
+        <select name="region_preference" data-role="region-preference">
+          <option value="pakistan" {% if region_preference == 'pakistan' %}selected{% endif %}>Pakistan-friendly region</option>
+          <option value="global" {% if region_preference == 'global' %}selected{% endif %}>Global remote</option>
+          <option value="asia" {% if region_preference == 'asia' %}selected{% endif %}>Asia</option>
+          <option value="europe" {% if region_preference == 'europe' %}selected{% endif %}>Europe</option>
+          <option value="americas" {% if region_preference == 'americas' %}selected{% endif %}>Americas</option>
+          <option value="any" {% if region_preference == 'any' %}selected{% endif %}>Any region</option>
+        </select>
         <button type="submit">Run My Match</button>
       </form>
 
@@ -87,20 +156,55 @@
     </section>
 
     <section class="card">
-      <h2>Top Job Results</h2>
+      <div class="section-head">
+        <div>
+          <h2>Top Job Results</h2>
+          <p class="hint">Scored by CV and skills overlap, then cleaned with role, remote, and seniority filters.</p>
+        </div>
+        <div class="summary-pills">
+          <span>{{ match_summary.total if match_summary else 0 }} shown</span>
+          <span>{{ match_summary.high if match_summary else 0 }} high</span>
+          <span>{{ match_summary.medium if match_summary else 0 }} medium</span>
+          <span>{{ match_summary.remote if match_summary else 0 }} remote</span>
+          <span>{{ match_summary.salary if match_summary else 0 }} salary</span>
+          <span>{{ match_summary.visa if match_summary else 0 }} visa</span>
+        </div>
+      </div>
       <div class="matches">
         {% for item in matches %}
           <article class="job">
             <div>
-              <h3>{{ item.job.title }}</h3>
+              <div class="job-topline">
+                <h3>{{ item.job.title }}</h3>
+                <span class="match-badge match-{{ item.match_level }}">{{ item.match_level|upper }}</span>
+              </div>
               <p>{{ item.job.company }} · {{ item.job.location }}</p>
-              <p class="source">Source: {{ item.job.source }} | Score: {{ item.score }}</p>
-              <p class="source">Match level: {{ item.match_level|upper }}</p>
+              <div class="badge-row">
+                <span class="meta-badge">{{ item.job.source }}</span>
+                <span class="meta-badge">Score {{ item.score }}</span>
+                {% if item.is_remote %}<span class="meta-badge good">Remote</span>{% endif %}
+                {% if item.is_junior_friendly %}<span class="meta-badge good">Junior-friendly</span>{% endif %}
+                {% if item.is_pakistan_friendly %}<span class="meta-badge good">Pakistan-friendly</span>{% endif %}
+                {% if item.has_salary %}<span class="meta-badge">Salary visible</span>{% endif %}
+                {% if item.has_visa_support %}<span class="meta-badge">Visa support</span>{% endif %}
+              </div>
               <p>{{ item.reason }}</p>
+              {% if item.job.salary %}
+              <p class="source">Salary: {{ item.job.salary }}</p>
+              {% endif %}
+              {% if item.matched_skills %}
+              <p class="source">Matched stack: {{ item.matched_skills|join(', ') }}</p>
+              {% endif %}
+              {% if item.missing_skills %}
+              <p class="source">Still missing: {{ item.missing_skills|join(', ') }}</p>
+              {% endif %}
               <div class="assisted-links">
                 <a href="{{ item.assisted_links.linkedin }}" target="_blank" rel="noopener">LinkedIn Search</a>
+                <a href="{{ item.assisted_links.indeed }}" target="_blank" rel="noopener">Indeed Search</a>
+                <a href="{{ item.assisted_links.google_jobs }}" target="_blank" rel="noopener">Google Jobs</a>
                 <a href="{{ item.assisted_links.upwork }}" target="_blank" rel="noopener">Upwork Search</a>
                 <a href="{{ item.assisted_links.fiverr }}" target="_blank" rel="noopener">Fiverr Search</a>
+                <button type="button" class="ghost-action" data-copy-query="{{ item.search_query }}">Copy Search</button>
               </div>
               {% if selected %}
               <form action="/dashboard/applications" method="post" class="save-form">
@@ -109,9 +213,12 @@
                 <input type="hidden" name="company" value="{{ item.job.company }}" />
                 <input type="hidden" name="source" value="{{ item.job.source }}" />
                 <input type="hidden" name="job_url" value="{{ item.job.url }}" />
-                <input type="hidden" name="status" value="saved" />
                 <input type="text" name="notes" placeholder="Optional note" />
-                <button type="submit">Save To Tracker</button>
+                <input type="date" name="follow_up_date" />
+                <div class="action-row">
+                  <button type="submit" name="status" value="saved">Save To Tracker</button>
+                  <button type="submit" name="status" value="applied" class="secondary-action">Mark Applied</button>
+                </div>
               </form>
               {% endif %}
             </div>
@@ -138,12 +245,37 @@
         <div class="status-card"><p>Interview</p><strong>{{ status_summary.interview }}</strong></div>
         <div class="status-card"><p>Rejected</p><strong>{{ status_summary.rejected }}</strong></div>
       </div>
+      <div class="insights-grid">
+        <div class="insight-panel">
+          <h3>Upcoming Follow-ups</h3>
+          {% for item in follow_up_summary %}
+            <div class="insight-row">
+              <strong>{{ item.follow_up_date }}</strong>
+              <span>{{ item.company }} - {{ item.job_title }}</span>
+            </div>
+          {% else %}
+            <p class="hint">Add follow-up dates while saving or updating applications.</p>
+          {% endfor %}
+        </div>
+        <div class="insight-panel">
+          <h3>Top Companies</h3>
+          {% for item in company_summary %}
+            <div class="insight-row">
+              <strong>{{ item.company }}</strong>
+              <span>{{ item.total }} total / {{ item.applied }} applied / {{ item.interview }} interview</span>
+            </div>
+          {% else %}
+            <p class="hint">Company insights will appear after you track a few applications.</p>
+          {% endfor %}
+        </div>
+      </div>
       <div class="tracker">
         {% for row in applications %}
           <article class="tracker-row">
             <div>
               <h3>{{ row.job_title }}</h3>
               <p>{{ row.company }} · {{ row.source }}</p>
+              {% if row.follow_up_date %}<p class="source">Follow-up: {{ row.follow_up_date }}</p>{% endif %}
               <a href="{{ row.job_url }}" target="_blank" rel="noopener">Open Job URL</a>
             </div>
             <form action="/dashboard/applications/{{ row.id }}" method="post" class="tracker-form">
@@ -156,6 +288,7 @@
                 <option value="rejected" {% if row.status == 'rejected' %}selected{% endif %}>rejected</option>
               </select>
               <input type="text" name="notes" value="{{ row.notes }}" placeholder="Notes" />
+              <input type="date" name="follow_up_date" value="{{ row.follow_up_date }}" />
               <button type="submit">Update</button>
             </form>
           </article>

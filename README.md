@@ -237,6 +237,9 @@ Then combine inside `app/routes/jobs.py` and pass merged jobs to `rank_jobs(...)
 - Build command: `pip install -r requirements.txt`
 - Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - Add env vars from `.env.example`
+- Keep the included persistent disk enabled for SQLite storage on Render
+- Production SQLite path in `render.yaml`: `sqlite:////var/data/jobmind.db`
+- After changing the repo, commit and push so Render can auto-deploy the latest version
 
 ### Railway.app
 - Deploy from GitHub

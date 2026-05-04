@@ -6,12 +6,18 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     autoDeploy: true
+    disk:
+      name: jobmind-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: APP_ENV
         value: prod
       - key: DATABASE_URL
-        value: sqlite:///./jobmind.db
+        value: sqlite:////var/data/jobmind.db
       - key: FREE_MONTHLY_MATCH_LIMIT
         value: "50"
       - key: FREE_SOURCES
         value: remotive,weworkremotely
+      - key: PYTHON_VERSION
+        value: "3.11.9"
