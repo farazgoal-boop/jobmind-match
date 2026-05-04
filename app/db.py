@@ -1,7 +1,15 @@
-﻿from sqlmodel import SQLModel, Session, create_engine
+﻿from pathlib import Path
+
+from sqlmodel import SQLModel, Session, create_engine
 from sqlalchemy.pool import StaticPool
 
 from app.config import settings
+
+
+def _ensure_sqlite_directory(database_url: str) -> None:
+    database_path = database_url[len("sqlite:///") :]
+    parent = Path(database_path).expanduser().parent
+    parent.mkdir(parents=True, exist_ok=True)
 
 
 def _build_engine():
@@ -17,6 +25,7 @@ def _build_engine():
         )
 
     if normalized.startswith("sqlite:///"):
+        _ensure_sqlite_directory(database_url)
         return create_engine(
             database_url,
             echo=False,

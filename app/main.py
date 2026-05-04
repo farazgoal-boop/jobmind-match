@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
@@ -6,13 +8,18 @@ from app.db import init_db
 from app.routes import applications, jobs, profile, web
 from app.scheduler import start_scheduler, stop_scheduler
 
+logger = logging.getLogger(__name__)
 app = FastAPI(title=settings.app_name)
 
 
 @app.on_event("startup")
 def on_startup() -> None:
-    init_db()
-    start_scheduler()
+    try:
+        init_db()
+        start_scheduler()
+    except Exception:
+        logger.exception("Application startup failed")
+        raise
 
 
 @app.on_event("shutdown")
