@@ -44,6 +44,12 @@ def _ensure_candidate_profile_columns() -> None:
         missing_columns.append("resume_url")
     if "portfolio_url" not in column_names:
         missing_columns.append("portfolio_url")
+    if "product_name" not in column_names:
+        missing_columns.append("product_name")
+    if "product_url" not in column_names:
+        missing_columns.append("product_url")
+    if "sales_pitch" not in column_names:
+        missing_columns.append("sales_pitch")
 
     if not missing_columns:
         return

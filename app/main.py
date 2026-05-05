@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
@@ -27,9 +28,9 @@ def on_shutdown() -> None:
     stop_scheduler()
 
 
-@app.get("/")
-def health():
-    return {"app": settings.app_name, "status": "ok"}
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse(url="/dashboard", status_code=302)
 
 
 app.include_router(profile.router)

@@ -11,6 +11,9 @@ class CandidateProfile(SQLModel, table=True):
     github_username: str = ""
     resume_url: str = ""
     portfolio_url: str = ""
+    product_name: str = ""
+    product_url: str = ""
+    sales_pitch: str = ""
     cv_text: str = ""
     is_premium: bool = False
 
@@ -49,4 +52,29 @@ class ApplicationRecord(SQLModel, table=True):
     job_url: str
     status: str = "saved"
     notes: str = ""
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ClientLead(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    candidate_id: int
+    lead_name: str = ""
+    company: str
+    source: str
+    lead_url: str = ""
+    contact_email: str = ""
+    contact_phone: str = ""
+    contact_channel: str = "email"
+    offer_type: str = "services"
+    status: str = "new"
+    notes: str = ""
+    follow_up_date: str = ""
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class FilterPreset(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    candidate_id: int
+    name: str
+    preset_json: str = "{}"
     updated_at: datetime = Field(default_factory=datetime.utcnow)

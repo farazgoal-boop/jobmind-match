@@ -6,3 +6,5 @@ jobmind.db
 write_test.txt
 .vscode/
 *.log
+mobile-wrapper/node_modules/
+mobile-wrapper/android/

@@ -1,15 +1,21 @@
 from datetime import datetime
+import json
 import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, select
 
 from app.db import get_session
-from app.models import ApplicationRecord, CandidateProfile
-from app.services.assisted_apply import build_assisted_links
+from app.models import ApplicationRecord, CandidateProfile, ClientLead, FilterPreset
+from app.services.assisted_apply import (
+    build_assisted_links,
+    build_client_access_links,
+    build_live_search_links,
+    build_sales_outreach_links,
+)
 from app.services.cv_parser import extract_text_from_docx, extract_text_from_pdf
 from app.services.matcher import rank_jobs
 from app.services.quota import consume_matches, ensure_can_consume_matches
@@ -104,6 +110,89 @@ def build_follow_up_summary(applications: list[ApplicationRecord]) -> list[dict[
     return sorted(items, key=lambda item: item["follow_up_date"])[:6]
 
 
+def build_client_status_summary(leads: list[ClientLead]) -> dict[str, int]:
+    summary = {
+        "total": len(leads),
+        "new": 0,
+        "contacted": 0,
+        "replied": 0,
+        "negotiation": 0,
+        "won": 0,
+        "lost": 0,
+    }
+    for row in leads:
+        key = row.status.strip().lower()
+        if key in summary:
+            summary[key] += 1
+    return summary
+
+
+def build_client_lead_entries(leads: list[ClientLead]) -> list[dict]:
+    return [
+        {
+            "id": row.id,
+            "candidate_id": row.candidate_id,
+            "lead_name": row.lead_name,
+            "company": row.company,
+            "source": row.source,
+            "lead_url": row.lead_url,
+            "contact_email": row.contact_email,
+            "contact_phone": row.contact_phone,
+            "contact_channel": row.contact_channel,
+            "offer_type": row.offer_type,
+            "status": row.status,
+            "notes": row.notes,
+            "follow_up_date": row.follow_up_date,
+            "updated_at": row.updated_at,
+        }
+        for row in leads
+    ]
+
+
+def build_filter_preset_entries(presets: list[FilterPreset]) -> list[dict[str, str | int]]:
+    return [
+        {
+            "id": row.id,
+            "candidate_id": row.candidate_id,
+            "name": row.name,
+            "preset_json": row.preset_json,
+            "updated_at": row.updated_at.isoformat(),
+        }
+        for row in presets
+    ]
+
+
+def build_client_follow_up_summary(leads: list[ClientLead]) -> list[dict[str, str]]:
+    items = []
+    for row in leads:
+        if not row.follow_up_date:
+            continue
+        items.append(
+            {
+                "company": row.company,
+                "lead_name": row.lead_name or "Decision maker",
+                "follow_up_date": row.follow_up_date,
+                "status": row.status,
+            }
+        )
+    return sorted(items, key=lambda item: item["follow_up_date"])[:6]
+
+
+def build_outreach_links(profile: CandidateProfile | None, offer_type: str) -> list[dict[str, str]]:
+    if not profile:
+        return []
+    return build_sales_outreach_links(
+        full_name=profile.full_name,
+        email=profile.email,
+        offer_type=offer_type,
+        product_name=profile.product_name,
+        product_url=profile.product_url,
+        resume_url=profile.resume_url,
+        portfolio_url=profile.portfolio_url,
+        sales_pitch=profile.sales_pitch,
+    )
+
+
 def score_to_level(score: float) -> str:
     if score >= 0.65:
         return "high"
@@ -196,18 +285,249 @@ def build_match_summary(matches: list[dict]) -> dict[str, int]:
     return summary
 
 
+def compute_fit_score(score: float) -> int:
+    return max(0, min(100, round(score * 100)))
+
+
+def compute_trust_score(job: dict) -> int:
+    score = 40
+    source = str(job.get("source", "") or "").lower()
+    description = str(job.get("description", "") or "").lower()
+    location = str(job.get("location", "") or "").lower()
+    url = str(job.get("url", "") or "").lower()
+
+    trusted_sources = {
+        "remotive": 18,
+        "weworkremotely": 16,
+        "arbeitnow": 14,
+    }
+    score += trusted_sources.get(source, 8)
+
+    if has_salary_signal(job):
+        score += 10
+    if has_visa_signal(job):
+        score += 6
+    if is_remote_job(job):
+        score += 6
+    if any(token in description for token in ["apply", "benefits", "team", "requirements"]):
+        score += 8
+    if any(token in location for token in ["remote", "worldwide", "global"]):
+        score += 4
+    if url.startswith("https://"):
+        score += 4
+
+    return max(0, min(100, score))
+
+
+def build_match_reasons(job: dict, matched_skills: list[str], missing_skills: list[str]) -> list[str]:
+    reasons: list[str] = []
+    if matched_skills:
+        reasons.append(f"Stack match: {', '.join(matched_skills[:3])}")
+    if is_remote_job(job):
+        reasons.append("Remote-ready listing")
+    if is_junior_friendly_job(job):
+        reasons.append("Junior-friendly wording")
+    if has_salary_signal(job):
+        reasons.append("Compensation visible")
+    if has_visa_signal(job):
+        reasons.append("Visa or relocation signal")
+    if is_pakistan_friendly_job(job):
+        reasons.append("Pakistan-friendly access")
+    if missing_skills:
+        reasons.append(f"Upskill next: {', '.join(missing_skills[:2])}")
+    return reasons[:5]
+
+
+def build_active_filter_badges(
+    search_mode: str,
+    offer_type: str,
+    client_type: str,
+    contact_goal: str,
+    posted_within: str,
+    counterparty_type: str,
+    trust_signal: str,
+    company_size: str,
+    proposal_pressure: str,
+    verified_payment_only: bool,
+) -> list[str]:
+    badges = [
+        f"Mode: {search_mode.replace('_', ' ')}",
+        f"Offer: {offer_type.replace('_', ' ')}",
+        f"Client: {client_type.replace('_', ' ')}",
+        f"Goal: {contact_goal.replace('_', ' ')}",
+    ]
+    if posted_within != "any":
+        badges.append(f"Posted: {posted_within}")
+    if counterparty_type != "any":
+        badges.append(f"Side: {counterparty_type.replace('_', ' ')}")
+    if trust_signal != "any":
+        badges.append(f"Trust: {trust_signal.replace('_', ' ')}")
+    if company_size != "any":
+        badges.append(f"Size: {company_size.replace('_', ' ')}")
+    if proposal_pressure != "any":
+        badges.append(f"Competition: {proposal_pressure}")
+    if verified_payment_only:
+        badges.append("Verified payment")
+    return badges
+
+
+def build_dashboard_live_links(
+    profile: CandidateProfile | None,
+    search_mode: str,
+    offer_type: str,
+    client_type: str,
+    demand_level: str,
+    contact_goal: str,
+    counterparty_type: str,
+    posted_within: str,
+    verified_payment_only: bool,
+    trust_signal: str,
+    company_size: str,
+    proposal_pressure: str,
+    platform_targets: str,
+    search_focus: str,
+    region_preference: str,
+    remote_only: bool,
+    junior_only: bool,
+    backend_only: bool,
+    pakistan_friendly_only: bool,
+    salary_only: bool,
+    visa_support_only: bool,
+    custom_keywords: str,
+) -> list[dict[str, str]]:
+    if not profile:
+        return []
+
+    return build_live_search_links(
+        search_mode=search_mode,
+        offer_type=offer_type,
+        client_type=client_type,
+        demand_level=demand_level,
+        contact_goal=contact_goal,
+        counterparty_type=counterparty_type,
+        posted_within=posted_within,
+        verified_payment_only=verified_payment_only,
+        trust_signal=trust_signal,
+        company_size=company_size,
+        proposal_pressure=proposal_pressure,
+        platform_targets=[target.strip() for target in platform_targets.split(",") if target.strip()],
+        search_focus=search_focus,
+        region_preference=region_preference,
+        remote_only=remote_only,
+        junior_only=junior_only,
+        backend_only=backend_only,
+        pakistan_friendly_only=pakistan_friendly_only,
+        salary_only=salary_only,
+        visa_support_only=visa_support_only,
+        candidate_skills=profile.skills_csv,
+        custom_keywords=custom_keywords,
+    )
+
+
+def build_dashboard_client_links(
+    profile: CandidateProfile | None,
+    search_mode: str,
+    offer_type: str,
+    client_type: str,
+    counterparty_type: str,
+    region_preference: str,
+    contact_goal: str,
+    posted_within: str,
+    verified_payment_only: bool,
+    trust_signal: str,
+    company_size: str,
+    custom_keywords: str,
+) -> list[dict[str, str]]:
+    if not profile:
+        return []
+
+    return build_client_access_links(
+        search_mode=search_mode,
+        offer_type=offer_type,
+        client_type=client_type,
+        counterparty_type=counterparty_type,
+        region_preference=region_preference,
+        contact_goal=contact_goal,
+        posted_within=posted_within,
+        verified_payment_only=verified_payment_only,
+        trust_signal=trust_signal,
+        company_size=company_size,
+        custom_keywords=custom_keywords,
+    )
+
+
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, session: Annotated[Session, Depends(get_session)], candidate_id: int | None = None):
     profiles = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).all()
     selected = session.get(CandidateProfile, candidate_id) if candidate_id else None
     applications = []
+    client_leads = []
+    filter_presets = []
     if selected:
         applications = session.exec(
             select(ApplicationRecord)
             .where(ApplicationRecord.candidate_id == selected.id)
             .order_by(ApplicationRecord.updated_at.desc())
         ).all()
+        client_leads = session.exec(
+            select(ClientLead).where(ClientLead.candidate_id == selected.id).order_by(ClientLead.updated_at.desc())
+        ).all()
+        filter_presets = session.exec(
+            select(FilterPreset).where(FilterPreset.candidate_id == selected.id).order_by(FilterPreset.name.asc())
+        ).all()
     status_summary = build_status_summary(applications)
+    client_status_summary = build_client_status_summary(client_leads)
+    live_search_links = build_dashboard_live_links(
+        profile=selected,
+        search_mode="job_search",
+        offer_type="software",
+        client_type="startup",
+        demand_level="latest",
+        contact_goal="apply",
+        counterparty_type="any",
+        posted_within="7d",
+        verified_payment_only=False,
+        trust_signal="any",
+        company_size="any",
+        proposal_pressure="any",
+        platform_targets="indeed,linkedin,upwork,google_clients",
+        search_focus="python",
+        region_preference="pakistan",
+        remote_only=True,
+        junior_only=True,
+        backend_only=False,
+        pakistan_friendly_only=True,
+        salary_only=False,
+        visa_support_only=False,
+        custom_keywords="",
+    )
+    client_access_links = build_dashboard_client_links(
+        profile=selected,
+        search_mode="job_search",
+        offer_type="software",
+        client_type="startup",
+        counterparty_type="any",
+        region_preference="pakistan",
+        contact_goal="apply",
+        posted_within="7d",
+        verified_payment_only=False,
+        trust_signal="any",
+        company_size="any",
+        custom_keywords="",
+    )
+    active_filter_badges = build_active_filter_badges(
+        search_mode="job_search",
+        offer_type="software",
+        client_type="startup",
+        contact_goal="apply",
+        posted_within="7d",
+        counterparty_type="any",
+        trust_signal="any",
+        company_size="any",
+        proposal_pressure="any",
+        verified_payment_only=False,
+    )
+    outreach_links = build_outreach_links(selected, "software")
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -218,10 +538,30 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "usage": None,
             "error": "",
             "applications": build_tracker_entries(applications),
+            "client_leads": build_client_lead_entries(client_leads),
+            "saved_filter_presets": build_filter_preset_entries(filter_presets),
             "status_summary": status_summary,
+            "client_status_summary": client_status_summary,
             "company_summary": build_company_summary(applications),
             "follow_up_summary": build_follow_up_summary(applications),
+            "client_follow_up_summary": build_client_follow_up_summary(client_leads),
+            "live_search_links": live_search_links,
+            "client_access_links": client_access_links,
+            "outreach_links": outreach_links,
             "sources": ",".join(free_sources_list()),
+            "platform_targets": "indeed,linkedin,upwork,google_clients",
+            "search_mode": "job_search",
+            "offer_type": "software",
+            "client_type": "startup",
+            "demand_level": "latest",
+            "contact_goal": "apply",
+            "counterparty_type": "any",
+            "posted_within": "7d",
+            "verified_payment_only": False,
+            "trust_signal": "any",
+            "company_size": "any",
+            "proposal_pressure": "any",
+            "custom_keywords": "",
             "min_match_level": "all",
             "backend_only": False,
             "remote_only": True,
@@ -232,6 +572,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "visa_support_only": False,
             "region_preference": "pakistan",
             "match_summary": build_match_summary([]),
+            "active_filter_badges": active_filter_badges,
         },
     )
 
@@ -288,23 +629,142 @@ def create_profile_from_form(
     full_name: Annotated[str, Form(...)],
     email: Annotated[str, Form(...)],
     skills_csv: Annotated[str, Form(...)],
+    profile_id: Annotated[int | None, Form()] = None,
     github_username: Annotated[str, Form()] = "",
     resume_url: Annotated[str, Form()] = "",
     portfolio_url: Annotated[str, Form()] = "",
+    product_name: Annotated[str, Form()] = "",
+    product_url: Annotated[str, Form()] = "",
+    sales_pitch: Annotated[str, Form()] = "",
     session: Annotated[Session, Depends(get_session)] = None,
 ):
-    profile = CandidateProfile(
-        full_name=full_name,
-        email=email,
-        skills_csv=skills_csv,
-        github_username=github_username,
-        resume_url=resume_url,
-        portfolio_url=portfolio_url,
-    )
+    profile = session.get(CandidateProfile, profile_id) if profile_id else CandidateProfile()
+    profile.full_name = full_name
+    profile.email = email
+    profile.skills_csv = skills_csv
+    profile.github_username = github_username
+    profile.resume_url = resume_url
+    profile.portfolio_url = portfolio_url
+    profile.product_name = product_name
+    profile.product_url = product_url
+    profile.sales_pitch = sales_pitch
     session.add(profile)
     session.commit()
     session.refresh(profile)
     return RedirectResponse(url=f"/dashboard?candidate_id={profile.id}", status_code=303)
+
+
+@router.post("/dashboard/client-leads")
+def add_client_lead_from_form(
+    candidate_id: Annotated[int, Form(...)],
+    company: Annotated[str, Form(...)],
+    lead_name: Annotated[str, Form()] = "",
+    source: Annotated[str, Form()] = "manual",
+    lead_url: Annotated[str, Form()] = "",
+    contact_email: Annotated[str, Form()] = "",
+    contact_phone: Annotated[str, Form()] = "",
+    contact_channel: Annotated[str, Form()] = "email",
+    offer_type: Annotated[str, Form()] = "services",
+    status: Annotated[str, Form()] = "new",
+    notes: Annotated[str, Form()] = "",
+    follow_up_date: Annotated[str, Form()] = "",
+    session: Annotated[Session, Depends(get_session)] = None,
+):
+    row = ClientLead(
+        candidate_id=candidate_id,
+        company=company,
+        lead_name=lead_name,
+        source=source,
+        lead_url=lead_url,
+        contact_email=contact_email,
+        contact_phone=contact_phone,
+        contact_channel=contact_channel,
+        offer_type=offer_type,
+        status=status,
+        notes=notes,
+        follow_up_date=follow_up_date,
+    )
+    session.add(row)
+    session.commit()
+    return RedirectResponse(url=f"/dashboard?candidate_id={candidate_id}", status_code=303)
+
+
+@router.post("/dashboard/client-leads/{lead_id}")
+def update_client_lead_from_form(
+    lead_id: int,
+    candidate_id: Annotated[int, Form(...)],
+    status: Annotated[str, Form(...)],
+    notes: Annotated[str, Form()] = "",
+    follow_up_date: Annotated[str, Form()] = "",
+    contact_email: Annotated[str, Form()] = "",
+    contact_phone: Annotated[str, Form()] = "",
+    contact_channel: Annotated[str, Form()] = "email",
+    session: Annotated[Session, Depends(get_session)] = None,
+):
+    row = session.get(ClientLead, lead_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Client lead not found")
+
+    row.status = status
+    row.notes = notes
+    row.follow_up_date = follow_up_date
+    row.contact_email = contact_email
+    row.contact_phone = contact_phone
+    row.contact_channel = contact_channel
+    row.updated_at = datetime.utcnow()
+    session.add(row)
+    session.commit()
+    return RedirectResponse(url=f"/dashboard?candidate_id={candidate_id}", status_code=303)
+
+
+@router.post("/dashboard/filter-presets")
+def save_filter_preset(
+    candidate_id: Annotated[int, Form(...)],
+    preset_name: Annotated[str, Form(...)],
+    preset_payload: Annotated[str, Form(...)],
+    session: Annotated[Session, Depends(get_session)] = None,
+):
+    candidate = session.get(CandidateProfile, candidate_id)
+    if not candidate:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    name = preset_name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Preset name required")
+
+    try:
+        payload = json.loads(preset_payload)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail="Invalid preset payload") from exc
+
+    row = session.exec(
+        select(FilterPreset).where(FilterPreset.candidate_id == candidate_id, FilterPreset.name == name)
+    ).first()
+    if row:
+        row.preset_json = json.dumps(payload)
+        row.updated_at = datetime.utcnow()
+    else:
+        row = FilterPreset(candidate_id=candidate_id, name=name, preset_json=json.dumps(payload))
+
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return JSONResponse({"ok": True, "preset": build_filter_preset_entries([row])[0]})
+
+
+@router.post("/dashboard/filter-presets/{preset_id}/delete")
+def delete_filter_preset(
+    preset_id: int,
+    candidate_id: Annotated[int, Form(...)],
+    session: Annotated[Session, Depends(get_session)] = None,
+):
+    row = session.get(FilterPreset, preset_id)
+    if not row or row.candidate_id != candidate_id:
+        raise HTTPException(status_code=404, detail="Preset not found")
+
+    session.delete(row)
+    session.commit()
+    return JSONResponse({"ok": True, "preset_id": preset_id})
 
 
 @router.post("/dashboard/upload-cv")
@@ -338,6 +798,19 @@ def dashboard_matches(
     candidate_id: int,
     top_k: int = 5,
     sources: str = "",
+    platform_targets: str = "indeed,linkedin,upwork,google_clients",
+    search_mode: str = "job_search",
+    offer_type: str = "software",
+    client_type: str = "startup",
+    demand_level: str = "latest",
+    contact_goal: str = "apply",
+    counterparty_type: str = "any",
+    posted_within: str = "7d",
+    verified_payment_only: bool = False,
+    trust_signal: str = "any",
+    company_size: str = "any",
+    proposal_pressure: str = "any",
+    custom_keywords: str = "",
     min_match_level: str = "all",
     backend_only: bool = False,
     remote_only: bool = True,
@@ -362,10 +835,29 @@ def dashboard_matches(
                 "usage": None,
                 "error": "Candidate not found.",
                 "applications": [],
+                "client_leads": [],
                 "status_summary": build_status_summary([]),
+                "client_status_summary": build_client_status_summary([]),
                 "company_summary": [],
                 "follow_up_summary": [],
+                "client_follow_up_summary": [],
+                "live_search_links": [],
+                "client_access_links": [],
+                "outreach_links": [],
                 "sources": ",".join(free_sources_list()),
+                "platform_targets": platform_targets,
+                "search_mode": search_mode,
+                "offer_type": offer_type,
+                "client_type": client_type,
+                "demand_level": demand_level,
+                "contact_goal": contact_goal,
+                "counterparty_type": counterparty_type,
+                "posted_within": posted_within,
+                "verified_payment_only": verified_payment_only,
+                "trust_signal": trust_signal,
+                "company_size": company_size,
+                "proposal_pressure": proposal_pressure,
+                "custom_keywords": custom_keywords,
                 "min_match_level": min_match_level,
                 "backend_only": backend_only,
                 "remote_only": remote_only,
@@ -384,11 +876,70 @@ def dashboard_matches(
         .where(ApplicationRecord.candidate_id == selected.id)
         .order_by(ApplicationRecord.updated_at.desc())
     ).all()
+    client_leads = session.exec(
+        select(ClientLead).where(ClientLead.candidate_id == selected.id).order_by(ClientLead.updated_at.desc())
+    ).all()
+    filter_presets = session.exec(
+        select(FilterPreset).where(FilterPreset.candidate_id == selected.id).order_by(FilterPreset.name.asc())
+    ).all()
     status_summary = build_status_summary(applications)
+    client_status_summary = build_client_status_summary(client_leads)
 
     selected_sources = [s.strip().lower() for s in sources.split(",") if s.strip()] or free_sources_list()
     if not selected.is_premium:
         selected_sources = selected_sources[:2]
+
+    live_search_links = build_dashboard_live_links(
+        profile=selected,
+        search_mode=search_mode,
+        offer_type=offer_type,
+        client_type=client_type,
+        demand_level=demand_level,
+        contact_goal=contact_goal,
+        counterparty_type=counterparty_type,
+        posted_within=posted_within,
+        verified_payment_only=verified_payment_only,
+        trust_signal=trust_signal,
+        company_size=company_size,
+        proposal_pressure=proposal_pressure,
+        platform_targets=platform_targets,
+        search_focus=search_focus,
+        region_preference=region_preference,
+        remote_only=remote_only,
+        junior_only=junior_only,
+        backend_only=backend_only,
+        pakistan_friendly_only=pakistan_friendly_only,
+        salary_only=salary_only,
+        visa_support_only=visa_support_only,
+        custom_keywords=custom_keywords,
+    )
+    client_access_links = build_dashboard_client_links(
+        profile=selected,
+        search_mode=search_mode,
+        offer_type=offer_type,
+        client_type=client_type,
+        counterparty_type=counterparty_type,
+        region_preference=region_preference,
+        contact_goal=contact_goal,
+        posted_within=posted_within,
+        verified_payment_only=verified_payment_only,
+        trust_signal=trust_signal,
+        company_size=company_size,
+        custom_keywords=custom_keywords,
+    )
+    outreach_links = build_outreach_links(selected, offer_type)
+    active_filter_badges = build_active_filter_badges(
+        search_mode=search_mode,
+        offer_type=offer_type,
+        client_type=client_type,
+        contact_goal=contact_goal,
+        posted_within=posted_within,
+        counterparty_type=counterparty_type,
+        trust_signal=trust_signal,
+        company_size=company_size,
+        proposal_pressure=proposal_pressure,
+        verified_payment_only=verified_payment_only,
+    )
 
     jobs = fetch_jobs_from_sources(selected_sources, limit_per_source=80)
     candidate_text = " ".join([selected.skills_csv, selected.cv_text])
@@ -431,6 +982,9 @@ def dashboard_matches(
                     github_username=selected.github_username,
                 ),
                 "match_level": level,
+                "fit_score": compute_fit_score(float(item["score"])),
+                "trust_score": compute_trust_score(job),
+                "why_matched": build_match_reasons(job, item.get("matched_skills", []), item.get("missing_skills", [])),
                 "is_remote": is_remote_job(job),
                 "is_junior_friendly": is_junior_friendly_job(job),
                 "is_pakistan_friendly": is_pakistan_friendly_job(job),
@@ -462,9 +1016,29 @@ def dashboard_matches(
             "error": error,
             "sources": ",".join(selected_sources),
             "applications": build_tracker_entries(applications),
+            "client_leads": build_client_lead_entries(client_leads),
+            "saved_filter_presets": build_filter_preset_entries(filter_presets),
             "status_summary": status_summary,
+            "client_status_summary": client_status_summary,
             "company_summary": build_company_summary(applications),
             "follow_up_summary": build_follow_up_summary(applications),
+            "client_follow_up_summary": build_client_follow_up_summary(client_leads),
+            "live_search_links": live_search_links,
+            "client_access_links": client_access_links,
+            "outreach_links": outreach_links,
+            "platform_targets": platform_targets,
+            "search_mode": search_mode,
+            "offer_type": offer_type,
+            "client_type": client_type,
+            "demand_level": demand_level,
+            "contact_goal": contact_goal,
+                "counterparty_type": counterparty_type,
+                "posted_within": posted_within,
+                "verified_payment_only": verified_payment_only,
+                "trust_signal": trust_signal,
+                "company_size": company_size,
+                "proposal_pressure": proposal_pressure,
+            "custom_keywords": custom_keywords,
             "min_match_level": min_match_level,
             "backend_only": backend_only,
             "remote_only": remote_only,
@@ -475,5 +1049,6 @@ def dashboard_matches(
             "visa_support_only": visa_support_only,
             "region_preference": region_preference,
             "match_summary": match_summary,
+            "active_filter_badges": active_filter_badges,
         },
     )
