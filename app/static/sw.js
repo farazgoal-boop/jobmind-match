@@ -1,5 +1,6 @@
-const CACHE_NAME = "jobmind-match-v1";
+const CACHE_NAME = "jobmind-match-v2";
 const APP_SHELL = [
+  "/",
   "/dashboard",
   "/static/styles.css",
   "/static/app.js",
@@ -33,6 +34,10 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/dashboard")))
+      .catch(() =>
+        caches
+          .match(event.request)
+          .then((cached) => cached || caches.match("/") || caches.match("/dashboard"))
+      )
   );
 });
