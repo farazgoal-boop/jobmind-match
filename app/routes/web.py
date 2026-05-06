@@ -33,6 +33,18 @@ BUILTIN_RESUME_SOURCES = {
     }
 }
 
+DEFAULT_PROFILE_SEED = {
+    "full_name": "Muhammad Faraz",
+    "email": "farazgoal@gmail.com",
+    "skills_csv": "Python,Flask,FastAPI,JavaScript,SQL,SQLite,HTML,CSS,TailwindCSS",
+    "github_username": "farazgoal-boop",
+    "resume_url": "",
+    "portfolio_url": "https://muhammad-faraz-dev.netlify.app/",
+    "product_name": "JobMind Match",
+    "product_url": "",
+    "sales_pitch": "I build practical Python, FastAPI, Flask, and automation systems for business workflows and software teams.",
+}
+
 
 def build_resume_library() -> list[dict[str, str]]:
     library = []
@@ -53,6 +65,26 @@ def read_builtin_resume_text(source_key: str) -> str:
         raise HTTPException(status_code=404, detail="Resume file is missing")
 
     return path.read_text(encoding="utf-8").strip()
+
+
+def ensure_seed_profile(session: Session) -> CandidateProfile:
+    existing = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).first()
+    if existing:
+        if not existing.cv_text and build_resume_library():
+            existing.cv_text = read_builtin_resume_text("final-cv")
+            session.add(existing)
+            session.commit()
+            session.refresh(existing)
+        return existing
+
+    profile = CandidateProfile(
+        **DEFAULT_PROFILE_SEED,
+        cv_text=read_builtin_resume_text("final-cv") if build_resume_library() else "",
+    )
+    session.add(profile)
+    session.commit()
+    session.refresh(profile)
+    return profile
 
 
 def build_status_summary(applications: list[ApplicationRecord]) -> dict[str, int]:
@@ -486,8 +518,9 @@ def build_dashboard_client_links(
 
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, session: Annotated[Session, Depends(get_session)], candidate_id: int | None = None):
+    seed_profile = ensure_seed_profile(session)
     profiles = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).all()
-    selected = session.get(CandidateProfile, candidate_id) if candidate_id else None
+    selected = session.get(CandidateProfile, candidate_id) if candidate_id else seed_profile
     resume_library = build_resume_library()
     applications = []
     client_leads = []
