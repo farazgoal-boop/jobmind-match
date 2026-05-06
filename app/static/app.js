@@ -74,6 +74,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const exportPresetsButton = document.querySelector('[data-role="export-presets"]');
   const importPresetsButton = document.querySelector('[data-role="import-presets"]');
   const installButton = document.querySelector('[data-role="install-app"]');
+  const miniJobsLaunch = document.querySelector('[data-role="mini-jobs-launch"]');
   const capacitorApp = window.Capacitor?.Plugins?.App;
   const presetStorageKey = "jobmind_filter_presets_v1";
   let serverPresets = [];
@@ -653,6 +654,12 @@ window.addEventListener("DOMContentLoaded", () => {
       updateFilterOverview();
       syncWorkflowTabWithMode();
     });
+  });
+
+  miniJobsLaunch?.addEventListener("click", () => {
+    const miniPreset = Array.from(document.querySelectorAll('.preset-chip')).find((button) => button.textContent?.trim() === 'Mini Python Gigs');
+    miniPreset?.click();
+    matchForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
   workflowTabs.forEach((button) => {

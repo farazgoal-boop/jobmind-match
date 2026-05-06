@@ -32,7 +32,7 @@
         </div>
         <aside class="hero-spotlight">
           <p class="eyebrow">Today Focus</p>
-          <h3>{{ 'Direct Client Selling' if search_mode in ['direct_clients', 'sell_services', 'sell_products'] else 'Job Match Execution' }}</h3>
+          <h3>{% if external_only_mode %}Mini Python Gigs{% elif search_mode in ['direct_clients', 'sell_services', 'sell_products'] %}Direct Client Selling{% else %}Job Match Execution{% endif %}</h3>
           <p>{% if selected %}Active profile: {{ selected.full_name }}{% else %}Select a profile to activate search, tracking, and outreach workflows.{% endif %}</p>
           <div class="hero-spotlight-grid">
             <div>
@@ -112,6 +112,25 @@
           <span class="feature-tag">Tracking</span>
           <strong>Dual Tracking</strong>
           <p>Job applications and client sales leads are tracked separately so follow-ups stay organized.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="card feature-showcase">
+      <div class="section-head">
+        <div>
+          <h2>Mini Jobs Mode</h2>
+          <p class="hint">Keep this separate when you only want small Python gigs on external platforms with verified payment and global remote filters.</p>
+        </div>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="feature-tag">Focused Mode</span>
+          <strong>Mini Python Gigs</strong>
+          <p>Loads a dedicated Upwork-first mini-job search with small-task keywords, verified payment, and no internal feed mixing.</p>
+          <div class="assisted-links">
+            <button type="button" class="ghost-action" data-role="mini-jobs-launch">Load Mini Jobs Mode</button>
+          </div>
         </article>
       </div>
     </section>
