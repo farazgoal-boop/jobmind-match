@@ -127,6 +127,9 @@
           <input type="text" name="github_username" placeholder="GitHub username" value="{{ selected.github_username if selected else '' }}" />
           <input type="url" name="resume_url" placeholder="Resume URL https://..." value="{{ selected.resume_url if selected else '' }}" />
           <input type="url" name="portfolio_url" placeholder="Portfolio URL https://..." value="{{ selected.portfolio_url if selected else '' }}" />
+          <input type="url" name="linkedin_url" placeholder="LinkedIn profile URL https://..." value="{{ selected.linkedin_url if selected else '' }}" />
+          <input type="url" name="upwork_url" placeholder="Upwork profile URL https://..." value="{{ selected.upwork_url if selected else '' }}" />
+          <input type="url" name="fiverr_url" placeholder="Fiverr profile URL https://..." value="{{ selected.fiverr_url if selected else '' }}" />
           <input type="text" name="product_name" placeholder="Product or service name" value="{{ selected.product_name if selected else '' }}" />
           <input type="url" name="product_url" placeholder="Product URL https://..." value="{{ selected.product_url if selected else '' }}" />
           <textarea name="sales_pitch" rows="4" placeholder="Short pitch that will be reused in semi-auto outreach">{{ selected.sales_pitch if selected else '' }}</textarea>
@@ -471,6 +474,13 @@
       <div class="assisted-links">
         {% if selected.resume_url %}<a href="{{ selected.resume_url }}" target="_blank" rel="noopener">Open Resume</a>{% endif %}
         {% if selected.portfolio_url %}<a href="{{ selected.portfolio_url }}" target="_blank" rel="noopener">Open Portfolio</a>{% endif %}
+      </div>
+      {% endif %}
+      {% if selected.linkedin_url or selected.upwork_url or selected.fiverr_url %}
+      <div class="assisted-links">
+        {% if selected.linkedin_url %}<a href="{{ selected.linkedin_url }}" target="_blank" rel="noopener">My LinkedIn</a>{% endif %}
+        {% if selected.upwork_url %}<a href="{{ selected.upwork_url }}" target="_blank" rel="noopener">My Upwork</a>{% endif %}
+        {% if selected.fiverr_url %}<a href="{{ selected.fiverr_url }}" target="_blank" rel="noopener">My Fiverr</a>{% endif %}
       </div>
       {% endif %}
       {% else %}

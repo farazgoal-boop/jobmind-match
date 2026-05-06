@@ -40,6 +40,9 @@ DEFAULT_PROFILE_SEED = {
     "github_username": "farazgoal-boop",
     "resume_url": "",
     "portfolio_url": "https://muhammad-faraz-dev.netlify.app/",
+    "linkedin_url": "https://www.linkedin.com/in/m-faraz-85b175179",
+    "upwork_url": "https://www.upwork.com/freelancers/~018c67c9c97b482a3a?mp_source=share",
+    "fiverr_url": "https://fiverr.com/s/qDKLLXX",
     "product_name": "JobMind Match",
     "product_url": "",
     "sales_pitch": "I build practical Python, FastAPI, Flask, and automation systems for business workflows and software teams.",
@@ -70,8 +73,15 @@ def read_builtin_resume_text(source_key: str) -> str:
 def ensure_seed_profile(session: Session) -> CandidateProfile:
     existing = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).first()
     if existing:
+        updated = False
         if not existing.cv_text and build_resume_library():
             existing.cv_text = read_builtin_resume_text("final-cv")
+            updated = True
+        for field_name in ("portfolio_url", "linkedin_url", "upwork_url", "fiverr_url"):
+            if not getattr(existing, field_name, ""):
+                setattr(existing, field_name, DEFAULT_PROFILE_SEED[field_name])
+                updated = True
+        if updated:
             session.add(existing)
             session.commit()
             session.refresh(existing)
@@ -703,6 +713,9 @@ def create_profile_from_form(
     github_username: Annotated[str, Form()] = "",
     resume_url: Annotated[str, Form()] = "",
     portfolio_url: Annotated[str, Form()] = "",
+    linkedin_url: Annotated[str, Form()] = "",
+    upwork_url: Annotated[str, Form()] = "",
+    fiverr_url: Annotated[str, Form()] = "",
     product_name: Annotated[str, Form()] = "",
     product_url: Annotated[str, Form()] = "",
     sales_pitch: Annotated[str, Form()] = "",
@@ -716,6 +729,9 @@ def create_profile_from_form(
     profile.github_username = github_username
     profile.resume_url = resume_url
     profile.portfolio_url = portfolio_url
+    profile.linkedin_url = linkedin_url
+    profile.upwork_url = upwork_url
+    profile.fiverr_url = fiverr_url
     profile.product_name = product_name
     profile.product_url = product_url
     profile.sales_pitch = sales_pitch
