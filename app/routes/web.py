@@ -532,12 +532,12 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
     )
     client_access_links = build_dashboard_client_links(
         profile=selected,
-        search_mode="job_search",
+        search_mode="direct_clients",
         offer_type="software",
         client_type="startup",
         counterparty_type="any",
         region_preference="pakistan",
-        contact_goal="apply",
+        contact_goal="pitch",
         posted_within="7d",
         verified_payment_only=False,
         trust_signal="any",
