@@ -156,9 +156,19 @@ def build_client_access_links(
 
     access_links = [
         {
-            "platform": "LinkedIn Companies",
+            "platform": "LinkedIn",
             "caption": "Reach target companies",
             "url": f"https://www.linkedin.com/search/results/companies/?keywords={encoded_query}&origin=GLOBAL_SEARCH_HEADER",
+        },
+        {
+            "platform": "Upwork Clients",
+            "caption": "Open freelance buyer demand",
+            "url": f"https://www.upwork.com/nx/search/jobs/?q={encoded_query}&sort=recency{_upwork_payment_param(verified_payment_only)}",
+        },
+        {
+            "platform": "Fiverr",
+            "caption": "Check live gig demand",
+            "url": f"https://www.fiverr.com/search/gigs?query={encoded_query}",
         },
         {
             "platform": "Google Prospecting",
