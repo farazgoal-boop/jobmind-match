@@ -253,6 +253,11 @@ def build_outreach_links(profile: CandidateProfile | None, offer_type: str) -> l
     )
 
 
+def normalize_platform_targets(platform_targets: str) -> list[str]:
+    selected_targets = [target.strip().lower() for target in platform_targets.split(",") if target.strip()]
+    return selected_targets or ["indeed", "linkedin", "upwork", "google_clients"]
+
+
 def score_to_level(score: float) -> str:
     if score >= 0.65:
         return "high"
@@ -521,6 +526,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
     seed_profile = ensure_seed_profile(session)
     profiles = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).all()
     selected = session.get(CandidateProfile, candidate_id) if candidate_id else seed_profile
+    selected_platform_targets = normalize_platform_targets("indeed,linkedin,upwork,google_clients")
     resume_library = build_resume_library()
     applications = []
     client_leads = []
@@ -613,6 +619,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "resume_library": resume_library,
             "sources": ",".join(free_sources_list()),
             "platform_targets": "indeed,linkedin,upwork,google_clients",
+            "selected_platform_targets": selected_platform_targets,
             "search_mode": "job_search",
             "offer_type": "software",
             "client_type": "startup",
@@ -904,6 +911,7 @@ def dashboard_matches(
 ):
     profiles = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).all()
     selected = session.get(CandidateProfile, candidate_id)
+    selected_platform_targets = normalize_platform_targets(platform_targets)
     resume_library = build_resume_library()
     if not selected:
         return templates.TemplateResponse(
@@ -928,6 +936,7 @@ def dashboard_matches(
                 "resume_library": resume_library,
                 "sources": ",".join(free_sources_list()),
                 "platform_targets": platform_targets,
+                "selected_platform_targets": selected_platform_targets,
                 "search_mode": search_mode,
                 "offer_type": offer_type,
                 "client_type": client_type,
@@ -1110,6 +1119,7 @@ def dashboard_matches(
             "outreach_links": outreach_links,
             "resume_library": resume_library,
             "platform_targets": platform_targets,
+            "selected_platform_targets": selected_platform_targets,
             "search_mode": search_mode,
             "offer_type": offer_type,
             "client_type": client_type,

@@ -492,6 +492,7 @@
         {% endfor %}
       </div>
       <p class="hint">These links follow your dropdowns and tick marks so the search goes exactly where you want.</p>
+      <p class="hint">Scored job results still come from the selected internal sources below; web targets control the quick-search links.</p>
       {% endif %}
 
       {% if client_access_links %}
@@ -576,11 +577,21 @@
               <p class="source">Still missing: {{ item.missing_skills|join(', ') }}</p>
               {% endif %}
               <div class="assisted-links">
+                {% if 'linkedin' in selected_platform_targets %}
                 <a href="{{ item.assisted_links.linkedin }}" target="_blank" rel="noopener">LinkedIn Search</a>
+                {% endif %}
+                {% if 'indeed' in selected_platform_targets %}
                 <a href="{{ item.assisted_links.indeed }}" target="_blank" rel="noopener">Indeed Search</a>
+                {% endif %}
+                {% if 'google_clients' in selected_platform_targets or 'google_maps' in selected_platform_targets %}
                 <a href="{{ item.assisted_links.google_jobs }}" target="_blank" rel="noopener">Google Jobs</a>
+                {% endif %}
+                {% if 'upwork' in selected_platform_targets %}
                 <a href="{{ item.assisted_links.upwork }}" target="_blank" rel="noopener">Upwork Search</a>
+                {% endif %}
+                {% if 'fiverr' in selected_platform_targets %}
                 <a href="{{ item.assisted_links.fiverr }}" target="_blank" rel="noopener">Fiverr Search</a>
+                {% endif %}
                 <a href="{{ item.assisted_links.email_apply }}">Quick Apply Email</a>
                 <button type="button" class="ghost-action" data-copy-query="{{ item.search_query }}">Copy Search</button>
               </div>
