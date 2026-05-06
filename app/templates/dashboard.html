@@ -77,6 +77,7 @@
         <button type="button" class="preset-chip" data-mode="job_search" data-focus="fastapi" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="global">FastAPI Backend</button>
         <button type="button" class="preset-chip" data-mode="job_search" data-focus="flask" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Flask Roles</button>
         <button type="button" class="preset-chip" data-mode="job_search" data-focus="fullstack" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="false" data-remote="true" data-junior="true" data-region="global">Full Stack</button>
+        <button type="button" class="preset-chip" data-mode="job_search" data-focus="python" data-offer="software" data-client="startup" data-goal="apply" data-demand="budget" data-posted="1d" data-region="global" data-remote="true" data-junior="false" data-backend="false" data-sources="" data-platforms="upwork" data-keywords="small bug fix script automation API Flask FastAPI quick task" data-verified="true" data-pakistan="false">Mini Python Gigs</button>
         <button type="button" class="preset-chip" data-mode="sell_services" data-offer="automation" data-client="agency" data-goal="pitch" data-demand="urgent" data-region="global">Agency Outreach</button>
         <button type="button" class="preset-chip" data-mode="sell_products" data-offer="products" data-client="wholesale_buyer" data-goal="meeting" data-demand="premium" data-region="asia">Product Buyers</button>
         <button type="button" class="preset-chip" data-mode="direct_clients" data-offer="software" data-client="startup" data-goal="email" data-demand="latest" data-region="europe">Direct Startup Leads</button>
@@ -505,6 +506,10 @@
       <p class="hint">Scored job results still come from the selected internal sources below; web targets control the quick-search links.</p>
       {% endif %}
 
+      {% if external_only_mode %}
+      <p class="hint">External mini-job mode is active. Internal feeds are skipped, so use the selected platform links above for focused Upwork or Fiverr searches.</p>
+      {% endif %}
+
       {% if client_access_links %}
       <div class="assisted-links">
         {% for link in client_access_links %}
@@ -527,8 +532,8 @@
     <section class="card workflow-panel" data-role="workflow-panel" data-tab-panel="jobs">
       <div class="section-head">
         <div>
-          <h2>Top Job Results</h2>
-          <p class="hint">Scored by CV and skills overlap, then cleaned with role, remote, and seniority filters.</p>
+          <h2>{% if external_only_mode %}External Job Search{% else %}Top Job Results{% endif %}</h2>
+          <p class="hint">{% if external_only_mode %}Use the focused platform links above for mini Python jobs, verified-payment gigs, and global searches without internal feed mixing.{% else %}Scored by CV and skills overlap, then cleaned with role, remote, and seniority filters.{% endif %}</p>
         </div>
         <div class="summary-pills">
           <span>{{ match_summary.total if match_summary else 0 }} shown</span>
@@ -605,6 +610,19 @@
                 <a href="{{ item.assisted_links.email_apply }}">Quick Apply Email</a>
                 <button type="button" class="ghost-action" data-copy-query="{{ item.search_query }}">Copy Search</button>
               </div>
+              {% if selected.linkedin_url or selected.upwork_url or selected.fiverr_url %}
+              <div class="assisted-links">
+                {% if selected.linkedin_url %}
+                <a href="{{ selected.linkedin_url }}" target="_blank" rel="noopener">Open My LinkedIn</a>
+                {% endif %}
+                {% if selected.upwork_url %}
+                <a href="{{ selected.upwork_url }}" target="_blank" rel="noopener">Open My Upwork</a>
+                {% endif %}
+                {% if selected.fiverr_url %}
+                <a href="{{ selected.fiverr_url }}" target="_blank" rel="noopener">Open My Fiverr</a>
+                {% endif %}
+              </div>
+              {% endif %}
               {% if selected and (selected.resume_url or selected.portfolio_url) %}
               <p class="source">
                 {% if selected.resume_url %}Resume ready{% endif %}
@@ -631,7 +649,7 @@
             <a href="{{ item.job.url }}" target="_blank" rel="noopener">Open Apply Page</a>
           </article>
         {% else %}
-          <p class="hint">No matches yet. First select your profile, upload CV, then click Run My Match.</p>
+          <p class="hint">{% if external_only_mode %}No internal result cards are shown in external-only mode. Open the selected Upwork or Fiverr links above to search mini Python gigs directly.{% else %}No matches yet. First select your profile, upload CV, then click Run My Match.{% endif %}</p>
         {% endfor %}
       </div>
     </section>

@@ -60,6 +60,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const regionPreference = document.querySelector('[data-role="region-preference"]');
   const sourceInput = document.querySelector('[data-role="source-input"]');
   const platformTargetsInput = document.querySelector('[data-role="platform-targets"]');
+  const verifiedPaymentOnly = matchForm?.elements?.namedItem("verified_payment_only");
+  const pakistanFriendlyOnly = matchForm?.elements?.namedItem("pakistan_friendly_only");
   const savedPresetsJson = document.querySelector('[data-role="saved-presets-json"]');
   const presetLibrary = document.querySelector('[data-role="preset-library"]');
   const presetNameInput = document.querySelector('[data-role="preset-name"]');
@@ -618,6 +620,9 @@ window.addEventListener("DOMContentLoaded", () => {
       if (proposalPressure && button.dataset.competition) {
         proposalPressure.value = button.dataset.competition;
       }
+      if (customKeywords && button.dataset.keywords !== undefined) {
+        customKeywords.value = button.dataset.keywords;
+      }
       if (remoteOnly) {
         remoteOnly.checked = button.dataset.remote === "true";
       }
@@ -630,6 +635,20 @@ window.addEventListener("DOMContentLoaded", () => {
       if (regionPreference && button.dataset.region) {
         regionPreference.value = button.dataset.region;
       }
+      if (verifiedPaymentOnly instanceof HTMLInputElement && button.dataset.verified !== undefined) {
+        verifiedPaymentOnly.checked = button.dataset.verified === "true";
+      }
+      if (pakistanFriendlyOnly instanceof HTMLInputElement && button.dataset.pakistan !== undefined) {
+        pakistanFriendlyOnly.checked = button.dataset.pakistan === "true";
+      }
+      if (sourceInput && button.dataset.sources !== undefined) {
+        sourceInput.value = button.dataset.sources;
+      }
+      if (platformTargetsInput && button.dataset.platforms !== undefined) {
+        platformTargetsInput.value = button.dataset.platforms;
+      }
+      hydrateCheckedValues('[data-role="source-option"]', sourceInput);
+      hydrateCheckedValues('[data-role="platform-option"]', platformTargetsInput);
       updateModeHint();
       updateFilterOverview();
       syncWorkflowTabWithMode();

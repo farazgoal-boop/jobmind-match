@@ -268,6 +268,22 @@ def normalize_platform_targets(platform_targets: str) -> list[str]:
     return selected_targets or ["indeed", "linkedin", "upwork", "google_clients"]
 
 
+def resolve_selected_sources(request: Request, sources: str, is_premium: bool) -> list[str]:
+    source_tokens = [source.strip().lower() for source in sources.split(",") if source.strip()]
+    if "sources" in request.query_params and not source_tokens:
+        return []
+
+    selected_sources = source_tokens or free_sources_list()
+    if not is_premium:
+        selected_sources = selected_sources[:2]
+    return selected_sources
+
+
+def is_external_only_mode(selected_sources: list[str], selected_platform_targets: list[str]) -> bool:
+    external_job_targets = {"upwork", "fiverr", "linkedin"}
+    return not selected_sources and any(target in external_job_targets for target in selected_platform_targets)
+
+
 def score_to_level(score: float) -> str:
     if score >= 0.65:
         return "high"
@@ -630,6 +646,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "sources": ",".join(free_sources_list()),
             "platform_targets": "indeed,linkedin,upwork,google_clients",
             "selected_platform_targets": selected_platform_targets,
+            "external_only_mode": False,
             "search_mode": "job_search",
             "offer_type": "software",
             "client_type": "startup",
@@ -953,6 +970,7 @@ def dashboard_matches(
                 "sources": ",".join(free_sources_list()),
                 "platform_targets": platform_targets,
                 "selected_platform_targets": selected_platform_targets,
+                "external_only_mode": False,
                 "search_mode": search_mode,
                 "offer_type": offer_type,
                 "client_type": client_type,
@@ -992,9 +1010,8 @@ def dashboard_matches(
     status_summary = build_status_summary(applications)
     client_status_summary = build_client_status_summary(client_leads)
 
-    selected_sources = [s.strip().lower() for s in sources.split(",") if s.strip()] or free_sources_list()
-    if not selected.is_premium:
-        selected_sources = selected_sources[:2]
+    selected_sources = resolve_selected_sources(request, sources, selected.is_premium)
+    external_only_mode = is_external_only_mode(selected_sources, selected_platform_targets)
 
     live_search_links = build_dashboard_live_links(
         profile=selected,
@@ -1048,7 +1065,7 @@ def dashboard_matches(
         verified_payment_only=verified_payment_only,
     )
 
-    jobs = fetch_jobs_from_sources(selected_sources, limit_per_source=80)
+    jobs = fetch_jobs_from_sources(selected_sources, limit_per_source=80) if not external_only_mode else []
     candidate_text = " ".join([selected.skills_csv, selected.cv_text])
     matches = rank_jobs(candidate_text=candidate_text, jobs=jobs, top_k=40)
     enriched_matches = []
@@ -1136,6 +1153,7 @@ def dashboard_matches(
             "resume_library": resume_library,
             "platform_targets": platform_targets,
             "selected_platform_targets": selected_platform_targets,
+            "external_only_mode": external_only_mode,
             "search_mode": search_mode,
             "offer_type": offer_type,
             "client_type": client_type,
