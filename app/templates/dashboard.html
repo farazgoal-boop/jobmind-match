@@ -73,10 +73,10 @@
         </div>
       </div>
       <div class="preset-bar">
-        <button type="button" class="preset-chip" data-focus="python" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Python Remote</button>
-        <button type="button" class="preset-chip" data-focus="fastapi" data-backend="true" data-remote="true" data-junior="true" data-region="global">FastAPI Backend</button>
-        <button type="button" class="preset-chip" data-focus="flask" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Flask Roles</button>
-        <button type="button" class="preset-chip" data-focus="fullstack" data-backend="false" data-remote="true" data-junior="true" data-region="global">Full Stack</button>
+        <button type="button" class="preset-chip" data-mode="job_search" data-focus="python" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Python Remote</button>
+        <button type="button" class="preset-chip" data-mode="job_search" data-focus="fastapi" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="global">FastAPI Backend</button>
+        <button type="button" class="preset-chip" data-mode="job_search" data-focus="flask" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Flask Roles</button>
+        <button type="button" class="preset-chip" data-mode="job_search" data-focus="fullstack" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="false" data-remote="true" data-junior="true" data-region="global">Full Stack</button>
         <button type="button" class="preset-chip" data-mode="sell_services" data-offer="automation" data-client="agency" data-goal="pitch" data-demand="urgent" data-region="global">Agency Outreach</button>
         <button type="button" class="preset-chip" data-mode="sell_products" data-offer="products" data-client="wholesale_buyer" data-goal="meeting" data-demand="premium" data-region="asia">Product Buyers</button>
         <button type="button" class="preset-chip" data-mode="direct_clients" data-offer="software" data-client="startup" data-goal="email" data-demand="latest" data-region="europe">Direct Startup Leads</button>
@@ -149,6 +149,27 @@
           <input type="file" name="file" accept=".pdf,.docx" required />
           <button type="submit">Upload My CV</button>
         </form>
+        {% if resume_library %}
+        <div class="or-divider"><span>or</span></div>
+        <form action="/dashboard/import-cv" method="post" class="stack-form">
+          <select name="candidate_id" required>
+            <option value="">Select profile</option>
+            {% for p in profiles %}
+            <option value="{{ p.id }}" {% if selected and p.id == selected.id %}selected{% endif %}>
+              #{{ p.id }} - {{ p.full_name }}
+            </option>
+            {% endfor %}
+          </select>
+          <select name="source_key" required>
+            <option value="">Choose saved resume</option>
+            {% for item in resume_library %}
+            <option value="{{ item.key }}">{{ item.label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Use Saved Resume</button>
+        </form>
+        <p class="hint">Mobile shortcut: load your built-in CV directly without PDF or DOCX upload.</p>
+        {% endif %}
       </div>
     </section>
 

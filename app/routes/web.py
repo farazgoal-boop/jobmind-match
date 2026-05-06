@@ -1,5 +1,6 @@
 from datetime import datetime
 import json
+from pathlib import Path
 import re
 from typing import Annotated
 
@@ -25,6 +26,33 @@ router = APIRouter(tags=["web"])
 templates = Jinja2Templates(directory="app/templates")
 
 FOLLOW_UP_PATTERN = re.compile(r"\[follow-up:(\d{4}-\d{2}-\d{2})\]")
+BUILTIN_RESUME_SOURCES = {
+    "final-cv": {
+        "label": "Muhammad Faraz Final CV",
+        "path": Path(__file__).resolve().parents[2] / "docs" / "final-cv.md",
+    }
+}
+
+
+def build_resume_library() -> list[dict[str, str]]:
+    library = []
+    for key, item in BUILTIN_RESUME_SOURCES.items():
+        path = item["path"]
+        if path.exists():
+            library.append({"key": key, "label": str(item["label"])})
+    return library
+
+
+def read_builtin_resume_text(source_key: str) -> str:
+    source = BUILTIN_RESUME_SOURCES.get(source_key)
+    if not source:
+        raise HTTPException(status_code=404, detail="Resume source not found")
+
+    path = source["path"]
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Resume file is missing")
+
+    return path.read_text(encoding="utf-8").strip()
 
 
 def build_status_summary(applications: list[ApplicationRecord]) -> dict[str, int]:
@@ -460,6 +488,7 @@ def build_dashboard_client_links(
 def dashboard(request: Request, session: Annotated[Session, Depends(get_session)], candidate_id: int | None = None):
     profiles = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).all()
     selected = session.get(CandidateProfile, candidate_id) if candidate_id else None
+    resume_library = build_resume_library()
     applications = []
     client_leads = []
     filter_presets = []
@@ -548,6 +577,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "live_search_links": live_search_links,
             "client_access_links": client_access_links,
             "outreach_links": outreach_links,
+            "resume_library": resume_library,
             "sources": ",".join(free_sources_list()),
             "platform_targets": "indeed,linkedin,upwork,google_clients",
             "search_mode": "job_search",
@@ -629,7 +659,7 @@ def create_profile_from_form(
     full_name: Annotated[str, Form(...)],
     email: Annotated[str, Form(...)],
     skills_csv: Annotated[str, Form(...)],
-    profile_id: Annotated[int | None, Form()] = None,
+    profile_id: Annotated[str | None, Form()] = None,
     github_username: Annotated[str, Form()] = "",
     resume_url: Annotated[str, Form()] = "",
     portfolio_url: Annotated[str, Form()] = "",
@@ -638,7 +668,8 @@ def create_profile_from_form(
     sales_pitch: Annotated[str, Form()] = "",
     session: Annotated[Session, Depends(get_session)] = None,
 ):
-    profile = session.get(CandidateProfile, profile_id) if profile_id else CandidateProfile()
+    normalized_profile_id = int(profile_id) if profile_id and profile_id.strip() else None
+    profile = session.get(CandidateProfile, normalized_profile_id) if normalized_profile_id else CandidateProfile()
     profile.full_name = full_name
     profile.email = email
     profile.skills_csv = skills_csv
@@ -792,6 +823,22 @@ async def upload_cv_from_form(
     return RedirectResponse(url=f"/dashboard?candidate_id={profile.id}", status_code=303)
 
 
+@router.post("/dashboard/import-cv")
+def import_cv_from_library(
+    candidate_id: Annotated[int, Form(...)],
+    source_key: Annotated[str, Form(...)],
+    session: Annotated[Session, Depends(get_session)] = None,
+):
+    profile = session.get(CandidateProfile, candidate_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Candidate not found")
+
+    profile.cv_text = read_builtin_resume_text(source_key)
+    session.add(profile)
+    session.commit()
+    return RedirectResponse(url=f"/dashboard?candidate_id={profile.id}", status_code=303)
+
+
 @router.get("/dashboard/matches", response_class=HTMLResponse)
 def dashboard_matches(
     request: Request,
@@ -824,6 +871,7 @@ def dashboard_matches(
 ):
     profiles = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).all()
     selected = session.get(CandidateProfile, candidate_id)
+    resume_library = build_resume_library()
     if not selected:
         return templates.TemplateResponse(
             "dashboard.html",
@@ -844,6 +892,7 @@ def dashboard_matches(
                 "live_search_links": [],
                 "client_access_links": [],
                 "outreach_links": [],
+                "resume_library": resume_library,
                 "sources": ",".join(free_sources_list()),
                 "platform_targets": platform_targets,
                 "search_mode": search_mode,
@@ -1026,6 +1075,7 @@ def dashboard_matches(
             "live_search_links": live_search_links,
             "client_access_links": client_access_links,
             "outreach_links": outreach_links,
+            "resume_library": resume_library,
             "platform_targets": platform_targets,
             "search_mode": search_mode,
             "offer_type": offer_type,
