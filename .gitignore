@@ -9,6 +9,7 @@ write_test.txt
 mobile-wrapper/node_modules/
 mobile-wrapper/android/
 mind-manage/node_modules/
+mind-manage/**/node_modules/
 mind-manage/.turbo/
 mind-manage/.env
 mind-manage/apps/api/.env
