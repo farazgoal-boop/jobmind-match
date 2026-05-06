@@ -26,6 +26,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const spotlightDescription = document.querySelector('[data-role="mode-spotlight-description"]');
   const staleResultsNotes = document.querySelectorAll('[data-role="stale-results-note"]');
   const liveResultsContent = document.querySelectorAll('[data-role="results-live-content"]');
+  const submitFeedbackNodes = document.querySelectorAll('[data-role="submit-feedback"]');
   const jobForm = document.querySelector('[data-role="job-form"]');
   const sellForm = document.querySelector('[data-role="sell-form"]');
   const currentPath = window.location.pathname;
@@ -41,6 +42,19 @@ window.addEventListener("DOMContentLoaded", () => {
     sell: {
       title: "Sell Services Mode",
       description: "Prospect buyers for your residency management software or dev services with client-only tools and lead tracking."
+    }
+  };
+
+  const submitMeta = {
+    job: {
+      idleLabel: "Run Job Search",
+      busyLabel: "Searching Jobs...",
+      feedback: "Job search is starting. On Render this can take a few seconds if the app was sleeping."
+    },
+    sell: {
+      idleLabel: "Run Client Search",
+      busyLabel: "Searching Clients...",
+      feedback: "Client search is starting. On Render this can take a few seconds if the app was sleeping."
     }
   };
 
@@ -240,6 +254,25 @@ window.addEventListener("DOMContentLoaded", () => {
         .map((checkbox) => checkbox.value);
       config.platformInput.value = platformValues.join(",");
     }
+  }
+
+  function setSubmitState(mode, isBusy) {
+    const config = formConfig[mode];
+    if (!(config?.form instanceof HTMLFormElement)) {
+      return;
+    }
+    const submitButton = config.form.querySelector('button[type="submit"]');
+    const feedback = Array.from(submitFeedbackNodes).find((node) => node.dataset.mode === mode);
+    if (submitButton instanceof HTMLButtonElement) {
+      submitButton.disabled = isBusy;
+      submitButton.textContent = isBusy ? submitMeta[mode].busyLabel : submitMeta[mode].idleLabel;
+      submitButton.classList.toggle("is-loading", isBusy);
+    }
+    if (feedback) {
+      feedback.textContent = isBusy ? submitMeta[mode].feedback : "";
+      feedback.classList.toggle("is-visible", isBusy);
+    }
+    config.form.classList.toggle("is-submitting", isBusy);
   }
 
   function hydrateCheckboxGroup(selector, csv) {
@@ -576,6 +609,7 @@ window.addEventListener("DOMContentLoaded", () => {
     if (!(config.form instanceof HTMLFormElement)) {
       return;
     }
+    setSubmitState(mode, true);
     syncHiddenValues(config);
     persistModeState(mode);
     const formData = new FormData(config.form);
@@ -592,7 +626,12 @@ window.addEventListener("DOMContentLoaded", () => {
       }
       params.set(checkbox.name, checkbox.checked ? "true" : "false");
     });
-    window.location.assign(`${config.form.getAttribute("action") || currentPath}?${params.toString()}`);
+    const targetUrl = `${config.form.getAttribute("action") || currentPath}?${params.toString()}`;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        window.location.assign(targetUrl);
+      });
+    });
   }
 
   function wireForm(config) {
