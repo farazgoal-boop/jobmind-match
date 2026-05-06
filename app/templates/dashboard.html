@@ -17,139 +17,65 @@
 </head>
 <body>
   <main class="layout">
-    <section class="hero card">
+    <section class="hero card mode-hero">
       <div class="hero-shell">
         <div class="hero-copy">
-          <p class="eyebrow">Job Search Operating System</p>
-          <h1>Faraz Job Console</h1>
-          <p class="hero-lead">A focused command center for jobs, clients, pitches, and follow-ups with one structured workflow.</p>
-          <p class="hint">This workspace is configured for Muhammad Faraz so your profile, tracker, live search presets, and outreach assets stay aligned.</p>
-          <div class="hero-ribbon">
-            <span>Pro filter engine</span>
-            <span>Client workflow</span>
-            <span>Preset sync</span>
-          </div>
+          <p class="eyebrow">Two-Mode Operating System</p>
+          <h1>JobMind Match</h1>
+          <p class="hero-lead">One clean switch for job hunting and one clean switch for direct client selling. Filters, actions, and tracking stay separate by mode.</p>
+          <p class="hint">Active profile: {% if selected %}{{ selected.full_name }}{% else %}Select a profile to activate search, tracking, and outreach workflows.{% endif %}</p>
         </div>
-        <aside class="hero-spotlight">
-          <p class="eyebrow">Today Focus</p>
-          <h3>{% if external_only_mode %}Mini Python Gigs{% elif client_only_mode and client_type == 'property_management' %}Residency Client Hunt{% elif search_mode in ['direct_clients', 'sell_services', 'sell_products'] %}Direct Client Selling{% else %}Job Match Execution{% endif %}</h3>
-          <p>{% if selected %}Active profile: {{ selected.full_name }}{% else %}Select a profile to activate search, tracking, and outreach workflows.{% endif %}</p>
+        <aside class="hero-spotlight mode-spotlight">
+          <p class="eyebrow">Current Workspace</p>
+          <h3 data-role="mode-spotlight-title">{% if active_ui_mode == 'sell' %}Sell Services Mode{% else %}Job Search Mode{% endif %}</h3>
+          <p data-role="mode-spotlight-description">{% if active_ui_mode == 'sell' %}Prospect buyers for your residency management software or dev services with client-only tools and lead tracking.{% else %}Find remote Python and backend roles with job-only filters, match cards, and application tracking.{% endif %}</p>
           <div class="hero-spotlight-grid">
             <div>
-              <span>Mode</span>
-              <strong>{{ (search_mode or 'job_search')|replace('_', ' ')|title }}</strong>
+              <span>Profile</span>
+              <strong>{% if selected %}{{ selected.full_name }}{% else %}Not selected{% endif %}</strong>
             </div>
             <div>
-              <span>Goal</span>
-              <strong>{{ (contact_goal or 'apply')|replace('_', ' ')|title }}</strong>
+              <span>Job Tracker</span>
+              <strong>{{ status_summary.total }}</strong>
             </div>
             <div>
-              <span>Trust</span>
-              <strong>{{ (trust_signal or 'any')|replace('_', ' ')|title }}</strong>
+              <span>Lead Tracker</span>
+              <strong>{{ client_status_summary.total }}</strong>
             </div>
             <div>
-              <span>Window</span>
+              <span>Match Window</span>
               <strong>{{ posted_within or '7d' }}</strong>
             </div>
           </div>
         </aside>
       </div>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <span>Profiles</span>
-          <strong>{{ profiles|length }}</strong>
-        </div>
-        <div class="hero-stat">
-          <span>Tracked Jobs</span>
-          <strong>{{ status_summary.total }}</strong>
-        </div>
-        <div class="hero-stat">
-          <span>Remote Matches</span>
-          <strong>{{ match_summary.remote if match_summary else 0 }}</strong>
-        </div>
-        <div class="hero-stat accent">
-          <span>Search Focus</span>
-          <strong>{{ (search_focus or 'python')|upper }}</strong>
-        </div>
+      <div class="mode-switch" data-role="mode-switch">
+        <button type="button" class="mode-switch-button {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="job">🔍 Job Search</button>
+        <button type="button" class="mode-switch-button {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="sell">💼 Sell Services</button>
       </div>
-      <div class="preset-bar">
-        <button type="button" class="preset-chip" data-mode="job_search" data-focus="python" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Python Remote</button>
-        <button type="button" class="preset-chip" data-mode="job_search" data-focus="fastapi" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="global">FastAPI Backend</button>
-        <button type="button" class="preset-chip" data-mode="job_search" data-focus="flask" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Flask Roles</button>
-        <button type="button" class="preset-chip" data-mode="job_search" data-focus="fullstack" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="false" data-remote="true" data-junior="true" data-region="global">Full Stack</button>
-        <button type="button" class="preset-chip" data-mode="job_search" data-focus="python" data-offer="software" data-client="startup" data-goal="apply" data-demand="budget" data-posted="1d" data-region="global" data-remote="true" data-junior="false" data-backend="false" data-sources="" data-platforms="upwork" data-keywords="small bug fix script automation API Flask FastAPI quick task" data-verified="true" data-pakistan="false">Mini Python Gigs</button>
-        <button type="button" class="preset-chip" data-mode="sell_services" data-focus="all" data-offer="software" data-client="property_management" data-goal="meeting" data-demand="premium" data-side="founder" data-trust="verified_company" data-remote="false" data-junior="false" data-backend="false" data-region="global" data-sources="" data-platforms="linkedin,google_clients,google_maps" data-keywords="residency management system apartment management software housing society software flat management tenant billing maintenance visitor gate pass society ERP property management SaaS">Shaz Residency Hunt</button>
-        <button type="button" class="preset-chip" data-mode="sell_services" data-offer="automation" data-client="agency" data-goal="pitch" data-demand="urgent" data-region="global">Agency Outreach</button>
-        <button type="button" class="preset-chip" data-mode="sell_products" data-offer="products" data-client="wholesale_buyer" data-goal="meeting" data-demand="premium" data-region="asia">Product Buyers</button>
-        <button type="button" class="preset-chip" data-mode="direct_clients" data-offer="software" data-client="startup" data-goal="email" data-demand="latest" data-region="europe">Direct Startup Leads</button>
-        <button type="button" class="preset-chip install-chip hidden" data-role="install-app">Install App</button>
-      </div>
-    </section>
-
-    <section class="card feature-showcase">
-      <div class="section-head">
-        <div>
-          <h2>What This App Does</h2>
-          <p class="hint">Use this section to explain the product to a client or partner.</p>
-        </div>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-card">
-          <span class="feature-tag">Search</span>
-          <strong>Structured Search Engine</strong>
-          <p>Dropdowns, tick marks, demand filters, and web target routing decide exactly where the search should go.</p>
-        </article>
-        <article class="feature-card">
-          <span class="feature-tag">Clients</span>
-          <strong>Client Access Workflow</strong>
-          <p>LinkedIn, Google, Maps, Upwork, Fiverr, and Indeed links help you open clients, buyers, and parties faster.</p>
-        </article>
-        <article class="feature-card">
-          <span class="feature-tag">Outreach</span>
-          <strong>Semi-Auto Outreach</strong>
-          <p>Pitch Email and WhatsApp Pitch reuse your saved product, resume, portfolio, and sales pitch.</p>
-        </article>
-        <article class="feature-card">
-          <span class="feature-tag">Tracking</span>
-          <strong>Dual Tracking</strong>
-          <p>Job applications and client sales leads are tracked separately so follow-ups stay organized.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="card feature-showcase">
-      <div class="section-head">
-        <div>
-          <h2>Shaz Residency Hunt</h2>
-          <p class="hint">Use this dedicated mode when you want to sell your residency management system to apartments, residential towers, housing societies, and property operators globally.</p>
-        </div>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-card">
-          <span class="feature-tag">Property Sales</span>
-          <strong>Global Residency Clients</strong>
-          <p>Loads a founder-focused global search for housing societies, apartment operators, gated communities, and flat management companies that can buy your software or services.</p>
-          <div class="assisted-links">
-            <button type="button" class="ghost-action" data-role="residency-hunt-launch">Load Shaz Residency Hunt</button>
+      <div class="mode-summary-grid">
+        <article class="mode-summary-card {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-summary-card" data-mode-card="job">
+          <span class="panel-label">Mode 1</span>
+          <h3>Job Search Mode</h3>
+          <p>Remote Python and backend job hunting with trusted sources, role filters, and application tracking only.</p>
+          <div class="hero-ribbon">
+            <span>Remotive</span>
+            <span>We Work Remotely</span>
+            <span>Arbeitnow</span>
+            <span>LinkedIn</span>
+            <span>Indeed</span>
           </div>
         </article>
-      </div>
-    </section>
-
-    <section class="card feature-showcase">
-      <div class="section-head">
-        <div>
-          <h2>Mini Jobs Mode</h2>
-          <p class="hint">Keep this separate when you only want small Python gigs on external platforms with verified payment and global remote filters.</p>
-        </div>
-      </div>
-      <div class="feature-grid">
-        <article class="feature-card">
-          <span class="feature-tag">Focused Mode</span>
-          <strong>Mini Python Gigs</strong>
-          <p>Loads a dedicated Upwork-first mini-job search with small-task keywords, verified payment, and no internal feed mixing.</p>
-          <div class="assisted-links">
-            <button type="button" class="ghost-action" data-role="mini-jobs-launch">Load Mini Jobs Mode</button>
+        <article class="mode-summary-card {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-summary-card" data-mode-card="sell">
+          <span class="panel-label">Mode 2</span>
+          <h3>Sell Services Mode</h3>
+          <p>Residency software and dev-service selling with buyer filters, outreach actions, and lead tracking only.</p>
+          <div class="hero-ribbon">
+            <span>Google Maps</span>
+            <span>Google Clients</span>
+            <span>LinkedIn</span>
+            <span>Upwork</span>
+            <span>Fiverr</span>
           </div>
         </article>
       </div>
@@ -211,393 +137,273 @@
           </select>
           <button type="submit">Use Saved Resume</button>
         </form>
-        <p class="hint">Mobile shortcut: load your built-in CV directly without PDF or DOCX upload.</p>
+        {% endif %}
+        {% if selected.resume_url or selected.portfolio_url or selected.linkedin_url or selected.upwork_url or selected.fiverr_url %}
+        <div class="profile-links-shell">
+          <h3>Your Quick Links</h3>
+          <div class="assisted-links compact-links">
+            {% if selected and selected.resume_url %}<a href="{{ selected.resume_url }}" target="_blank" rel="noopener">Open Resume</a>{% endif %}
+            {% if selected and selected.portfolio_url %}<a href="{{ selected.portfolio_url }}" target="_blank" rel="noopener">Open Portfolio</a>{% endif %}
+            {% if selected and selected.linkedin_url %}<a href="{{ selected.linkedin_url }}" target="_blank" rel="noopener">My LinkedIn</a>{% endif %}
+            {% if selected and selected.upwork_url %}<a href="{{ selected.upwork_url }}" target="_blank" rel="noopener">My Upwork</a>{% endif %}
+            {% if selected and selected.fiverr_url %}<a href="{{ selected.fiverr_url }}" target="_blank" rel="noopener">My Fiverr</a>{% endif %}
+          </div>
+        </div>
         {% endif %}
       </div>
     </section>
 
-    <section class="card">
-      <div class="section-head workflow-head">
-        <div>
-          <h2>Search Workspace</h2>
-          <p class="hint">Switch between job hunting and direct client selling without mixing both workflows on one screen.</p>
-        </div>
-        <div class="workflow-tabs" data-role="workflow-tabs">
-          <button type="button" class="workflow-tab active" data-role="workflow-tab" data-tab-target="jobs">Job Search</button>
-          <button type="button" class="workflow-tab" data-role="workflow-tab" data-tab-target="clients">Direct Clients</button>
-        </div>
-      </div>
-      <h2>Find Matching Jobs</h2>
-      <p class="hint" data-role="mode-hint">Choose your objective, target market, channels, and quality filters. The app will follow this search plan exactly.</p>
-      <div class="filter-overview" data-role="filter-overview">
-        <span>Mode: {{ (search_mode or 'job_search')|replace('_', ' ') }}</span>
-        <span>Offer: {{ (offer_type or 'software')|replace('_', ' ') }}</span>
-        <span>Client: {{ (client_type or 'startup')|replace('_', ' ') }}</span>
-        <span>Goal: {{ (contact_goal or 'apply')|replace('_', ' ') }}</span>
-        <span>Posted: {{ posted_within or '7d' }}</span>
-        <span>Trust: {{ (trust_signal or 'any')|replace('_', ' ') }}</span>
-      </div>
-      <form action="/dashboard/matches" method="get" class="filters" data-role="match-form">
-        <script type="application/json" data-role="saved-presets-json">{{ saved_filter_presets|tojson }}</script>
-        <div class="filter-panel span-all">
-          <div class="filter-panel-head">
-            <h3>Saved Presets</h3>
-            <p>Save your best filter combinations and reload them instantly for repeat searches.</p>
+    <section class="mode-shell {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-role="mode-shell" data-mode-panel="job">
+      <section class="card mode-panel mode-panel-job">
+        <div class="section-head mode-panel-head">
+          <div>
+            <p class="eyebrow">Mode 1</p>
+            <h2>Job Search Mode</h2>
+            <p class="hint">Only job filters, only job results, only application tracking. Small gigs are merged here as a filter, not a separate workflow.</p>
           </div>
-          <div class="filter-grid filter-grid-preset">
-            <label class="field-group">
-              <span>Preset library</span>
-              <select data-role="preset-library">
-                <option value="">Choose saved preset</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Preset name</span>
-              <input type="text" placeholder="Example: Verified EU founders" data-role="preset-name" />
-            </label>
-            <input type="hidden" value="{{ selected.id if selected else '' }}" data-role="preset-candidate-id" />
-            <input type="file" accept="application/json" class="hidden" data-role="preset-import-file" />
-            <div class="preset-actions">
-              <button type="button" class="ghost-action" data-role="save-preset">Save preset</button>
-              <button type="button" class="ghost-action" data-role="apply-preset">Apply preset</button>
-              <button type="button" class="ghost-action" data-role="delete-preset">Delete preset</button>
-              <button type="button" class="ghost-action" data-role="export-presets">Export presets</button>
-              <button type="button" class="ghost-action" data-role="import-presets">Import presets</button>
+          <div class="filter-overview" data-role="job-filter-overview">
+            <span>Role: {{ (search_focus or 'python')|replace('_', ' ')|title }}</span>
+            <span>Region: {{ (region_preference or 'global')|replace('_', ' ')|title }}</span>
+            <span>Trust: {{ (trust_signal or 'verified_company')|replace('_', ' ')|title }}</span>
+            <span>Window: {{ posted_within or '7d' }}</span>
+          </div>
+        </div>
+        <form action="/dashboard/matches" method="get" class="filters mode-filters" data-role="job-form">
+          <script type="application/json" data-role="saved-presets-json">{{ saved_filter_presets|tojson }}</script>
+          <script type="application/json" data-role="server-applications-json">{{ applications|tojson }}</script>
+          <input type="hidden" name="search_mode" value="job_search" />
+          <input type="hidden" name="offer_type" value="software" />
+          <input type="hidden" name="client_type" value="startup" />
+          <input type="hidden" name="contact_goal" value="apply" />
+          <input type="hidden" name="counterparty_type" value="any" />
+          <input type="hidden" name="company_size" value="any" />
+          <input type="hidden" name="proposal_pressure" value="any" />
+          <input type="hidden" name="sources" value="{{ sources if sources is not none else 'remotive,weworkremotely,arbeitnow' }}" data-role="source-input" />
+          <input type="hidden" name="platform_targets" value="{{ platform_targets if platform_targets is not none else 'indeed,linkedin' }}" data-role="platform-targets" />
+          <input type="hidden" name="active_mode" value="job" />
+
+          <div class="filter-panel span-all">
+            <div class="filter-panel-head">
+              <h3>Job Presets</h3>
+              <p>Save and apply only job-search presets here. Client-selling presets stay out of this mode.</p>
             </div>
+            <div class="filter-grid filter-grid-preset">
+              <label class="field-group">
+                <span>Job preset library</span>
+                <select data-role="preset-library" data-preset-mode="job">
+                  <option value="">Choose job preset</option>
+                </select>
+              </label>
+              <label class="field-group">
+                <span>Preset name</span>
+                <input type="text" placeholder="Example: Global FastAPI verified" data-role="preset-name" data-preset-mode="job" />
+              </label>
+              <input type="hidden" value="{{ selected.id if selected else '' }}" data-role="preset-candidate-id" data-preset-mode="job" />
+              <input type="file" accept="application/json" class="hidden" data-role="preset-import-file" data-preset-mode="job" />
+              <div class="preset-actions">
+                <button type="button" class="ghost-action" data-role="save-preset" data-preset-mode="job">Save preset</button>
+                <button type="button" class="ghost-action" data-role="apply-preset" data-preset-mode="job">Apply preset</button>
+                <button type="button" class="ghost-action" data-role="delete-preset" data-preset-mode="job">Delete preset</button>
+                <button type="button" class="ghost-action" data-role="export-presets" data-preset-mode="job">Export presets</button>
+                <button type="button" class="ghost-action" data-role="import-presets" data-preset-mode="job">Import presets</button>
+              </div>
+            </div>
+            <p class="hint" data-role="preset-status" data-preset-mode="job">Job presets sync separately from client presets.</p>
           </div>
-          <p class="hint" data-role="preset-status">Saved presets sync with the selected profile when available.</p>
-        </div>
-        <div class="filter-panel span-all">
-          <div class="filter-panel-head">
-            <h3>Search Strategy</h3>
-            <p>Set the objective first so the engine knows whether to hunt jobs, buyers, or direct clients.</p>
-          </div>
-          <div class="filter-grid filter-grid-four">
-            <label class="field-group">
-              <span>Profile</span>
-              <select name="candidate_id" required>
-                <option value="">Select profile</option>
-                {% for p in profiles %}
-                <option value="{{ p.id }}" {% if selected and p.id == selected.id %}selected{% endif %}>
-                  #{{ p.id }} - {{ p.full_name }}
-                </option>
-                {% endfor %}
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Result limit</span>
-              <input type="number" name="top_k" value="5" min="1" max="20" />
-            </label>
-            <label class="field-group">
-              <span>Search mode</span>
-              <select name="search_mode" data-role="search-mode">
-                <option value="job_search" {% if search_mode == 'job_search' %}selected{% endif %}>Job search</option>
-                <option value="sell_services" {% if search_mode == 'sell_services' %}selected{% endif %}>Sell services</option>
-                <option value="sell_products" {% if search_mode == 'sell_products' %}selected{% endif %}>Sell products</option>
-                <option value="direct_clients" {% if search_mode == 'direct_clients' %}selected{% endif %}>Direct clients</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Contact goal</span>
-              <select name="contact_goal" data-role="contact-goal">
-                <option value="apply" {% if contact_goal == 'apply' %}selected{% endif %}>Apply</option>
-                <option value="pitch" {% if contact_goal == 'pitch' %}selected{% endif %}>Pitch service</option>
-                <option value="meeting" {% if contact_goal == 'meeting' %}selected{% endif %}>Book meeting</option>
-                <option value="email" {% if contact_goal == 'email' %}selected{% endif %}>Find email</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Target side</span>
-              <select name="counterparty_type" data-role="counterparty-type">
-                <option value="any" {% if counterparty_type == 'any' %}selected{% endif %}>Any side</option>
-                <option value="recruiter" {% if counterparty_type == 'recruiter' %}selected{% endif %}>Recruiter</option>
-                <option value="direct_client" {% if counterparty_type == 'direct_client' %}selected{% endif %}>Direct client</option>
-                <option value="company" {% if counterparty_type == 'company' %}selected{% endif %}>Company</option>
-                <option value="founder" {% if counterparty_type == 'founder' %}selected{% endif %}>Founder / decision maker</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Trust signal</span>
-              <select name="trust_signal" data-role="trust-signal">
-                <option value="any" {% if trust_signal == 'any' %}selected{% endif %}>Any trust level</option>
-                <option value="verified_recruiter" {% if trust_signal == 'verified_recruiter' %}selected{% endif %}>Verified recruiter</option>
-                <option value="verified_client" {% if trust_signal == 'verified_client' %}selected{% endif %}>Verified client</option>
-                <option value="verified_company" {% if trust_signal == 'verified_company' %}selected{% endif %}>Verified company</option>
-                <option value="top_rated_buyer" {% if trust_signal == 'top_rated_buyer' %}selected{% endif %}>Top rated buyer</option>
-              </select>
-            </label>
-          </div>
-        </div>
 
-        <input type="hidden" name="sources" value="{{ sources if sources is not none else 'remotive,weworkremotely' }}" data-role="source-input" />
-        <input type="hidden" name="platform_targets" value="{{ platform_targets if platform_targets is not none else 'indeed,linkedin,upwork,google_clients' }}" data-role="platform-targets" />
-        <div class="filter-panel span-all">
-          <div class="filter-panel-head">
-            <h3>Offer Targeting</h3>
-            <p>Define what you are selling or applying for, who should see it, and how urgent the demand should be.</p>
-          </div>
-          <div class="filter-grid filter-grid-four">
-            <label class="field-group">
-              <span>Offer type</span>
-              <select name="offer_type" data-role="offer-type">
-                <option value="software" {% if offer_type == 'software' %}selected{% endif %}>Software offering</option>
-                <option value="services" {% if offer_type == 'services' %}selected{% endif %}>General services</option>
-                <option value="products" {% if offer_type == 'products' %}selected{% endif %}>Products</option>
-                <option value="design" {% if offer_type == 'design' %}selected{% endif %}>Design</option>
-                <option value="marketing" {% if offer_type == 'marketing' %}selected{% endif %}>Marketing</option>
-                <option value="automation" {% if offer_type == 'automation' %}selected{% endif %}>Automation</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Client type</span>
-              <select name="client_type" data-role="client-type">
-                <option value="startup" {% if client_type == 'startup' %}selected{% endif %}>Startups</option>
-                <option value="agency" {% if client_type == 'agency' %}selected{% endif %}>Agencies</option>
-                <option value="ecommerce" {% if client_type == 'ecommerce' %}selected{% endif %}>E-commerce</option>
-                <option value="saas" {% if client_type == 'saas' %}selected{% endif %}>SaaS</option>
-                <option value="local_business" {% if client_type == 'local_business' %}selected{% endif %}>Local businesses</option>
-                <option value="property_management" {% if client_type == 'property_management' %}selected{% endif %}>Residency / housing management</option>
-                <option value="hr_recruiter" {% if client_type == 'hr_recruiter' %}selected{% endif %}>HR and recruiters</option>
-                <option value="wholesale_buyer" {% if client_type == 'wholesale_buyer' %}selected{% endif %}>Wholesale buyers</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Demand level</span>
-              <select name="demand_level" data-role="demand-level">
-                <option value="latest" {% if demand_level == 'latest' %}selected{% endif %}>Latest demand</option>
-                <option value="urgent" {% if demand_level == 'urgent' %}selected{% endif %}>Urgent demand</option>
-                <option value="budget" {% if demand_level == 'budget' %}selected{% endif %}>Budget</option>
-                <option value="premium" {% if demand_level == 'premium' %}selected{% endif %}>Premium</option>
-                <option value="long_term" {% if demand_level == 'long_term' %}selected{% endif %}>Long-term</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Extra keyword</span>
-              <input type="text" name="custom_keywords" value="{{ custom_keywords or '' }}" placeholder="CRM, importer, WhatsApp, Shopify" data-role="custom-keywords" />
-            </label>
-            <label class="field-group">
-              <span>Posted within</span>
-              <select name="posted_within" data-role="posted-within">
-                <option value="any" {% if posted_within == 'any' %}selected{% endif %}>Any time</option>
-                <option value="1d" {% if posted_within == '1d' %}selected{% endif %}>Last 24 hours</option>
-                <option value="3d" {% if posted_within == '3d' %}selected{% endif %}>Last 3 days</option>
-                <option value="7d" {% if posted_within == '7d' %}selected{% endif %}>Last 7 days</option>
-                <option value="14d" {% if posted_within == '14d' %}selected{% endif %}>Last 14 days</option>
-                <option value="30d" {% if posted_within == '30d' %}selected{% endif %}>Last 30 days</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Company size</span>
-              <select name="company_size" data-role="company-size">
-                <option value="any" {% if company_size == 'any' %}selected{% endif %}>Any size</option>
-                <option value="solo" {% if company_size == 'solo' %}selected{% endif %}>Solo business</option>
-                <option value="small_team" {% if company_size == 'small_team' %}selected{% endif %}>Small team</option>
-                <option value="mid_market" {% if company_size == 'mid_market' %}selected{% endif %}>Mid-market</option>
-                <option value="enterprise" {% if company_size == 'enterprise' %}selected{% endif %}>Enterprise</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Proposal pressure</span>
-              <select name="proposal_pressure" data-role="proposal-pressure">
-                <option value="any" {% if proposal_pressure == 'any' %}selected{% endif %}>Any competition</option>
-                <option value="low" {% if proposal_pressure == 'low' %}selected{% endif %}>Low competition</option>
-                <option value="medium" {% if proposal_pressure == 'medium' %}selected{% endif %}>Medium competition</option>
-                <option value="high" {% if proposal_pressure == 'high' %}selected{% endif %}>High competition</option>
-              </select>
-            </label>
-          </div>
-        </div>
-
-        <div class="filter-panel span-all">
-          <div class="filter-panel-head">
-            <h3>Market Fit Filters</h3>
-            <p>Control role focus, match quality, geography, and strictness before the search is executed.</p>
-          </div>
-          <div class="filter-grid filter-grid-four">
-            <label class="field-group">
-              <span>Search focus</span>
-              <select name="search_focus" data-role="search-focus">
-                <option value="python" {% if search_focus == 'python' %}selected{% endif %}>Python focus</option>
-                <option value="fastapi" {% if search_focus == 'fastapi' %}selected{% endif %}>FastAPI focus</option>
-                <option value="flask" {% if search_focus == 'flask' %}selected{% endif %}>Flask focus</option>
-                <option value="fullstack" {% if search_focus == 'fullstack' %}selected{% endif %}>Full Stack focus</option>
-                <option value="all" {% if search_focus == 'all' %}selected{% endif %}>All roles</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Match level</span>
-              <select name="min_match_level">
-                <option value="all" {% if min_match_level == 'all' %}selected{% endif %}>All matches</option>
-                <option value="medium" {% if min_match_level == 'medium' %}selected{% endif %}>Medium+ only</option>
-                <option value="high" {% if min_match_level == 'high' %}selected{% endif %}>High only</option>
-              </select>
-            </label>
-            <label class="field-group">
-              <span>Region preference</span>
-              <select name="region_preference" data-role="region-preference">
-                <option value="pakistan" {% if region_preference == 'pakistan' %}selected{% endif %}>Pakistan-friendly region</option>
-                <option value="global" {% if region_preference == 'global' %}selected{% endif %}>Global remote</option>
-                <option value="asia" {% if region_preference == 'asia' %}selected{% endif %}>Asia</option>
-                <option value="europe" {% if region_preference == 'europe' %}selected{% endif %}>Europe</option>
-                <option value="americas" {% if region_preference == 'americas' %}selected{% endif %}>Americas</option>
-                <option value="any" {% if region_preference == 'any' %}selected{% endif %}>Any region</option>
-              </select>
-            </label>
-            <div class="field-group">
-              <span>Quality gates</span>
-              <div class="toggle-grid">
-                <label class="inline-check toggle-check">
-                  <input type="checkbox" name="verified_payment_only" value="true" {% if verified_payment_only %}checked{% endif %} />
-                  Verified payment only
+          <div class="filter-grid job-mode-grid">
+            <div class="filter-panel">
+              <div class="filter-panel-head">
+                <h3>Core Search</h3>
+                <p>Keep the job search focused on role, geography, trust, and job freshness.</p>
+              </div>
+              <div class="filter-grid">
+                <label class="field-group">
+                  <span>Profile</span>
+                  <select name="candidate_id" required>
+                    <option value="">Select profile</option>
+                    {% for p in profiles %}
+                    <option value="{{ p.id }}" {% if selected and p.id == selected.id %}selected{% endif %}>#{{ p.id }} - {{ p.full_name }}</option>
+                    {% endfor %}
+                  </select>
                 </label>
-                <label class="inline-check toggle-check">
-                  <input type="checkbox" name="backend_only" value="true" {% if backend_only %}checked{% endif %} />
-                  Backend-focused only
+                <label class="field-group">
+                  <span>Result limit</span>
+                  <input type="number" name="top_k" value="5" min="1" max="20" />
                 </label>
-                <label class="inline-check toggle-check">
-                  <input type="checkbox" name="remote_only" value="true" {% if remote_only %}checked{% endif %} data-role="remote-only" />
-                  Remote-first only
+                <label class="field-group">
+                  <span>Role focus</span>
+                  <select name="search_focus" data-role="job-search-focus">
+                    <option value="python" {% if search_focus == 'python' %}selected{% endif %}>Python</option>
+                    <option value="fastapi" {% if search_focus == 'fastapi' %}selected{% endif %}>FastAPI</option>
+                    <option value="flask" {% if search_focus == 'flask' %}selected{% endif %}>Flask</option>
+                    <option value="fullstack" {% if search_focus == 'fullstack' %}selected{% endif %}>Full Stack</option>
+                  </select>
                 </label>
-                <label class="inline-check toggle-check">
-                  <input type="checkbox" name="junior_only" value="true" {% if junior_only %}checked{% endif %} data-role="junior-only" />
-                  Junior-friendly only
+                <label class="field-group">
+                  <span>Region</span>
+                  <select name="region_preference" data-role="job-region">
+                    <option value="global" {% if region_preference == 'global' %}selected{% endif %}>Global remote</option>
+                    <option value="europe" {% if region_preference == 'europe' %}selected{% endif %}>Europe</option>
+                    <option value="asia" {% if region_preference == 'asia' %}selected{% endif %}>Asia</option>
+                    <option value="americas" {% if region_preference == 'americas' %}selected{% endif %}>Americas</option>
+                    <option value="any" {% if region_preference == 'any' %}selected{% endif %}>Any region</option>
+                  </select>
                 </label>
-                <label class="inline-check toggle-check">
-                  <input type="checkbox" name="pakistan_friendly_only" value="true" {% if pakistan_friendly_only %}checked{% endif %} />
-                  Pakistan-friendly only
+                <label class="field-group">
+                  <span>Trust</span>
+                  <select name="trust_signal" data-role="job-trust">
+                    <option value="verified_company" {% if trust_signal == 'verified_company' %}selected{% endif %}>Verified company only</option>
+                    <option value="verified_recruiter" {% if trust_signal == 'verified_recruiter' %}selected{% endif %}>Verified recruiter</option>
+                    <option value="any" {% if trust_signal == 'any' %}selected{% endif %}>Any trust</option>
+                  </select>
                 </label>
-                <label class="inline-check toggle-check">
-                  <input type="checkbox" name="salary_only" value="true" {% if salary_only %}checked{% endif %} />
-                  Salary shown only
+                <label class="field-group">
+                  <span>Posted within</span>
+                  <select name="posted_within" data-role="job-posted-within">
+                    <option value="7d" {% if posted_within == '7d' %}selected{% endif %}>Last 7 days</option>
+                    <option value="3d" {% if posted_within == '3d' %}selected{% endif %}>Last 3 days</option>
+                    <option value="1d" {% if posted_within == '1d' %}selected{% endif %}>Last 24 hours</option>
+                    <option value="14d" {% if posted_within == '14d' %}selected{% endif %}>Last 14 days</option>
+                    <option value="30d" {% if posted_within == '30d' %}selected{% endif %}>Last 30 days</option>
+                  </select>
                 </label>
-                <label class="inline-check toggle-check">
-                  <input type="checkbox" name="visa_support_only" value="true" {% if visa_support_only %}checked{% endif %} />
-                  Visa support only
+                <label class="field-group">
+                  <span>Match quality</span>
+                  <select name="min_match_level" data-role="job-match-level">
+                    <option value="all" {% if min_match_level == 'all' %}selected{% endif %}>All matches</option>
+                    <option value="medium" {% if min_match_level == 'medium' %}selected{% endif %}>Medium+ only</option>
+                    <option value="high" {% if min_match_level == 'high' %}selected{% endif %}>High only</option>
+                  </select>
                 </label>
               </div>
             </div>
-          </div>
-        </div>
 
-        <div class="filter-panel span-all">
-          <div class="filter-panel-head">
-            <h3>Discovery Channels</h3>
-            <p>Choose the exact internal sources and external platforms this search should use.</p>
-          </div>
-          <div class="filter-grid filter-grid-two">
-            <div class="filter-cluster">
-              <strong>Internal job sources</strong>
-              <label class="choice-pill"><input type="checkbox" value="remotive" data-role="source-option" />Remotive</label>
-              <label class="choice-pill"><input type="checkbox" value="weworkremotely" data-role="source-option" />We Work Remotely</label>
-              <label class="choice-pill"><input type="checkbox" value="arbeitnow" data-role="source-option" />Arbeitnow</label>
+            <div class="filter-panel">
+              <div class="filter-panel-head">
+                <h3>Job Filters</h3>
+                <p>Use gig and role strictness inside job mode instead of a separate mini-jobs workflow.</p>
+              </div>
+              <div class="filter-grid">
+                <label class="field-group">
+                  <span>Gig / small task</span>
+                  <select name="demand_level" data-role="job-demand-level">
+                    <option value="latest" {% if demand_level == 'latest' %}selected{% endif %}>Standard jobs</option>
+                    <option value="budget" {% if demand_level == 'budget' %}selected{% endif %}>Gig / small task</option>
+                    <option value="urgent" {% if demand_level == 'urgent' %}selected{% endif %}>Urgent roles</option>
+                    <option value="long_term" {% if demand_level == 'long_term' %}selected{% endif %}>Long-term roles</option>
+                  </select>
+                </label>
+                <label class="field-group">
+                  <span>Extra keyword</span>
+                  <input type="text" name="custom_keywords" value="{{ custom_keywords or '' }}" placeholder="automation, bug fix, API, backend" data-role="job-custom-keywords" />
+                </label>
+                <div class="field-group">
+                  <span>Quality gates</span>
+                  <div class="toggle-grid">
+                    <label class="inline-check toggle-check">
+                      <input type="checkbox" name="backend_only" value="true" {% if backend_only %}checked{% endif %} data-role="job-backend-only" />
+                      Backend only
+                    </label>
+                    <label class="inline-check toggle-check">
+                      <input type="checkbox" name="remote_only" value="true" {% if remote_only %}checked{% endif %} data-role="job-remote-only" />
+                      Remote only
+                    </label>
+                    <label class="inline-check toggle-check">
+                      <input type="checkbox" name="junior_only" value="true" {% if junior_only %}checked{% endif %} data-role="job-junior-only" />
+                      Junior-friendly only
+                    </label>
+                    <label class="inline-check toggle-check">
+                      <input type="checkbox" name="verified_payment_only" value="true" {% if verified_payment_only %}checked{% endif %} data-role="job-verified-only" />
+                      Verified payment only
+                    </label>
+                    <label class="inline-check toggle-check">
+                      <input type="checkbox" name="salary_only" value="true" {% if salary_only %}checked{% endif %} data-role="job-salary-only" />
+                      Salary shown only
+                    </label>
+                    <label class="inline-check toggle-check">
+                      <input type="checkbox" name="visa_support_only" value="true" {% if visa_support_only %}checked{% endif %} data-role="job-visa-only" />
+                      Visa support only
+                    </label>
+                    <label class="inline-check toggle-check hidden">
+                      <input type="checkbox" name="pakistan_friendly_only" value="true" {% if pakistan_friendly_only %}checked{% endif %} data-role="job-pakistan-only" />
+                      Pakistan-friendly only
+                    </label>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div class="filter-cluster">
-              <strong>Web search targets</strong>
-              <label class="choice-pill"><input type="checkbox" value="indeed" data-role="platform-option" />Indeed</label>
-              <label class="choice-pill"><input type="checkbox" value="linkedin" data-role="platform-option" />LinkedIn</label>
-              <label class="choice-pill"><input type="checkbox" value="upwork" data-role="platform-option" />Upwork</label>
-              <label class="choice-pill"><input type="checkbox" value="fiverr" data-role="platform-option" />Fiverr</label>
-              <label class="choice-pill"><input type="checkbox" value="google_clients" data-role="platform-option" />Google Clients</label>
-              <label class="choice-pill"><input type="checkbox" value="google_maps" data-role="platform-option" />Google Maps</label>
+          <div class="filter-panel span-all">
+            <div class="filter-panel-head">
+              <h3>Job Sources</h3>
+              <p>Only job-search channels appear here. No Google client routes, no selling links, no residency hunting labels.</p>
+            </div>
+            <div class="filter-grid filter-grid-two">
+              <div class="filter-cluster">
+                <strong>Internal job sources</strong>
+                <label class="choice-pill"><input type="checkbox" value="remotive" data-role="job-source-option" />Remotive</label>
+                <label class="choice-pill"><input type="checkbox" value="weworkremotely" data-role="job-source-option" />We Work Remotely</label>
+                <label class="choice-pill"><input type="checkbox" value="arbeitnow" data-role="job-source-option" />Arbeitnow</label>
+              </div>
+              <div class="filter-cluster">
+                <strong>Web search targets</strong>
+                <label class="choice-pill"><input type="checkbox" value="linkedin" data-role="job-platform-option" />LinkedIn</label>
+                <label class="choice-pill"><input type="checkbox" value="indeed" data-role="job-platform-option" />Indeed</label>
+              </div>
             </div>
           </div>
+
+          <div class="filter-actions span-all">
+            <button type="submit">Run Job Search</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card mode-result-panel" data-role="job-results-panel">
+        <div class="section-head">
+          <div>
+            <h2>Job Results</h2>
+            <p class="hint">Scored by CV and skills overlap, then filtered by job-only controls.</p>
+          </div>
+          <div class="summary-pills">
+            <span>{{ match_summary.total if match_summary else 0 }} shown</span>
+            <span>{{ match_summary.high if match_summary else 0 }} high</span>
+            <span>{{ match_summary.medium if match_summary else 0 }} medium</span>
+            <span>{{ match_summary.remote if match_summary else 0 }} remote</span>
+            <span>{{ match_summary.salary if match_summary else 0 }} salary</span>
+          </div>
         </div>
-
-        <div class="filter-actions span-all">
-          <button type="submit">Run My Match</button>
+        <div class="mode-note-box results-stale-note hidden" data-role="stale-results-note" data-mode="job">
+          <strong>Run job search to refresh this panel</strong>
+          <p>The current results were generated for sell mode. Run Job Search to load job-only links and match cards.</p>
         </div>
-      </form>
-
-      {% if selected %}
-      <p class="hint">Active profile: {{ selected.full_name }} ({{ selected.email }})</p>
-      {% if selected.resume_url or selected.portfolio_url %}
-      <div class="assisted-links">
-        {% if selected.resume_url %}<a href="{{ selected.resume_url }}" target="_blank" rel="noopener">Open Resume</a>{% endif %}
-        {% if selected.portfolio_url %}<a href="{{ selected.portfolio_url }}" target="_blank" rel="noopener">Open Portfolio</a>{% endif %}
-      </div>
-      {% endif %}
-      {% if selected.linkedin_url or selected.upwork_url or selected.fiverr_url %}
-      <div class="assisted-links">
-        {% if selected.linkedin_url %}<a href="{{ selected.linkedin_url }}" target="_blank" rel="noopener">My LinkedIn</a>{% endif %}
-        {% if selected.upwork_url %}<a href="{{ selected.upwork_url }}" target="_blank" rel="noopener">My Upwork</a>{% endif %}
-        {% if selected.fiverr_url %}<a href="{{ selected.fiverr_url }}" target="_blank" rel="noopener">My Fiverr</a>{% endif %}
-      </div>
-      {% endif %}
-      {% else %}
-      <p class="error">No active profile selected yet. Please choose your profile from the dropdown or create one above.</p>
-      {% endif %}
-
-      {% if usage %}
-      <p class="hint">Monthly usage: {{ usage.matches_used }} matches used in {{ usage.period }}</p>
-      {% endif %}
-
-      {% if error %}
-      <p class="error">{{ error }}</p>
-      {% endif %}
-
-      {% if live_search_links %}
-      <div class="assisted-links">
-        {% for link in live_search_links %}
-        <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }} Latest</a>
-        {% endfor %}
-      </div>
-      <p class="hint">These links follow your dropdowns and tick marks so the search goes exactly where you want.</p>
-      <p class="hint">{% if client_only_mode %}These search routes are for prospecting buyers and operators, not internal job-card matching.{% else %}Scored job results still come from the selected internal sources below; web targets control the quick-search links.{% endif %}</p>
-      {% endif %}
-
-      {% if external_only_mode %}
-      <p class="hint">External mini-job mode is active. Internal feeds are skipped, so use the selected platform links above for focused Upwork or Fiverr searches.</p>
-      {% elif client_only_mode %}
-      <p class="hint">Client-hunt mode is active. Internal job feeds are skipped, so use LinkedIn, Google Clients, and Google Maps links above to find housing societies, apartment operators, and flat management buyers.</p>
-      {% endif %}
-
-      {% if client_access_links %}
-      <div class="assisted-links">
-        {% for link in client_access_links %}
-        <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }}</a>
-        {% endfor %}
-      </div>
-      <p class="hint">Client access links make it easier to reach companies, buyers, founders, and decision makers.</p>
-      {% if client_type == 'property_management' %}
-      <p class="hint">Residency hunt plan: target apartment operators, housing societies, gated communities, HOA teams, and residential property managers first, then pitch demo, billing, maintenance, visitor, and resident-app workflows.</p>
-      {% endif %}
-      {% endif %}
-
-      {% if outreach_links %}
-      <div class="assisted-links">
-        {% for link in outreach_links %}
-        <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }}</a>
-        {% endfor %}
-      </div>
-      <p class="hint">These are semi-auto outreach actions. They prefill your pitch, resume, portfolio, and product links where possible.</p>
-      {% endif %}
-    </section>
-
-    <section class="card workflow-panel" data-role="workflow-panel" data-tab-panel="jobs">
-      <div class="section-head">
-        <div>
-          <h2>{% if client_only_mode %}Client Hunt Results{% elif external_only_mode %}External Job Search{% else %}Top Job Results{% endif %}</h2>
-          <p class="hint">{% if client_only_mode %}Use the focused client links above to prospect global residency-management buyers without mixing internal job feeds.{% elif external_only_mode %}Use the focused platform links above for mini Python jobs, verified-payment gigs, and global searches without internal feed mixing.{% else %}Scored by CV and skills overlap, then cleaned with role, remote, and seniority filters.{% endif %}</p>
+        <div data-role="results-live-content" data-mode="job">
+        {% if usage %}<p class="hint">Monthly usage: {{ usage.matches_used }} matches used in {{ usage.period }}</p>{% endif %}
+        {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        {% if live_search_links %}
+        <div class="mode-link-bar">
+          <div class="mode-link-head">
+            <h3>Fresh Search Routes</h3>
+            <p>Open LinkedIn and Indeed directly from this job-only plan.</p>
+          </div>
+          <div class="assisted-links compact-links">
+            {% for link in live_search_links %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }} Latest</a>
+            {% endfor %}
+          </div>
         </div>
-        <div class="summary-pills">
-          <span>{{ match_summary.total if match_summary else 0 }} shown</span>
-          <span>{{ match_summary.high if match_summary else 0 }} high</span>
-          <span>{{ match_summary.medium if match_summary else 0 }} medium</span>
-          <span>{{ match_summary.remote if match_summary else 0 }} remote</span>
-          <span>{{ match_summary.salary if match_summary else 0 }} salary</span>
-          <span>{{ match_summary.visa if match_summary else 0 }} visa</span>
+        {% endif %}
+        {% if active_filter_badges %}
+        <div class="active-filter-bar">
+          {% for badge in active_filter_badges %}
+          <span>{{ badge }}</span>
+          {% endfor %}
         </div>
-      </div>
-      {% if active_filter_badges %}
-      <div class="active-filter-bar">
-        {% for badge in active_filter_badges %}
-        <span>{{ badge }}</span>
-        {% endfor %}
-      </div>
-      {% endif %}
-      <div class="matches">
-        {% for item in matches %}
+        {% endif %}
+        <div class="matches">
+          {% for item in matches %}
           <article class="job">
             <div>
               <div class="job-topline">
@@ -615,7 +421,6 @@
                 <span class="meta-badge">Trust {{ item.trust_score }}/100</span>
                 {% if item.is_remote %}<span class="meta-badge good">Remote</span>{% endif %}
                 {% if item.is_junior_friendly %}<span class="meta-badge good">Junior-friendly</span>{% endif %}
-                {% if item.is_pakistan_friendly %}<span class="meta-badge good">Pakistan-friendly</span>{% endif %}
                 {% if item.has_salary %}<span class="meta-badge">Salary visible</span>{% endif %}
                 {% if item.has_visa_support %}<span class="meta-badge">Visa support</span>{% endif %}
               </div>
@@ -627,54 +432,15 @@
               </div>
               {% endif %}
               <p>{{ item.reason }}</p>
-              {% if item.job.salary %}
-              <p class="source">Salary: {{ item.job.salary }}</p>
-              {% endif %}
-              {% if item.matched_skills %}
-              <p class="source">Matched stack: {{ item.matched_skills|join(', ') }}</p>
-              {% endif %}
-              {% if item.missing_skills %}
-              <p class="source">Still missing: {{ item.missing_skills|join(', ') }}</p>
-              {% endif %}
+              {% if item.job.salary %}<p class="source">Salary: {{ item.job.salary }}</p>{% endif %}
+              {% if item.matched_skills %}<p class="source">Matched stack: {{ item.matched_skills|join(', ') }}</p>{% endif %}
+              {% if item.missing_skills %}<p class="source">Still missing: {{ item.missing_skills|join(', ') }}</p>{% endif %}
               <div class="assisted-links">
-                {% if 'linkedin' in selected_platform_targets %}
-                <a href="{{ item.assisted_links.linkedin }}" target="_blank" rel="noopener">LinkedIn Search</a>
-                {% endif %}
-                {% if 'indeed' in selected_platform_targets %}
-                <a href="{{ item.assisted_links.indeed }}" target="_blank" rel="noopener">Indeed Search</a>
-                {% endif %}
-                {% if 'google_clients' in selected_platform_targets or 'google_maps' in selected_platform_targets %}
-                <a href="{{ item.assisted_links.google_jobs }}" target="_blank" rel="noopener">Google Jobs</a>
-                {% endif %}
-                {% if 'upwork' in selected_platform_targets %}
-                <a href="{{ item.assisted_links.upwork }}" target="_blank" rel="noopener">Upwork Search</a>
-                {% endif %}
-                {% if 'fiverr' in selected_platform_targets %}
-                <a href="{{ item.assisted_links.fiverr }}" target="_blank" rel="noopener">Fiverr Search</a>
-                {% endif %}
+                {% if 'linkedin' in selected_platform_targets %}<a href="{{ item.assisted_links.linkedin }}" target="_blank" rel="noopener">LinkedIn Search</a>{% endif %}
+                {% if 'indeed' in selected_platform_targets %}<a href="{{ item.assisted_links.indeed }}" target="_blank" rel="noopener">Indeed Search</a>{% endif %}
                 <a href="{{ item.assisted_links.email_apply }}">Quick Apply Email</a>
                 <button type="button" class="ghost-action" data-copy-query="{{ item.search_query }}">Copy Search</button>
               </div>
-              {% if selected.linkedin_url or selected.upwork_url or selected.fiverr_url %}
-              <div class="assisted-links">
-                {% if selected.linkedin_url %}
-                <a href="{{ selected.linkedin_url }}" target="_blank" rel="noopener">Open My LinkedIn</a>
-                {% endif %}
-                {% if selected.upwork_url %}
-                <a href="{{ selected.upwork_url }}" target="_blank" rel="noopener">Open My Upwork</a>
-                {% endif %}
-                {% if selected.fiverr_url %}
-                <a href="{{ selected.fiverr_url }}" target="_blank" rel="noopener">Open My Fiverr</a>
-                {% endif %}
-              </div>
-              {% endif %}
-              {% if selected and (selected.resume_url or selected.portfolio_url) %}
-              <p class="source">
-                {% if selected.resume_url %}Resume ready{% endif %}
-                {% if selected.resume_url and selected.portfolio_url %} · {% endif %}
-                {% if selected.portfolio_url %}Portfolio ready{% endif %}
-              </p>
-              {% endif %}
               {% if selected %}
               <form action="/dashboard/applications" method="post" class="save-form">
                 <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
@@ -685,61 +451,62 @@
                 <input type="text" name="notes" placeholder="Optional note" />
                 <input type="date" name="follow_up_date" />
                 <div class="action-row">
-                  <button type="submit" name="status" value="saved">Save To Tracker</button>
-                  <button type="submit" name="status" value="applied" class="secondary-action">Mark Applied</button>
+                  <button type="submit" name="status" value="saved">Save Job</button>
+                  <button type="submit" name="status" value="applied" class="secondary-action">Track Application</button>
                 </div>
               </form>
               {% endif %}
             </div>
             <a href="{{ item.job.url }}" target="_blank" rel="noopener">Open Apply Page</a>
           </article>
-        {% else %}
-          <p class="hint">{% if client_only_mode %}No internal job cards are shown in client-hunt mode. Open the LinkedIn, Google Clients, and Google Maps links above to find residency management buyers, housing societies, and apartment operators.{% elif external_only_mode %}No internal result cards are shown in external-only mode. Open the selected Upwork or Fiverr links above to search mini Python gigs directly.{% else %}No matches yet. First select your profile, upload CV, then click Run My Match.{% endif %}</p>
-        {% endfor %}
-      </div>
-    </section>
+          {% else %}
+          <p class="hint">No job matches yet. Select profile, upload CV, set your job filters, then run job search.</p>
+          {% endfor %}
+        </div>
+        </div>
+      </section>
 
-    <section class="card workflow-panel" data-role="workflow-panel" data-tab-panel="jobs">
-      <h2>Your Application Tracker</h2>
-      {% if selected %}
-        <p class="hint">Tracking applications for {{ selected.full_name }}</p>
-      {% else %}
-        <p class="error">Tracker will appear after you select or create your profile.</p>
-      {% endif %}
-      <div class="status-grid">
-        <div class="status-card"><p>Total</p><strong>{{ status_summary.total }}</strong></div>
-        <div class="status-card"><p>Saved</p><strong>{{ status_summary.saved }}</strong></div>
-        <div class="status-card"><p>Applied</p><strong>{{ status_summary.applied }}</strong></div>
-        <div class="status-card"><p>Replied</p><strong>{{ status_summary.replied }}</strong></div>
-        <div class="status-card"><p>Interview</p><strong>{{ status_summary.interview }}</strong></div>
-        <div class="status-card"><p>Rejected</p><strong>{{ status_summary.rejected }}</strong></div>
-      </div>
-      <div class="insights-grid">
-        <div class="insight-panel">
-          <h3>Upcoming Follow-ups</h3>
-          {% for item in follow_up_summary %}
+      <section class="card mode-tracker-panel" data-role="job-tracker-panel">
+        <div class="section-head">
+          <div>
+            <h2>Application Tracker</h2>
+            <p class="hint">This tracker is only for jobs. Status path: applied → interview → offer → rejected.</p>
+          </div>
+          <div class="status-grid compact-status-grid">
+            <div class="status-card"><p>Total</p><strong>{{ status_summary.total }}</strong></div>
+            <div class="status-card"><p>Saved</p><strong>{{ status_summary.saved }}</strong></div>
+            <div class="status-card"><p>Applied</p><strong>{{ status_summary.applied }}</strong></div>
+            <div class="status-card"><p>Interview</p><strong>{{ status_summary.interview }}</strong></div>
+            <div class="status-card"><p>Offer</p><strong>{{ status_summary.offer }}</strong></div>
+            <div class="status-card"><p>Rejected</p><strong>{{ status_summary.rejected }}</strong></div>
+          </div>
+        </div>
+        <div class="insights-grid">
+          <div class="insight-panel">
+            <h3>Upcoming Follow-ups</h3>
+            {% for item in follow_up_summary %}
             <div class="insight-row">
               <strong>{{ item.follow_up_date }}</strong>
               <span>{{ item.company }} - {{ item.job_title }}</span>
             </div>
-          {% else %}
+            {% else %}
             <p class="hint">Add follow-up dates while saving or updating applications.</p>
-          {% endfor %}
-        </div>
-        <div class="insight-panel">
-          <h3>Top Companies</h3>
-          {% for item in company_summary %}
+            {% endfor %}
+          </div>
+          <div class="insight-panel">
+            <h3>Top Companies</h3>
+            {% for item in company_summary %}
             <div class="insight-row">
               <strong>{{ item.company }}</strong>
-              <span>{{ item.total }} total / {{ item.applied }} applied / {{ item.interview }} interview</span>
+              <span>{{ item.total }} total / {{ item.applied }} applied / {{ item.interview }} interview / {{ item.offer }} offer</span>
             </div>
-          {% else %}
-            <p class="hint">Company insights will appear after you track a few applications.</p>
-          {% endfor %}
+            {% else %}
+            <p class="hint">Company insights appear after you track a few applications.</p>
+            {% endfor %}
+          </div>
         </div>
-      </div>
-      <div class="tracker">
-        {% for row in applications %}
+        <div class="tracker">
+          {% for row in applications %}
           <article class="tracker-row">
             <div>
               <h3>{{ row.job_title }}</h3>
@@ -752,8 +519,8 @@
               <select name="status" required>
                 <option value="saved" {% if row.status == 'saved' %}selected{% endif %}>saved</option>
                 <option value="applied" {% if row.status == 'applied' %}selected{% endif %}>applied</option>
-                <option value="replied" {% if row.status == 'replied' %}selected{% endif %}>replied</option>
                 <option value="interview" {% if row.status == 'interview' %}selected{% endif %}>interview</option>
+                <option value="offer" {% if row.status == 'offer' %}selected{% endif %}>offer</option>
                 <option value="rejected" {% if row.status == 'rejected' %}selected{% endif %}>rejected</option>
               </select>
               <input type="text" name="notes" value="{{ row.notes }}" placeholder="Notes" />
@@ -761,56 +528,266 @@
               <button type="submit">Update</button>
             </form>
           </article>
-        {% else %}
-          <p class="hint">No tracked applications yet. Save a job from Top Job Results to start building your pipeline.</p>
-        {% endfor %}
-      </div>
+          {% else %}
+          <p class="hint">No tracked applications yet. Save a job from Job Results to build your pipeline.</p>
+          {% endfor %}
+        </div>
+      </section>
     </section>
 
-    <section class="card workflow-panel" data-role="workflow-panel" data-tab-panel="clients">
-      <h2>Client Sales Pipeline</h2>
-      {% if selected %}
-        <p class="hint">Track outreach, replies, negotiations, and wins for {{ selected.full_name }}</p>
-        <div class="client-command-grid">
-          <article class="command-card">
-            <span class="panel-label">Discover</span>
-            <h3>Client Search Targets</h3>
-            <div class="assisted-links compact-links">
-              {% for link in client_access_links %}
-              <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }}</a>
-              {% else %}
-              <span class="hint">Run a search to generate client targets.</span>
-              {% endfor %}
-            </div>
-          </article>
-          <article class="command-card">
-            <span class="panel-label">Convert</span>
-            <h3>Pitch Actions</h3>
-            <div class="assisted-links compact-links">
-              {% for link in outreach_links %}
-              <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }}</a>
-              {% else %}
-              <span class="hint">Add resume, portfolio, or product links to unlock quick outreach.</span>
-              {% endfor %}
-            </div>
-          </article>
-          <article class="command-card">
-            <span class="panel-label">Demand</span>
-            <h3>Live Search Routes</h3>
-            <div class="assisted-links compact-links">
-              {% for link in live_search_links[:4] %}
-              <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }}</a>
-              {% else %}
-              <span class="hint">Run your filter set to generate direct routes.</span>
-              {% endfor %}
-            </div>
-          </article>
+    <section class="mode-shell {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-role="mode-shell" data-mode-panel="sell">
+      <section class="card mode-panel mode-panel-sell">
+        <div class="section-head mode-panel-head">
+          <div>
+            <p class="eyebrow">Mode 2</p>
+            <h2>Sell Services Mode</h2>
+            <p class="hint">Only client filters, only outreach actions, only lead tracking. Residency software sits here as a preset inside the selling workflow.</p>
+          </div>
+          <div class="filter-overview" data-role="sell-filter-overview">
+            <span>Client: {{ (client_type or 'property_management')|replace('_', ' ')|title }}</span>
+            <span>Offer: {{ (offer_type or 'software')|replace('_', ' ')|title }}</span>
+            <span>Goal: {{ (contact_goal or 'meeting')|replace('_', ' ')|title }}</span>
+            <span>Target: {{ (counterparty_type or 'founder')|replace('_', ' ')|title }}</span>
+          </div>
         </div>
+        <form action="/dashboard/matches" method="get" class="filters mode-filters" data-role="sell-form">
+          <script type="application/json" data-role="server-client-leads-json">{{ client_leads|tojson }}</script>
+          <input type="hidden" name="search_mode" value="sell_services" />
+          <input type="hidden" name="demand_level" value="premium" />
+          <input type="hidden" name="posted_within" value="7d" />
+          <input type="hidden" name="company_size" value="any" />
+          <input type="hidden" name="proposal_pressure" value="any" />
+          <input type="hidden" name="search_focus" value="all" />
+          <input type="hidden" name="min_match_level" value="all" />
+          <input type="hidden" name="backend_only" value="false" />
+          <input type="hidden" name="remote_only" value="false" />
+          <input type="hidden" name="junior_only" value="false" />
+          <input type="hidden" name="salary_only" value="false" />
+          <input type="hidden" name="visa_support_only" value="false" />
+          <input type="hidden" name="verified_payment_only" value="false" />
+          <input type="hidden" name="pakistan_friendly_only" value="false" />
+          <input type="hidden" name="region_preference" value="global" />
+          <input type="hidden" name="sources" value="" data-role="sell-source-input" />
+          <input type="hidden" name="platform_targets" value="linkedin,google_clients,google_maps,upwork,fiverr" data-role="sell-platform-targets" />
+          <input type="hidden" name="active_mode" value="sell" />
+
+          <div class="filter-panel span-all">
+            <div class="filter-panel-head">
+              <h3>Client Presets</h3>
+              <p>Save and apply only selling presets here. Job-search presets stay isolated in the other mode.</p>
+            </div>
+            <div class="filter-grid filter-grid-preset">
+              <label class="field-group">
+                <span>Client preset library</span>
+                <select data-role="preset-library" data-preset-mode="sell">
+                  <option value="">Choose client preset</option>
+                </select>
+              </label>
+              <label class="field-group">
+                <span>Preset name</span>
+                <input type="text" placeholder="Example: Residency founders global" data-role="preset-name" data-preset-mode="sell" />
+              </label>
+              <input type="hidden" value="{{ selected.id if selected else '' }}" data-role="preset-candidate-id" data-preset-mode="sell" />
+              <input type="file" accept="application/json" class="hidden" data-role="preset-import-file" data-preset-mode="sell" />
+              <div class="preset-actions">
+                <button type="button" class="ghost-action" data-role="save-preset" data-preset-mode="sell">Save preset</button>
+                <button type="button" class="ghost-action" data-role="apply-preset" data-preset-mode="sell">Apply preset</button>
+                <button type="button" class="ghost-action" data-role="delete-preset" data-preset-mode="sell">Delete preset</button>
+                <button type="button" class="ghost-action" data-role="export-presets" data-preset-mode="sell">Export presets</button>
+                <button type="button" class="ghost-action" data-role="import-presets" data-preset-mode="sell">Import presets</button>
+              </div>
+            </div>
+            <p class="hint" data-role="preset-status" data-preset-mode="sell">Client presets sync separately from job presets.</p>
+          </div>
+
+          <div class="preset-bar mode-preset-bar">
+            <button type="button" class="preset-chip" data-role="mode-preset" data-target-form="sell" data-preset-mode="sell" data-preset-name="Residency Software" data-mode="sell_services" data-offer="software" data-client="property_management" data-goal="meeting" data-side="founder" data-trust="verified_company" data-platforms="linkedin,google_clients,google_maps" data-keywords="residency management system apartment operator housing society property manager software" data-region="global">Residency Software</button>
+            <button type="button" class="preset-chip" data-role="mode-preset" data-target-form="sell" data-preset-mode="sell" data-preset-name="Dev Services" data-mode="sell_services" data-offer="services" data-client="property_management" data-goal="meeting" data-side="founder" data-trust="verified_company" data-platforms="linkedin,upwork,fiverr" data-keywords="python fastapi flask backend development services" data-region="global">Dev Services</button>
+          </div>
+
+          <div class="filter-grid sell-mode-grid">
+            <div class="filter-panel">
+              <div class="filter-panel-head">
+                <h3>Buyer Profile</h3>
+                <p>Keep this side focused on client targets and outreach goals only.</p>
+              </div>
+              <div class="filter-grid">
+                <label class="field-group">
+                  <span>Profile</span>
+                  <select name="candidate_id" required>
+                    <option value="">Select profile</option>
+                    {% for p in profiles %}
+                    <option value="{{ p.id }}" {% if selected and p.id == selected.id %}selected{% endif %}>#{{ p.id }} - {{ p.full_name }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label class="field-group">
+                  <span>Result limit</span>
+                  <input type="number" name="top_k" value="5" min="1" max="20" />
+                </label>
+                <label class="field-group">
+                  <span>Client type</span>
+                  <select name="client_type" data-role="sell-client-type">
+                    <option value="property_management" {% if client_type == 'property_management' %}selected{% endif %}>Housing society / apartment operator / property manager</option>
+                    <option value="local_business" {% if client_type == 'local_business' %}selected{% endif %}>Local business</option>
+                    <option value="agency" {% if client_type == 'agency' %}selected{% endif %}>Agency</option>
+                    <option value="startup" {% if client_type == 'startup' %}selected{% endif %}>Startup</option>
+                  </select>
+                </label>
+                <label class="field-group">
+                  <span>Offer type</span>
+                  <select name="offer_type" data-role="sell-offer-type">
+                    <option value="software" {% if offer_type == 'software' %}selected{% endif %}>Software offering</option>
+                    <option value="services" {% if offer_type == 'services' %}selected{% endif %}>Dev services</option>
+                    <option value="automation" {% if offer_type == 'automation' %}selected{% endif %}>Automation</option>
+                  </select>
+                </label>
+                <label class="field-group">
+                  <span>Goal</span>
+                  <select name="contact_goal" data-role="sell-contact-goal">
+                    <option value="meeting" {% if contact_goal == 'meeting' %}selected{% endif %}>Book meeting</option>
+                    <option value="pitch" {% if contact_goal == 'pitch' %}selected{% endif %}>Send pitch</option>
+                    <option value="email" {% if contact_goal == 'email' %}selected{% endif %}>Find email</option>
+                  </select>
+                </label>
+                <label class="field-group">
+                  <span>Target</span>
+                  <select name="counterparty_type" data-role="sell-counterparty">
+                    <option value="founder" {% if counterparty_type == 'founder' %}selected{% endif %}>Founder / decision maker</option>
+                    <option value="company" {% if counterparty_type == 'company' %}selected{% endif %}>Company</option>
+                    <option value="direct_client" {% if counterparty_type == 'direct_client' %}selected{% endif %}>Direct client</option>
+                  </select>
+                </label>
+                <label class="field-group">
+                  <span>Trust</span>
+                  <select name="trust_signal" data-role="sell-trust">
+                    <option value="verified_company" {% if trust_signal == 'verified_company' %}selected{% endif %}>Verified company</option>
+                    <option value="verified_client" {% if trust_signal == 'verified_client' %}selected{% endif %}>Verified client</option>
+                    <option value="any" {% if trust_signal == 'any' %}selected{% endif %}>Any trust</option>
+                  </select>
+                </label>
+                <label class="field-group">
+                  <span>Extra keyword</span>
+                  <input type="text" name="custom_keywords" value="{{ custom_keywords or '' }}" placeholder="residency software, maintenance, tenant billing" data-role="sell-custom-keywords" />
+                </label>
+              </div>
+            </div>
+
+            <div class="filter-panel">
+              <div class="filter-panel-head">
+                <h3>Client Channels</h3>
+                <p>Only selling channels appear here. No job boards, no job cards, no application buttons.</p>
+              </div>
+              <div class="filter-grid filter-grid-two sell-channel-grid">
+                <div class="filter-cluster">
+                  <strong>Search routes</strong>
+                  <label class="choice-pill"><input type="checkbox" value="google_maps" data-role="sell-platform-option" />Google Maps</label>
+                  <label class="choice-pill"><input type="checkbox" value="google_clients" data-role="sell-platform-option" />Google Clients</label>
+                  <label class="choice-pill"><input type="checkbox" value="linkedin" data-role="sell-platform-option" />LinkedIn</label>
+                </div>
+                <div class="filter-cluster">
+                  <strong>Freelance routes</strong>
+                  <label class="choice-pill"><input type="checkbox" value="upwork" data-role="sell-platform-option" />Upwork</label>
+                  <label class="choice-pill"><input type="checkbox" value="fiverr" data-role="sell-platform-option" />Fiverr</label>
+                </div>
+              </div>
+              <div class="mode-note-box">
+                <strong>Residency software preset</strong>
+                <p>Use the residency software preset above to target housing societies, apartment operators, and property managers without separate Shaz sections.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-actions span-all">
+            <button type="submit">Run Client Search</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card mode-result-panel" data-role="sell-results-panel">
+        <div class="section-head">
+          <div>
+            <h2>Client Search Results</h2>
+            <p class="hint">Direct client selling never shows internal job cards. Use buyer routes, pitch actions, and save leads.</p>
+          </div>
+          <div class="filter-overview mode-status-bar">
+            <span>Status: Client mode active</span>
+            <span>Internal jobs: Off</span>
+            <span>Action: Open buyer links</span>
+          </div>
+        </div>
+        <div class="mode-note-box results-stale-note hidden" data-role="stale-results-note" data-mode="sell">
+          <strong>Run client search to refresh this panel</strong>
+          <p>The current results were generated for job mode. Run Client Search to load buyer routes and outreach actions for selling mode.</p>
+        </div>
+        <div data-role="results-live-content" data-mode="sell">
+        {% if live_search_links %}
+        <div class="mode-link-bar">
+          <div class="mode-link-head">
+            <h3>Buyer Search Routes</h3>
+            <p>Focused web routes built from your selling filters.</p>
+          </div>
+          <div class="assisted-links compact-links">
+            {% for link in live_search_links %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }} Latest</a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if client_access_links %}
+        <div class="mode-link-bar">
+          <div class="mode-link-head">
+            <h3>Client Access</h3>
+            <p>Open decision-maker paths without job-search noise.</p>
+          </div>
+          <div class="assisted-links compact-links">
+            {% for link in client_access_links %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }}</a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if outreach_links %}
+        <div class="mode-link-bar">
+          <div class="mode-link-head">
+            <h3>Outreach Actions</h3>
+            <p>Pitch email and WhatsApp actions stay only in selling mode.</p>
+          </div>
+          <div class="assisted-links compact-links">
+            {% for link in outreach_links %}
+            <a href="{{ link.url }}" target="_blank" rel="noopener">{{ link.platform }}</a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        <div class="mode-note-box">
+          <strong>Mode-specific behavior</strong>
+          <p>No job cards are rendered here. Search routes, pitch actions, and saved leads are the core outputs for this mode.</p>
+        </div>
+        </div>
+      </section>
+
+      <section class="card mode-tracker-panel" data-role="sell-tracker-panel">
+        <div class="section-head">
+          <div>
+            <h2>Lead Tracker</h2>
+            <p class="hint">This tracker is only for clients. Status path: discover → contacted → replied → negotiation → won.</p>
+          </div>
+          <div class="status-grid compact-status-grid">
+            <div class="status-card"><p>Total</p><strong>{{ client_status_summary.total }}</strong></div>
+            <div class="status-card"><p>Discover</p><strong>{{ client_status_summary.discover }}</strong></div>
+            <div class="status-card"><p>Contacted</p><strong>{{ client_status_summary.contacted }}</strong></div>
+            <div class="status-card"><p>Replied</p><strong>{{ client_status_summary.replied }}</strong></div>
+            <div class="status-card"><p>Negotiation</p><strong>{{ client_status_summary.negotiation }}</strong></div>
+            <div class="status-card"><p>Won</p><strong>{{ client_status_summary.won }}</strong></div>
+          </div>
+        </div>
+        {% if selected %}
         <form action="/dashboard/client-leads" method="post" class="stack-form tracker-create-form">
           <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
           <input type="text" name="company" placeholder="Client company or party" required />
           <input type="text" name="lead_name" placeholder="Contact person" />
-          <input type="text" name="source" placeholder="LinkedIn, Google, referral, Upwork" />
+          <input type="text" name="source" placeholder="LinkedIn, Google, Upwork, Fiverr" />
           <input type="url" name="lead_url" placeholder="Lead URL https://..." />
           <input type="email" name="contact_email" placeholder="Email" />
           <input type="text" name="contact_phone" placeholder="Phone or WhatsApp" />
@@ -822,13 +799,12 @@
             <option value="website">Website form</option>
           </select>
           <select name="offer_type">
-            <option value="services">Services</option>
-            <option value="products">Products</option>
-            <option value="software">Software</option>
+            <option value="software">Software offering</option>
+            <option value="services">Dev services</option>
             <option value="automation">Automation</option>
           </select>
           <select name="status">
-            <option value="new">new</option>
+            <option value="discover">discover</option>
             <option value="contacted">contacted</option>
             <option value="replied">replied</option>
             <option value="negotiation">negotiation</option>
@@ -837,52 +813,41 @@
           </select>
           <input type="date" name="follow_up_date" />
           <textarea name="notes" rows="3" placeholder="Need, price range, interest, next step"></textarea>
-          <button type="submit">Save Client Lead</button>
+          <button type="submit">Save Lead</button>
         </form>
-      {% else %}
-        <p class="error">Select or create profile first to save client leads.</p>
-      {% endif %}
-
-      <div class="status-grid client-status-grid">
-        <div class="status-card"><p>Total</p><strong>{{ client_status_summary.total }}</strong></div>
-        <div class="status-card"><p>New</p><strong>{{ client_status_summary.new }}</strong></div>
-        <div class="status-card"><p>Contacted</p><strong>{{ client_status_summary.contacted }}</strong></div>
-        <div class="status-card"><p>Replied</p><strong>{{ client_status_summary.replied }}</strong></div>
-        <div class="status-card"><p>Negotiation</p><strong>{{ client_status_summary.negotiation }}</strong></div>
-        <div class="status-card"><p>Won</p><strong>{{ client_status_summary.won }}</strong></div>
-      </div>
-
-      <div class="insights-grid">
-        <div class="insight-panel">
-          <h3>Client Follow-ups</h3>
-          {% for item in client_follow_up_summary %}
+        {% else %}
+        <p class="error">Select or create profile first to save leads.</p>
+        {% endif %}
+        <div class="insights-grid">
+          <div class="insight-panel">
+            <h3>Lead Follow-ups</h3>
+            {% for item in client_follow_up_summary %}
             <div class="insight-row">
               <strong>{{ item.follow_up_date }}</strong>
               <span>{{ item.company }} - {{ item.lead_name }}</span>
             </div>
-          {% else %}
-            <p class="hint">Add follow-up dates to stay consistent with client outreach.</p>
-          {% endfor %}
+            {% else %}
+            <p class="hint">Add follow-up dates to keep client selling disciplined.</p>
+            {% endfor %}
+          </div>
+          <div class="insight-panel">
+            <h3>Workflow</h3>
+            <div class="insight-row">
+              <strong>1. Discover</strong>
+              <span>Find buyers through Google Maps, Google Clients, LinkedIn, Upwork, and Fiverr.</span>
+            </div>
+            <div class="insight-row">
+              <strong>2. Pitch</strong>
+              <span>Use Pitch Email and WhatsApp Pitch only in this mode.</span>
+            </div>
+            <div class="insight-row">
+              <strong>3. Track</strong>
+              <span>Move each lead from discover to contacted, replied, negotiation, then won.</span>
+            </div>
+          </div>
         </div>
-        <div class="insight-panel">
-          <h3>Best Use Process</h3>
-          <div class="insight-row">
-            <strong>1. Search</strong>
-            <span>Use dropdowns and target links to find buyers, companies, and parties.</span>
-          </div>
-          <div class="insight-row">
-            <strong>2. Pitch</strong>
-            <span>Use Pitch Email or WhatsApp Pitch to send your product, resume, or portfolio fast.</span>
-          </div>
-          <div class="insight-row">
-            <strong>3. Track</strong>
-            <span>Save every lead and move it from new to contacted, replied, negotiation, then won.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="tracker">
-        {% for row in client_leads %}
+        <div class="tracker">
+          {% for row in client_leads %}
           <article class="tracker-row">
             <div>
               <h3>{{ row.company }}</h3>
@@ -895,7 +860,7 @@
             <form action="/dashboard/client-leads/{{ row.id }}" method="post" class="tracker-form">
               <input type="hidden" name="candidate_id" value="{{ row.candidate_id }}" />
               <select name="status" required>
-                <option value="new" {% if row.status == 'new' %}selected{% endif %}>new</option>
+                <option value="discover" {% if row.status == 'discover' %}selected{% endif %}>discover</option>
                 <option value="contacted" {% if row.status == 'contacted' %}selected{% endif %}>contacted</option>
                 <option value="replied" {% if row.status == 'replied' %}selected{% endif %}>replied</option>
                 <option value="negotiation" {% if row.status == 'negotiation' %}selected{% endif %}>negotiation</option>
@@ -916,10 +881,11 @@
               <button type="submit">Update Lead</button>
             </form>
           </article>
-        {% else %}
-          <p class="hint">No client leads yet. Use the client access links above, then save serious prospects here.</p>
-        {% endfor %}
-      </div>
+          {% else %}
+          <p class="hint">No client leads yet. Use buyer search routes and save serious prospects here.</p>
+          {% endfor %}
+        </div>
+      </section>
     </section>
   </main>
 

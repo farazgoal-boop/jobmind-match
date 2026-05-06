@@ -2,7 +2,7 @@ window.addEventListener("DOMContentLoaded", () => {
   let installPrompt = null;
   let lastNativePath = window.location.pathname;
   const cards = document.querySelectorAll(".card");
-  cards.forEach((card, i) => {
+  cards.forEach((card, index) => {
     card.animate(
       [
         { opacity: 0, transform: "translateY(10px)" },
@@ -10,188 +10,349 @@ window.addEventListener("DOMContentLoaded", () => {
       ],
       {
         duration: 320,
-        delay: i * 70,
+        delay: index * 50,
         fill: "forwards",
         easing: "ease-out"
       }
     );
   });
 
-  document.querySelectorAll("[data-copy-query]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const query = button.getAttribute("data-copy-query") || "";
-      if (!query) {
+  const installButton = document.querySelector('[data-role="install-app"]');
+  const capacitorApp = window.Capacitor?.Plugins?.App;
+  const modeToggles = document.querySelectorAll('[data-role="mode-toggle"]');
+  const modeShells = document.querySelectorAll('[data-role="mode-shell"]');
+  const modeSummaryCards = document.querySelectorAll('[data-role="mode-summary-card"]');
+  const spotlightTitle = document.querySelector('[data-role="mode-spotlight-title"]');
+  const spotlightDescription = document.querySelector('[data-role="mode-spotlight-description"]');
+  const staleResultsNotes = document.querySelectorAll('[data-role="stale-results-note"]');
+  const liveResultsContent = document.querySelectorAll('[data-role="results-live-content"]');
+  const jobForm = document.querySelector('[data-role="job-form"]');
+  const sellForm = document.querySelector('[data-role="sell-form"]');
+  const currentPath = window.location.pathname;
+  const currentQuery = new URLSearchParams(window.location.search);
+  const sellSearchModes = new Set(["sell_services", "sell_products", "direct_clients"]);
+  const serverResultMode = sellSearchModes.has(currentQuery.get("search_mode")) ? "sell" : "job";
+  const initialMode = currentQuery.get("active_mode") || serverResultMode;
+  const modeMeta = {
+    job: {
+      title: "Job Search Mode",
+      description: "Find remote Python and backend roles with job-only filters, match cards, and application tracking."
+    },
+    sell: {
+      title: "Sell Services Mode",
+      description: "Prospect buyers for your residency management software or dev services with client-only tools and lead tracking."
+    }
+  };
+
+  const storageKeys = {
+    uiMode: "jobmind.activeMode.v2",
+    modeState: "jobmind.modeState.v2",
+    presets: "jobmind.modePresets.v2",
+    trackers: "jobmind.modeTrackers.v2"
+  };
+
+  const formConfig = {
+    job: {
+      mode: "job",
+      form: jobForm,
+      sourceSelector: '[data-role="job-source-option"]',
+      platformSelector: '[data-role="job-platform-option"]',
+      sourceInput: jobForm?.querySelector('[data-role="source-input"]') || null,
+      platformInput: jobForm?.querySelector('[data-role="platform-targets"]') || null,
+      filterOverview: document.querySelector('[data-role="job-filter-overview"]'),
+      defaults: {
+        search_mode: "job_search",
+        offer_type: "software",
+        client_type: "startup",
+        contact_goal: "apply",
+        counterparty_type: "any",
+        company_size: "any",
+        proposal_pressure: "any",
+        search_focus: "python",
+        region_preference: "global",
+        trust_signal: "verified_company",
+        posted_within: "7d",
+        demand_level: "latest",
+        min_match_level: "all",
+        custom_keywords: "",
+        sources: "remotive,weworkremotely,arbeitnow",
+        platform_targets: "linkedin,indeed",
+        backend_only: true,
+        remote_only: true,
+        junior_only: false,
+        verified_payment_only: false,
+        salary_only: false,
+        visa_support_only: false,
+        pakistan_friendly_only: false
+      },
+      overviewBuilder: (form) => {
+        const role = getSelectText(form, 'select[name="search_focus"]');
+        const region = getSelectText(form, 'select[name="region_preference"]');
+        const trust = getSelectText(form, 'select[name="trust_signal"]');
+        const posted = getSelectText(form, 'select[name="posted_within"]');
+        return [`Role: ${role}`, `Region: ${region}`, `Trust: ${trust}`, `Window: ${posted}`];
+      },
+      presetFields: [
+        "candidate_id",
+        "top_k",
+        "search_mode",
+        "offer_type",
+        "client_type",
+        "contact_goal",
+        "counterparty_type",
+        "company_size",
+        "proposal_pressure",
+        "search_focus",
+        "region_preference",
+        "trust_signal",
+        "posted_within",
+        "demand_level",
+        "min_match_level",
+        "custom_keywords",
+        "sources",
+        "platform_targets",
+        "backend_only",
+        "remote_only",
+        "junior_only",
+        "verified_payment_only",
+        "salary_only",
+        "visa_support_only",
+        "pakistan_friendly_only"
+      ]
+    },
+    sell: {
+      mode: "sell",
+      form: sellForm,
+      sourceSelector: '[data-role="sell-source-option"]',
+      platformSelector: '[data-role="sell-platform-option"]',
+      sourceInput: sellForm?.querySelector('[data-role="sell-source-input"]') || null,
+      platformInput: sellForm?.querySelector('[data-role="sell-platform-targets"]') || null,
+      filterOverview: document.querySelector('[data-role="sell-filter-overview"]'),
+      defaults: {
+        search_mode: "sell_services",
+        demand_level: "premium",
+        posted_within: "7d",
+        search_focus: "all",
+        min_match_level: "all",
+        region_preference: "global",
+        trust_signal: "verified_company",
+        offer_type: "software",
+        client_type: "property_management",
+        contact_goal: "meeting",
+        counterparty_type: "founder",
+        company_size: "any",
+        proposal_pressure: "any",
+        custom_keywords: "residency management system apartment operator housing society property manager software",
+        sources: "",
+        platform_targets: "linkedin,google_clients,google_maps,upwork,fiverr",
+        backend_only: false,
+        remote_only: false,
+        junior_only: false,
+        verified_payment_only: false,
+        salary_only: false,
+        visa_support_only: false,
+        pakistan_friendly_only: false
+      },
+      overviewBuilder: (form) => {
+        const client = getSelectText(form, 'select[name="client_type"]');
+        const offer = getSelectText(form, 'select[name="offer_type"]');
+        const goal = getSelectText(form, 'select[name="contact_goal"]');
+        const target = getSelectText(form, 'select[name="counterparty_type"]');
+        return [`Client: ${client}`, `Offer: ${offer}`, `Goal: ${goal}`, `Target: ${target}`];
+      },
+      presetFields: [
+        "candidate_id",
+        "top_k",
+        "search_mode",
+        "offer_type",
+        "client_type",
+        "contact_goal",
+        "counterparty_type",
+        "trust_signal",
+        "custom_keywords",
+        "platform_targets",
+        "sources"
+      ]
+    }
+  };
+
+  function safeJsonParse(raw, fallback) {
+    try {
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  function readStorage(key, fallback) {
+    return safeJsonParse(window.localStorage.getItem(key), fallback);
+  }
+
+  function writeStorage(key, value) {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function getSelectText(form, selector) {
+    const field = form?.querySelector(selector);
+    if (!(field instanceof HTMLSelectElement)) {
+      return "";
+    }
+    return field.options[field.selectedIndex]?.text || "";
+  }
+
+  function setActiveMode(mode) {
+    writeStorage(storageKeys.uiMode, mode);
+    modeToggles.forEach((button) => {
+      button.classList.toggle("active", button.dataset.mode === mode);
+    });
+    modeShells.forEach((shell) => {
+      shell.classList.toggle("hidden", shell.dataset.modePanel !== mode);
+    });
+    modeSummaryCards.forEach((card) => {
+      card.classList.toggle("active", card.dataset.modeCard === mode);
+    });
+    if (spotlightTitle) {
+      spotlightTitle.textContent = modeMeta[mode].title;
+    }
+    if (spotlightDescription) {
+      spotlightDescription.textContent = modeMeta[mode].description;
+    }
+    staleResultsNotes.forEach((note) => {
+      const isStale = note.dataset.mode === mode && mode !== serverResultMode;
+      note.classList.toggle("hidden", !isStale);
+    });
+    liveResultsContent.forEach((content) => {
+      const isStale = content.dataset.mode === mode && mode !== serverResultMode;
+      content.classList.toggle("hidden", isStale);
+    });
+  }
+
+  function syncHiddenValues(config) {
+    if (config.sourceInput) {
+      const sourceValues = Array.from(document.querySelectorAll(config.sourceSelector))
+        .filter((checkbox) => checkbox.checked)
+        .map((checkbox) => checkbox.value);
+      config.sourceInput.value = sourceValues.join(",");
+    }
+    if (config.platformInput) {
+      const platformValues = Array.from(document.querySelectorAll(config.platformSelector))
+        .filter((checkbox) => checkbox.checked)
+        .map((checkbox) => checkbox.value);
+      config.platformInput.value = platformValues.join(",");
+    }
+  }
+
+  function hydrateCheckboxGroup(selector, csv) {
+    const selectedValues = new Set((csv || "").split(",").map((value) => value.trim()).filter(Boolean));
+    document.querySelectorAll(selector).forEach((checkbox) => {
+      checkbox.checked = selectedValues.has(checkbox.value);
+    });
+  }
+
+  function captureFormState(config) {
+    if (!(config.form instanceof HTMLFormElement)) {
+      return {};
+    }
+    syncHiddenValues(config);
+    const state = {};
+    config.presetFields.forEach((name) => {
+      const field = config.form.elements.namedItem(name);
+      if (!field) {
         return;
       }
-
-      try {
-        await navigator.clipboard.writeText(query);
-        const originalText = button.textContent;
-        button.textContent = "Copied";
-        window.setTimeout(() => {
-          button.textContent = originalText;
-        }, 1000);
-      } catch {
-        button.textContent = "Copy failed";
+      if (field instanceof HTMLInputElement && field.type === "checkbox") {
+        state[name] = field.checked;
+        return;
       }
+      state[name] = field.value;
     });
-  });
+    return state;
+  }
 
-  const searchFocus = document.querySelector('[data-role="search-focus"]');
-  const matchForm = document.querySelector('[data-role="match-form"]');
-  const searchMode = document.querySelector('[data-role="search-mode"]');
-  const offerType = document.querySelector('[data-role="offer-type"]');
-  const clientType = document.querySelector('[data-role="client-type"]');
-  const demandLevel = document.querySelector('[data-role="demand-level"]');
-  const contactGoal = document.querySelector('[data-role="contact-goal"]');
-  const counterpartyType = document.querySelector('[data-role="counterparty-type"]');
-  const postedWithin = document.querySelector('[data-role="posted-within"]');
-  const trustSignal = document.querySelector('[data-role="trust-signal"]');
-  const companySize = document.querySelector('[data-role="company-size"]');
-  const proposalPressure = document.querySelector('[data-role="proposal-pressure"]');
-  const customKeywords = document.querySelector('[data-role="custom-keywords"]');
-  const modeHint = document.querySelector('[data-role="mode-hint"]');
-  const filterOverview = document.querySelector('[data-role="filter-overview"]');
-  const workflowTabs = document.querySelectorAll('[data-role="workflow-tab"]');
-  const workflowPanels = document.querySelectorAll('[data-role="workflow-panel"]');
-  const remoteOnly = document.querySelector('[data-role="remote-only"]');
-  const juniorOnly = document.querySelector('[data-role="junior-only"]');
-  const backendOnly = document.querySelector('input[name="backend_only"]');
-  const regionPreference = document.querySelector('[data-role="region-preference"]');
-  const sourceInput = document.querySelector('[data-role="source-input"]');
-  const platformTargetsInput = document.querySelector('[data-role="platform-targets"]');
-  const verifiedPaymentOnly = matchForm?.elements?.namedItem("verified_payment_only");
-  const pakistanFriendlyOnly = matchForm?.elements?.namedItem("pakistan_friendly_only");
-  const savedPresetsJson = document.querySelector('[data-role="saved-presets-json"]');
-  const presetLibrary = document.querySelector('[data-role="preset-library"]');
-  const presetNameInput = document.querySelector('[data-role="preset-name"]');
-  const presetStatus = document.querySelector('[data-role="preset-status"]');
-  const presetCandidateId = document.querySelector('[data-role="preset-candidate-id"]');
-  const presetImportFile = document.querySelector('[data-role="preset-import-file"]');
-  const savePresetButton = document.querySelector('[data-role="save-preset"]');
-  const applyPresetButton = document.querySelector('[data-role="apply-preset"]');
-  const deletePresetButton = document.querySelector('[data-role="delete-preset"]');
-  const exportPresetsButton = document.querySelector('[data-role="export-presets"]');
-  const importPresetsButton = document.querySelector('[data-role="import-presets"]');
-  const installButton = document.querySelector('[data-role="install-app"]');
-  const miniJobsLaunch = document.querySelector('[data-role="mini-jobs-launch"]');
-  const residencyHuntLaunch = document.querySelector('[data-role="residency-hunt-launch"]');
-  const capacitorApp = window.Capacitor?.Plugins?.App;
-  const presetStorageKey = "jobmind_filter_presets_v1";
-  let serverPresets = [];
-  const presetFieldNames = [
-    "candidate_id",
-    "top_k",
-    "sources",
-    "platform_targets",
-    "search_mode",
-    "offer_type",
-    "client_type",
-    "demand_level",
-    "contact_goal",
-    "counterparty_type",
-    "trust_signal",
-    "posted_within",
-    "company_size",
-    "proposal_pressure",
-    "custom_keywords",
-    "min_match_level",
-    "backend_only",
-    "remote_only",
-    "junior_only",
-    "search_focus",
-    "pakistan_friendly_only",
-    "salary_only",
-    "visa_support_only",
-    "verified_payment_only",
-    "region_preference"
-  ];
-
-  const syncCheckedValues = (selector, hiddenInput) => {
-    if (!hiddenInput) {
+  function applyFormState(config, state) {
+    if (!(config.form instanceof HTMLFormElement) || !state) {
       return;
     }
-
-    const options = Array.from(document.querySelectorAll(selector));
-    const selectedValues = options.filter((option) => option.checked).map((option) => option.value);
-    hiddenInput.value = selectedValues.join(',');
-  };
-
-  const setPresetStatus = (message) => {
-    if (presetStatus) {
-      presetStatus.textContent = message;
-    }
-  };
-
-  const getCandidatePresetKey = () => {
-    const candidateId = presetCandidateId?.value?.trim();
-    return candidateId ? `${presetStorageKey}:${candidateId}` : presetStorageKey;
-  };
-
-  const normalizeServerPresets = () => {
-    if (!savedPresetsJson?.textContent?.trim()) {
-      return [];
-    }
-
-    try {
-      const parsed = JSON.parse(savedPresetsJson.textContent);
-      if (!Array.isArray(parsed)) {
-        return [];
+    Object.entries(state).forEach(([name, value]) => {
+      const field = config.form.elements.namedItem(name);
+      if (!field) {
+        return;
       }
+      if (field instanceof HTMLInputElement && field.type === "checkbox") {
+        field.checked = Boolean(value);
+        return;
+      }
+      if (typeof value === "string") {
+        field.value = value;
+      }
+    });
+    hydrateCheckboxGroup(config.sourceSelector, config.sourceInput?.value || "");
+    hydrateCheckboxGroup(config.platformSelector, config.platformInput?.value || "");
+    updateOverview(config);
+  }
 
-      return parsed.map((preset) => ({
-        id: preset.id,
-        candidate_id: preset.candidate_id,
-        name: preset.name,
-        state: JSON.parse(preset.preset_json || "{}")
-      }));
-    } catch {
-      return [];
-    }
-  };
+  function applyDefaults(config) {
+    applyFormState(config, config.defaults);
+  }
 
-  const readPresets = () => {
-    if (serverPresets.length) {
-      return serverPresets;
-    }
-
-    try {
-      const raw = window.localStorage.getItem(getCandidatePresetKey());
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const writePresets = (presets) => {
-    serverPresets = presets;
-    window.localStorage.setItem(getCandidatePresetKey(), JSON.stringify(presets));
-  };
-
-  const renderPresetLibrary = () => {
-    if (!presetLibrary) {
+  function updateOverview(config) {
+    if (!config.filterOverview) {
       return;
     }
+    const pills = config.overviewBuilder(config.form);
+    config.filterOverview.innerHTML = pills.map((item) => `<span>${item}</span>`).join("");
+  }
 
-    const presets = readPresets();
-    const currentValue = presetLibrary.value;
-    presetLibrary.innerHTML = '<option value="">Choose saved preset</option>';
-    presets.forEach((preset) => {
-      const option = document.createElement("option");
-      option.value = preset.name;
-      option.textContent = preset.name;
-      if (preset.id) {
-        option.dataset.presetId = String(preset.id);
-      }
-      presetLibrary.appendChild(option);
-    });
-    if (presets.some((preset) => preset.name === currentValue)) {
-      presetLibrary.value = currentValue;
+  function persistModeState(mode) {
+    const state = readStorage(storageKeys.modeState, {});
+    state[mode] = captureFormState(formConfig[mode]);
+    writeStorage(storageKeys.modeState, state);
+  }
+
+  function restoreModeState(mode) {
+    const state = readStorage(storageKeys.modeState, {});
+    const config = formConfig[mode];
+    const snapshot = state[mode];
+    if (snapshot) {
+      applyFormState(config, snapshot);
+      return;
     }
-  };
+    applyDefaults(config);
+  }
 
-  const savePresetToServer = async (candidateId, name, state) => {
+  function getPresetBuckets() {
+    return readStorage(storageKeys.presets, { job: [], sell: [] });
+  }
+
+  function writePresetBuckets(payload) {
+    writeStorage(storageKeys.presets, payload);
+  }
+
+  function normalizeServerPresets() {
+    const raw = document.querySelector('[data-role="saved-presets-json"]')?.textContent?.trim() || "[]";
+    const parsed = safeJsonParse(raw, []);
+    const buckets = { job: [], sell: [] };
+    parsed.forEach((preset) => {
+      const state = safeJsonParse(preset.preset_json || "{}", {});
+      const mode = state.search_mode === "sell_services" || state.search_mode === "sell_products" || state.search_mode === "direct_clients" ? "sell" : "job";
+      buckets[mode].push({ id: preset.id, name: preset.name, state });
+    });
+    return buckets;
+  }
+
+  function mergePresets(localBuckets, serverBuckets) {
+    const merged = { job: [], sell: [] };
+    ["job", "sell"].forEach((mode) => {
+      const map = new Map();
+      [...(localBuckets[mode] || []), ...(serverBuckets[mode] || [])].forEach((preset) => {
+        map.set(preset.name, preset);
+      });
+      merged[mode] = Array.from(map.values()).sort((left, right) => left.name.localeCompare(right.name));
+    });
+    return merged;
+  }
+
+  async function savePresetToServer(candidateId, name, state) {
     const body = new URLSearchParams({
       candidate_id: candidateId,
       preset_name: name,
@@ -211,227 +372,346 @@ window.addEventListener("DOMContentLoaded", () => {
     const data = await response.json();
     return {
       id: data.preset.id,
-      candidate_id: data.preset.candidate_id,
       name: data.preset.name,
-      state: JSON.parse(data.preset.preset_json || "{}")
+      state: safeJsonParse(data.preset.preset_json || "{}", {})
     };
-  };
+  }
 
-  const mergePresetsByName = (existingPresets, incomingPresets) => {
-    const merged = [...existingPresets.filter((preset) => !incomingPresets.some((item) => item.name === preset.name)), ...incomingPresets];
-    merged.sort((left, right) => left.name.localeCompare(right.name));
-    return merged;
-  };
-
-  const exportPresets = () => {
-    const presets = readPresets();
-    if (!presets.length) {
-      setPresetStatus("No presets available to export.");
-      return;
-    }
-
-    const payload = {
-      exported_at: new Date().toISOString(),
-      candidate_id: presetCandidateId?.value?.trim() || "",
-      presets: presets.map((preset) => ({ name: preset.name, state: preset.state }))
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `jobmind-presets-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    setPresetStatus(`Exported ${presets.length} preset(s).`);
-  };
-
-  const importPresetPayload = async (text) => {
-    let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      setPresetStatus("Invalid preset file.");
-      return;
-    }
-
-    const importedPresets = Array.isArray(parsed)
-      ? parsed
-      : Array.isArray(parsed?.presets)
-        ? parsed.presets
-        : [];
-
-    const normalizedPresets = importedPresets
-      .filter((preset) => preset && typeof preset.name === "string" && preset.name.trim())
-      .map((preset) => ({ name: preset.name.trim(), state: preset.state || {} }));
-
-    if (!normalizedPresets.length) {
-      setPresetStatus("No valid presets found in file.");
-      return;
-    }
-
-    const candidateId = presetCandidateId?.value?.trim();
-    if (!candidateId) {
-      writePresets(mergePresetsByName(readPresets(), normalizedPresets));
-      renderPresetLibrary();
-      setPresetStatus(`Imported ${normalizedPresets.length} preset(s) locally.`);
-      return;
-    }
-
-    try {
-      const savedPresets = [];
-      for (const preset of normalizedPresets) {
-        savedPresets.push(await savePresetToServer(candidateId, preset.name, preset.state));
-      }
-      writePresets(mergePresetsByName(readPresets(), savedPresets));
-      renderPresetLibrary();
-      setPresetStatus(`Imported ${savedPresets.length} preset(s) to profile.`);
-    } catch {
-      setPresetStatus("Could not import presets right now.");
-    }
-  };
-
-  const capturePresetState = () => {
-    if (!matchForm) {
-      return {};
-    }
-
-    syncCheckedValues('[data-role="source-option"]', sourceInput);
-    syncCheckedValues('[data-role="platform-option"]', platformTargetsInput);
-
-    const state = {};
-    presetFieldNames.forEach((name) => {
-      const field = matchForm.elements.namedItem(name);
-      if (!field) {
-        return;
-      }
-
-      if (field instanceof RadioNodeList) {
-        state[name] = Array.from(field).filter((item) => item.checked).map((item) => item.value);
-        return;
-      }
-
-      if (field instanceof HTMLInputElement && field.type === "checkbox") {
-        state[name] = field.checked;
-        return;
-      }
-
-      state[name] = field.value;
+  async function deletePresetFromServer(candidateId, presetId) {
+    const body = new URLSearchParams({ candidate_id: candidateId });
+    const response = await fetch(`/dashboard/filter-presets/${presetId}/delete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString()
     });
-    return state;
-  };
+    if (!response.ok) {
+      throw new Error("Could not delete preset");
+    }
+  }
 
-  const applyPresetState = (state) => {
-    if (!matchForm || !state) {
+  function renderPresetLibrary(mode) {
+    const library = document.querySelector(`[data-role="preset-library"][data-preset-mode="${mode}"]`);
+    if (!(library instanceof HTMLSelectElement)) {
       return;
     }
-
-    presetFieldNames.forEach((name) => {
-      const field = matchForm.elements.namedItem(name);
-      if (!field || !(name in state)) {
-        return;
+    const buckets = getPresetBuckets();
+    const currentValue = library.value;
+    library.innerHTML = `<option value="">Choose ${mode === "job" ? "job" : "client"} preset</option>`;
+    (buckets[mode] || []).forEach((preset) => {
+      const option = document.createElement("option");
+      option.value = preset.name;
+      option.textContent = preset.name;
+      if (preset.id) {
+        option.dataset.presetId = String(preset.id);
       }
+      library.appendChild(option);
+    });
+    if ((buckets[mode] || []).some((preset) => preset.name === currentValue)) {
+      library.value = currentValue;
+    }
+  }
 
-      if (field instanceof HTMLInputElement && field.type === "checkbox") {
-        field.checked = Boolean(state[name]);
-        return;
-      }
+  function setPresetStatus(mode, message) {
+    const element = document.querySelector(`[data-role="preset-status"][data-preset-mode="${mode}"]`);
+    if (element) {
+      element.textContent = message;
+    }
+  }
 
-      if (!(field instanceof RadioNodeList)) {
-        field.value = state[name];
+  function getPresetNameInput(mode) {
+    return document.querySelector(`[data-role="preset-name"][data-preset-mode="${mode}"]`);
+  }
+
+  function getPresetLibrary(mode) {
+    return document.querySelector(`[data-role="preset-library"][data-preset-mode="${mode}"]`);
+  }
+
+  function getPresetCandidateId(mode) {
+    return document.querySelector(`[data-role="preset-candidate-id"][data-preset-mode="${mode}"]`)?.value?.trim() || "";
+  }
+
+  function wirePresetControls(mode) {
+    const config = formConfig[mode];
+    const saveButton = document.querySelector(`[data-role="save-preset"][data-preset-mode="${mode}"]`);
+    const applyButton = document.querySelector(`[data-role="apply-preset"][data-preset-mode="${mode}"]`);
+    const deleteButton = document.querySelector(`[data-role="delete-preset"][data-preset-mode="${mode}"]`);
+    const exportButton = document.querySelector(`[data-role="export-presets"][data-preset-mode="${mode}"]`);
+    const importButton = document.querySelector(`[data-role="import-presets"][data-preset-mode="${mode}"]`);
+    const importFile = document.querySelector(`[data-role="preset-import-file"][data-preset-mode="${mode}"]`);
+    const library = getPresetLibrary(mode);
+    const nameInput = getPresetNameInput(mode);
+
+    library?.addEventListener("change", () => {
+      if (nameInput instanceof HTMLInputElement) {
+        nameInput.value = library.value;
       }
     });
 
-    hydrateCheckedValues('[data-role="source-option"]', sourceInput);
-    hydrateCheckedValues('[data-role="platform-option"]', platformTargetsInput);
-    updateModeHint();
-    updateFilterOverview();
-  };
-
-  const updateFilterOverview = () => {
-    if (!filterOverview || !searchMode || !offerType || !clientType || !contactGoal) {
-      return;
-    }
-
-    const mode = searchMode.options[searchMode.selectedIndex]?.text || "Job search";
-    const offer = offerType.options[offerType.selectedIndex]?.text || "Software offering";
-    const client = clientType.options[clientType.selectedIndex]?.text || "Startups";
-    const goal = contactGoal.options[contactGoal.selectedIndex]?.text || "Apply";
-    const side = counterpartyType?.options[counterpartyType.selectedIndex]?.text || "Any side";
-    const posted = postedWithin?.options[postedWithin.selectedIndex]?.text || "Last 7 days";
-    const trust = trustSignal?.options[trustSignal.selectedIndex]?.text || "Any trust level";
-    filterOverview.innerHTML = `
-      <span>Mode: ${mode}</span>
-      <span>Offer: ${offer}</span>
-      <span>Client: ${client}</span>
-      <span>Goal: ${goal}</span>
-      <span>Side: ${side}</span>
-      <span>Posted: ${posted}</span>
-      <span>Trust: ${trust}</span>
-    `;
-  };
-
-  const updateModeHint = () => {
-    if (!modeHint || !searchMode) {
-      return;
-    }
-
-    const messages = {
-      job_search: "Use this when you want scored job matches plus fresh external listings on selected platforms.",
-      sell_services: "Use this when you want client demand, agencies, and service buyers with pitch-ready links.",
-      sell_products: "Use this when you want importers, wholesale buyers, and product discovery across web channels.",
-      direct_clients: "Use this when your goal is direct outreach to founders, companies, and decision makers."
-    };
-
-    modeHint.textContent = messages[searchMode.value] || messages.job_search;
-  };
-
-  const setActiveWorkflowTab = (tabName) => {
-    workflowTabs.forEach((button) => {
-      button.classList.toggle("active", button.dataset.tabTarget === tabName);
+    saveButton?.addEventListener("click", async () => {
+      const name = nameInput?.value?.trim();
+      if (!name) {
+        setPresetStatus(mode, "Preset name required.");
+        return;
+      }
+      persistModeState(mode);
+      const state = captureFormState(config);
+      const buckets = getPresetBuckets();
+      const candidateId = getPresetCandidateId(mode);
+      let preset = { name, state };
+      if (candidateId) {
+        try {
+          preset = await savePresetToServer(candidateId, name, state);
+        } catch {
+          setPresetStatus(mode, "Could not save preset right now.");
+          return;
+        }
+      }
+      buckets[mode] = (buckets[mode] || []).filter((item) => item.name !== name);
+      buckets[mode].push(preset);
+      buckets[mode].sort((left, right) => left.name.localeCompare(right.name));
+      writePresetBuckets(buckets);
+      renderPresetLibrary(mode);
+      if (library instanceof HTMLSelectElement) {
+        library.value = name;
+      }
+      setPresetStatus(mode, `${mode === "job" ? "Job" : "Client"} preset saved: ${name}`);
     });
 
-    workflowPanels.forEach((panel) => {
-      panel.classList.toggle("hidden", panel.dataset.tabPanel !== tabName);
+    applyButton?.addEventListener("click", () => {
+      const name = library?.value;
+      if (!name) {
+        setPresetStatus(mode, "Choose a preset first.");
+        return;
+      }
+      const preset = (getPresetBuckets()[mode] || []).find((item) => item.name === name);
+      if (!preset) {
+        setPresetStatus(mode, "Preset not found.");
+        return;
+      }
+      applyFormState(config, preset.state);
+      persistModeState(mode);
+      setPresetStatus(mode, `${mode === "job" ? "Job" : "Client"} preset applied: ${name}`);
     });
-  };
 
-  const syncWorkflowTabWithMode = () => {
-    const clientModes = new Set(["direct_clients", "sell_services", "sell_products"]);
-    setActiveWorkflowTab(clientModes.has(searchMode?.value) ? "clients" : "jobs");
-  };
+    deleteButton?.addEventListener("click", async () => {
+      const name = library?.value || nameInput?.value?.trim();
+      if (!name) {
+        setPresetStatus(mode, "Choose a preset name first.");
+        return;
+      }
+      const buckets = getPresetBuckets();
+      const preset = (buckets[mode] || []).find((item) => item.name === name);
+      if (!preset) {
+        setPresetStatus(mode, "Preset not found.");
+        return;
+      }
+      const candidateId = getPresetCandidateId(mode);
+      if (candidateId && preset.id) {
+        try {
+          await deletePresetFromServer(candidateId, preset.id);
+        } catch {
+          setPresetStatus(mode, "Could not delete preset right now.");
+          return;
+        }
+      }
+      buckets[mode] = (buckets[mode] || []).filter((item) => item.name !== name);
+      writePresetBuckets(buckets);
+      renderPresetLibrary(mode);
+      if (library instanceof HTMLSelectElement) {
+        library.value = "";
+      }
+      if (nameInput instanceof HTMLInputElement) {
+        nameInput.value = "";
+      }
+      setPresetStatus(mode, `${mode === "job" ? "Job" : "Client"} preset deleted: ${name}`);
+    });
 
-  const hydrateCheckedValues = (selector, hiddenInput) => {
-    if (!hiddenInput) {
+    exportButton?.addEventListener("click", () => {
+      const payload = {
+        mode,
+        exported_at: new Date().toISOString(),
+        presets: getPresetBuckets()[mode] || []
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `jobmind-${mode}-presets-${Date.now()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setPresetStatus(mode, `Exported ${(getPresetBuckets()[mode] || []).length} preset(s).`);
+    });
+
+    importButton?.addEventListener("click", () => {
+      importFile?.click();
+    });
+
+    importFile?.addEventListener("change", async () => {
+      const file = importFile.files?.[0];
+      if (!file) {
+        return;
+      }
+      const parsed = safeJsonParse(await file.text(), {});
+      const imported = Array.isArray(parsed?.presets) ? parsed.presets : Array.isArray(parsed) ? parsed : [];
+      const normalized = imported
+        .filter((item) => item && typeof item.name === "string" && item.name.trim())
+        .map((item) => ({ name: item.name.trim(), state: item.state || {} }));
+      const buckets = getPresetBuckets();
+      normalized.forEach((preset) => {
+        buckets[mode] = (buckets[mode] || []).filter((item) => item.name !== preset.name);
+        buckets[mode].push(preset);
+      });
+      buckets[mode].sort((left, right) => left.name.localeCompare(right.name));
+      writePresetBuckets(buckets);
+      renderPresetLibrary(mode);
+      setPresetStatus(mode, `Imported ${normalized.length} preset(s).`);
+      importFile.value = "";
+    });
+  }
+
+  function submitModeForm(mode) {
+    const config = formConfig[mode];
+    if (!(config.form instanceof HTMLFormElement)) {
       return;
     }
-
-    const selectedValues = new Set((hiddenInput.value || '').split(',').map((value) => value.trim()).filter(Boolean));
-    document.querySelectorAll(selector).forEach((option) => {
-      option.checked = selectedValues.has(option.value);
+    syncHiddenValues(config);
+    persistModeState(mode);
+    const formData = new FormData(config.form);
+    const params = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+      if (!key) {
+        continue;
+      }
+      params.set(key, String(value));
+    }
+    config.form.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+      if (!checkbox.name) {
+        return;
+      }
+      params.set(checkbox.name, checkbox.checked ? "true" : "false");
     });
-  };
+    window.location.assign(`${config.form.getAttribute("action") || currentPath}?${params.toString()}`);
+  }
 
-  const handleNativeBack = async () => {
-    const hasBrowserHistory = window.history.length > 1;
-    const movedWithinApp = window.location.pathname !== lastNativePath;
-
-    lastNativePath = window.location.pathname;
-
-    if (hasBrowserHistory || movedWithinApp) {
-      window.history.back();
+  function wireForm(config) {
+    if (!(config.form instanceof HTMLFormElement)) {
       return;
     }
+    hydrateCheckboxGroup(config.sourceSelector, config.sourceInput?.value || config.defaults.sources || "");
+    hydrateCheckboxGroup(config.platformSelector, config.platformInput?.value || config.defaults.platform_targets || "");
 
-    if (typeof capacitorApp?.exitApp === "function") {
-      await capacitorApp.exitApp();
+    config.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitModeForm(config.mode);
+    });
+
+    config.form.querySelectorAll("select, input, textarea").forEach((field) => {
+      field.addEventListener("change", () => {
+        syncHiddenValues(config);
+        updateOverview(config);
+        persistModeState(config.mode);
+      });
+      field.addEventListener("input", () => {
+        persistModeState(config.mode);
+      });
+    });
+
+    document.querySelectorAll(config.sourceSelector).forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        syncHiddenValues(config);
+        persistModeState(config.mode);
+      });
+    });
+
+    document.querySelectorAll(config.platformSelector).forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        syncHiddenValues(config);
+        persistModeState(config.mode);
+      });
+    });
+
+    updateOverview(config);
+  }
+
+  function applyModePreset(button) {
+    const mode = button.dataset.targetForm;
+    const config = formConfig[mode];
+    if (!config) {
+      return;
     }
-  };
+    const patch = {};
+    if (button.dataset.mode) patch.search_mode = button.dataset.mode;
+    if (button.dataset.offer) patch.offer_type = button.dataset.offer;
+    if (button.dataset.client) patch.client_type = button.dataset.client;
+    if (button.dataset.goal) patch.contact_goal = button.dataset.goal;
+    if (button.dataset.side) patch.counterparty_type = button.dataset.side;
+    if (button.dataset.trust) patch.trust_signal = button.dataset.trust;
+    if (button.dataset.keywords !== undefined) patch.custom_keywords = button.dataset.keywords;
+    if (button.dataset.platforms !== undefined) patch.platform_targets = button.dataset.platforms;
+    if (button.dataset.sources !== undefined) patch.sources = button.dataset.sources;
+    if (button.dataset.region) patch.region_preference = button.dataset.region;
+    applyFormState(config, patch);
+    persistModeState(mode);
+    setActiveMode(mode);
+  }
+
+  function getTrackerBuckets() {
+    return readStorage(storageKeys.trackers, { job: [], sell: [] });
+  }
+
+  function writeTrackerBuckets(payload) {
+    writeStorage(storageKeys.trackers, payload);
+  }
+
+  function syncServerTrackersToLocal() {
+    const jobRaw = document.querySelector('[data-role="server-applications-json"]')?.textContent?.trim() || "[]";
+    const sellRaw = document.querySelector('[data-role="server-client-leads-json"]')?.textContent?.trim() || "[]";
+    const buckets = getTrackerBuckets();
+    buckets.job = safeJsonParse(jobRaw, []);
+    buckets.sell = safeJsonParse(sellRaw, []);
+    writeTrackerBuckets(buckets);
+  }
+
+  function wireModeToggles() {
+    modeToggles.forEach((button) => {
+      button.addEventListener("click", () => {
+        const mode = button.dataset.mode || "job";
+        setActiveMode(mode);
+        restoreModeState(mode);
+      });
+    });
+  }
+
+  document.querySelectorAll('[data-copy-query]').forEach((button) => {
+    button.addEventListener("click", async () => {
+      const query = button.getAttribute("data-copy-query") || "";
+      if (!query) {
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(query);
+        const originalText = button.textContent;
+        button.textContent = "Copied";
+        window.setTimeout(() => {
+          button.textContent = originalText;
+        }, 1000);
+      } catch {
+        button.textContent = "Copy failed";
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-role="mode-preset"]').forEach((button) => {
+    button.addEventListener("click", () => {
+      applyModePreset(button);
+    });
+  });
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/static/sw.js").catch(() => {
-      // Keep the dashboard usable even if service worker registration fails.
+      // Ignore registration failures.
     });
   }
 
@@ -451,268 +731,36 @@ window.addEventListener("DOMContentLoaded", () => {
     installButton.classList.add("hidden");
   });
 
-  savePresetButton?.addEventListener("click", () => {
-    const name = presetNameInput?.value.trim();
-    if (!name) {
-      setPresetStatus("Preset name required.");
-      return;
-    }
-
-    const state = capturePresetState();
-    const candidateId = presetCandidateId?.value?.trim();
-    if (!candidateId) {
-      const presets = readPresets().filter((preset) => preset.name !== name);
-      presets.push({ name, state });
-      presets.sort((left, right) => left.name.localeCompare(right.name));
-      writePresets(presets);
-      renderPresetLibrary();
-      if (presetLibrary) {
-        presetLibrary.value = name;
-      }
-      setPresetStatus(`Preset saved locally: ${name}`);
-      return;
-    }
-
-    savePresetToServer(candidateId, name, state)
-      .then(async (response) => {
-        const presets = readPresets().filter((preset) => preset.name !== response.name);
-        presets.push(response);
-        presets.sort((left, right) => left.name.localeCompare(right.name));
-        writePresets(presets);
-        renderPresetLibrary();
-        if (presetLibrary) {
-          presetLibrary.value = name;
-        }
-        setPresetStatus(`Preset saved to profile: ${name}`);
-      })
-      .catch(() => {
-        setPresetStatus("Could not save preset right now.");
-      });
-  });
-
-  exportPresetsButton?.addEventListener("click", () => {
-    exportPresets();
-  });
-
-  importPresetsButton?.addEventListener("click", () => {
-    presetImportFile?.click();
-  });
-
-  presetImportFile?.addEventListener("change", async () => {
-    const file = presetImportFile.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    const text = await file.text();
-    await importPresetPayload(text);
-    presetImportFile.value = "";
-  });
-
-  applyPresetButton?.addEventListener("click", () => {
-    const name = presetLibrary?.value;
-    if (!name) {
-      setPresetStatus("Choose a preset first.");
-      return;
-    }
-
-    const preset = readPresets().find((item) => item.name === name);
-    if (!preset) {
-      setPresetStatus("Selected preset no longer exists.");
-      renderPresetLibrary();
-      return;
-    }
-
-    applyPresetState(preset.state);
-    if (presetNameInput) {
-      presetNameInput.value = preset.name;
-    }
-    setPresetStatus(`Preset applied: ${name}`);
-  });
-
-  deletePresetButton?.addEventListener("click", () => {
-    const name = presetLibrary?.value || presetNameInput?.value.trim();
-    if (!name) {
-      setPresetStatus("Choose or type a preset name to delete.");
-      return;
-    }
-
-    const presets = readPresets();
-    const selectedPreset = presets.find((preset) => preset.name === name);
-    if (!selectedPreset) {
-      setPresetStatus("Preset not found.");
-      return;
-    }
-
-    const finishDelete = () => {
-      writePresets(readPresets().filter((preset) => preset.name !== name));
-      renderPresetLibrary();
-      if (presetLibrary) {
-        presetLibrary.value = "";
-      }
-      if (presetNameInput) {
-        presetNameInput.value = "";
-      }
-      setPresetStatus(`Preset deleted: ${name}`);
-    };
-
-    const candidateId = presetCandidateId?.value?.trim();
-    if (!candidateId || !selectedPreset.id) {
-      finishDelete();
-      return;
-    }
-
-    const body = new URLSearchParams({ candidate_id: candidateId });
-    fetch(`/dashboard/filter-presets/${selectedPreset.id}/delete`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString()
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Could not delete preset");
-        }
-        await response.json();
-        finishDelete();
-      })
-      .catch(() => {
-        setPresetStatus("Could not delete preset right now.");
-      });
-  });
-
-  presetLibrary?.addEventListener("change", () => {
-    if (!presetNameInput) {
-      return;
-    }
-    presetNameInput.value = presetLibrary.value;
-  });
-
-  document.querySelectorAll(".preset-chip").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (searchFocus) {
-        searchFocus.value = button.dataset.focus || "python";
-      }
-      if (searchMode) {
-        searchMode.value = button.dataset.mode || "job_search";
-      }
-      if (offerType && button.dataset.offer) {
-        offerType.value = button.dataset.offer;
-      }
-      if (clientType && button.dataset.client) {
-        clientType.value = button.dataset.client;
-      }
-      if (contactGoal && button.dataset.goal) {
-        contactGoal.value = button.dataset.goal;
-      }
-      if (counterpartyType && button.dataset.side) {
-        counterpartyType.value = button.dataset.side;
-      }
-      if (trustSignal && button.dataset.trust) {
-        trustSignal.value = button.dataset.trust;
-      }
-      if (demandLevel && button.dataset.demand) {
-        demandLevel.value = button.dataset.demand;
-      }
-      if (postedWithin && button.dataset.posted) {
-        postedWithin.value = button.dataset.posted;
-      }
-      if (companySize && button.dataset.size) {
-        companySize.value = button.dataset.size;
-      }
-      if (proposalPressure && button.dataset.competition) {
-        proposalPressure.value = button.dataset.competition;
-      }
-      if (customKeywords && button.dataset.keywords !== undefined) {
-        customKeywords.value = button.dataset.keywords;
-      }
-      if (remoteOnly) {
-        remoteOnly.checked = button.dataset.remote === "true";
-      }
-      if (juniorOnly) {
-        juniorOnly.checked = button.dataset.junior === "true";
-      }
-      if (backendOnly) {
-        backendOnly.checked = button.dataset.backend === "true";
-      }
-      if (regionPreference && button.dataset.region) {
-        regionPreference.value = button.dataset.region;
-      }
-      if (verifiedPaymentOnly instanceof HTMLInputElement && button.dataset.verified !== undefined) {
-        verifiedPaymentOnly.checked = button.dataset.verified === "true";
-      }
-      if (pakistanFriendlyOnly instanceof HTMLInputElement && button.dataset.pakistan !== undefined) {
-        pakistanFriendlyOnly.checked = button.dataset.pakistan === "true";
-      }
-      if (sourceInput && button.dataset.sources !== undefined) {
-        sourceInput.value = button.dataset.sources;
-      }
-      if (platformTargetsInput && button.dataset.platforms !== undefined) {
-        platformTargetsInput.value = button.dataset.platforms;
-      }
-      hydrateCheckedValues('[data-role="source-option"]', sourceInput);
-      hydrateCheckedValues('[data-role="platform-option"]', platformTargetsInput);
-      updateModeHint();
-      updateFilterOverview();
-      syncWorkflowTabWithMode();
-    });
-  });
-
-  miniJobsLaunch?.addEventListener("click", () => {
-    const miniPreset = Array.from(document.querySelectorAll('.preset-chip')).find((button) => button.textContent?.trim() === 'Mini Python Gigs');
-    miniPreset?.click();
-    matchForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-
-  residencyHuntLaunch?.addEventListener("click", () => {
-    const residencyPreset = Array.from(document.querySelectorAll('.preset-chip')).find((button) => button.textContent?.trim() === 'Shaz Residency Hunt');
-    residencyPreset?.click();
-    matchForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-
-  workflowTabs.forEach((button) => {
-    button.addEventListener("click", () => {
-      setActiveWorkflowTab(button.dataset.tabTarget || "jobs");
-    });
-  });
-
-  hydrateCheckedValues('[data-role="source-option"]', sourceInput);
-  hydrateCheckedValues('[data-role="platform-option"]', platformTargetsInput);
-
-  document.querySelectorAll('[data-role="source-option"]').forEach((checkbox) => {
-    checkbox.addEventListener('change', () => {
-      syncCheckedValues('[data-role="source-option"]', sourceInput);
-    });
-  });
-
-  document.querySelectorAll('[data-role="platform-option"]').forEach((checkbox) => {
-    checkbox.addEventListener('change', () => {
-      syncCheckedValues('[data-role="platform-option"]', platformTargetsInput);
-    });
-  });
-
-  [searchMode, offerType, clientType, contactGoal, counterpartyType, demandLevel, postedWithin, trustSignal, companySize, proposalPressure, customKeywords].forEach((element) => {
-    element?.addEventListener("change", () => {
-      updateModeHint();
-      updateFilterOverview();
-      syncWorkflowTabWithMode();
-    });
-  });
-
-  syncCheckedValues('[data-role="source-option"]', sourceInput);
-  syncCheckedValues('[data-role="platform-option"]', platformTargetsInput);
-  serverPresets = normalizeServerPresets();
-  renderPresetLibrary();
-  updateModeHint();
-  updateFilterOverview();
-  syncWorkflowTabWithMode();
-
   window.addEventListener("popstate", () => {
     lastNativePath = window.location.pathname;
   });
 
   if (typeof capacitorApp?.addListener === "function") {
-    capacitorApp.addListener("backButton", () => {
-      void handleNativeBack();
+    capacitorApp.addListener("backButton", async () => {
+      const hasBrowserHistory = window.history.length > 1;
+      const movedWithinApp = window.location.pathname !== lastNativePath;
+      lastNativePath = window.location.pathname;
+      if (hasBrowserHistory || movedWithinApp) {
+        window.history.back();
+        return;
+      }
+      if (typeof capacitorApp.exitApp === "function") {
+        await capacitorApp.exitApp();
+      }
     });
   }
+
+  const mergedPresets = mergePresets(getPresetBuckets(), normalizeServerPresets());
+  writePresetBuckets(mergedPresets);
+  renderPresetLibrary("job");
+  renderPresetLibrary("sell");
+  wirePresetControls("job");
+  wirePresetControls("sell");
+  wireForm(formConfig.job);
+  wireForm(formConfig.sell);
+  syncServerTrackersToLocal();
+  wireModeToggles();
+  restoreModeState("job");
+  restoreModeState("sell");
+  setActiveMode(readStorage(storageKeys.uiMode, initialMode) || initialMode);
 });

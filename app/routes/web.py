@@ -48,6 +48,26 @@ DEFAULT_PROFILE_SEED = {
     "sales_pitch": "I build practical Python, FastAPI, Flask, and automation systems for business workflows and software teams.",
 }
 
+CLIENT_SEARCH_MODES = {"sell_services", "sell_products", "direct_clients"}
+
+
+def resolve_ui_mode(search_mode: str) -> str:
+    return "sell" if search_mode in CLIENT_SEARCH_MODES else "job"
+
+
+def normalize_application_status(status: str) -> str:
+    key = (status or "").strip().lower()
+    if key == "replied":
+        return "offer"
+    return key or "saved"
+
+
+def normalize_client_status(status: str) -> str:
+    key = (status or "").strip().lower()
+    if key == "new":
+        return "discover"
+    return key or "discover"
+
 
 def build_resume_library() -> list[dict[str, str]]:
     library = []
@@ -102,12 +122,12 @@ def build_status_summary(applications: list[ApplicationRecord]) -> dict[str, int
         "total": len(applications),
         "saved": 0,
         "applied": 0,
-        "replied": 0,
         "interview": 0,
+        "offer": 0,
         "rejected": 0,
     }
     for row in applications:
-        key = row.status.strip().lower()
+        key = normalize_application_status(row.status)
         if key in summary:
             summary[key] += 1
     return summary
@@ -118,11 +138,11 @@ def build_company_summary(applications: list[ApplicationRecord]) -> list[dict[st
     for row in applications:
         bucket = counts.setdefault(
             row.company,
-            {"company": row.company, "total": 0, "applied": 0, "interview": 0, "replied": 0},
+            {"company": row.company, "total": 0, "applied": 0, "interview": 0, "offer": 0},
         )
         bucket["total"] += 1
-        status = row.status.strip().lower()
-        if status in {"applied", "interview", "replied"}:
+        status = normalize_application_status(row.status)
+        if status in {"applied", "interview", "offer"}:
             bucket[status] += 1
     return sorted(counts.values(), key=lambda item: (-int(item["total"]), str(item["company"])))[:6]
 
@@ -154,10 +174,10 @@ def build_tracker_entries(applications: list[ApplicationRecord]) -> list[dict]:
                 "company": row.company,
                 "source": row.source,
                 "job_url": row.job_url,
-                "status": row.status,
+                "status": normalize_application_status(row.status),
                 "notes": strip_follow_up_marker(row.notes),
                 "follow_up_date": extract_follow_up_date(row.notes),
-                "updated_at": row.updated_at,
+                "updated_at": row.updated_at.isoformat(),
             }
         )
     return entries
@@ -183,7 +203,7 @@ def build_follow_up_summary(applications: list[ApplicationRecord]) -> list[dict[
 def build_client_status_summary(leads: list[ClientLead]) -> dict[str, int]:
     summary = {
         "total": len(leads),
-        "new": 0,
+        "discover": 0,
         "contacted": 0,
         "replied": 0,
         "negotiation": 0,
@@ -191,7 +211,7 @@ def build_client_status_summary(leads: list[ClientLead]) -> dict[str, int]:
         "lost": 0,
     }
     for row in leads:
-        key = row.status.strip().lower()
+        key = normalize_client_status(row.status)
         if key in summary:
             summary[key] += 1
     return summary
@@ -210,10 +230,10 @@ def build_client_lead_entries(leads: list[ClientLead]) -> list[dict]:
             "contact_phone": row.contact_phone,
             "contact_channel": row.contact_channel,
             "offer_type": row.offer_type,
-            "status": row.status,
+            "status": normalize_client_status(row.status),
             "notes": row.notes,
             "follow_up_date": row.follow_up_date,
-            "updated_at": row.updated_at,
+            "updated_at": row.updated_at.isoformat(),
         }
         for row in leads
     ]
@@ -559,7 +579,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
     seed_profile = ensure_seed_profile(session)
     profiles = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).all()
     selected = session.get(CandidateProfile, candidate_id) if candidate_id else seed_profile
-    selected_platform_targets = normalize_platform_targets("indeed,linkedin,upwork,google_clients")
+    selected_platform_targets = normalize_platform_targets("indeed,linkedin")
     resume_library = build_resume_library()
     applications = []
     client_leads = []
@@ -588,16 +608,16 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
         counterparty_type="any",
         posted_within="7d",
         verified_payment_only=False,
-        trust_signal="any",
+        trust_signal="verified_company",
         company_size="any",
         proposal_pressure="any",
-        platform_targets="indeed,linkedin,upwork,google_clients",
+        platform_targets="indeed,linkedin",
         search_focus="python",
-        region_preference="pakistan",
+        region_preference="global",
         remote_only=True,
-        junior_only=True,
-        backend_only=False,
-        pakistan_friendly_only=True,
+        junior_only=False,
+        backend_only=True,
+        pakistan_friendly_only=False,
         salary_only=False,
         visa_support_only=False,
         custom_keywords="",
@@ -608,7 +628,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
         offer_type="software",
         client_type="startup",
         counterparty_type="any",
-        region_preference="pakistan",
+        region_preference="global",
         contact_goal="pitch",
         posted_within="7d",
         verified_payment_only=False,
@@ -650,8 +670,8 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "client_access_links": client_access_links,
             "outreach_links": outreach_links,
             "resume_library": resume_library,
-            "sources": ",".join(free_sources_list()),
-            "platform_targets": "indeed,linkedin,upwork,google_clients",
+            "sources": "remotive,weworkremotely,arbeitnow",
+            "platform_targets": "indeed,linkedin",
             "selected_platform_targets": selected_platform_targets,
             "external_only_mode": False,
             "client_only_mode": False,
@@ -663,19 +683,20 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "counterparty_type": "any",
             "posted_within": "7d",
             "verified_payment_only": False,
-            "trust_signal": "any",
+            "trust_signal": "verified_company",
             "company_size": "any",
             "proposal_pressure": "any",
             "custom_keywords": "",
             "min_match_level": "all",
-            "backend_only": False,
+            "backend_only": True,
             "remote_only": True,
-            "junior_only": True,
+            "junior_only": False,
             "search_focus": "python",
-            "pakistan_friendly_only": True,
+            "pakistan_friendly_only": False,
             "salary_only": False,
             "visa_support_only": False,
-            "region_preference": "pakistan",
+            "region_preference": "global",
+            "active_ui_mode": "job",
             "match_summary": build_match_summary([]),
             "active_filter_badges": active_filter_badges,
         },
@@ -700,7 +721,7 @@ def add_application_from_form(
         company=company,
         source=source,
         job_url=job_url,
-        status=status,
+        status=normalize_application_status(status),
         notes=compose_notes(notes, follow_up_date),
     )
     session.add(row)
@@ -721,7 +742,7 @@ def update_application_from_form(
     if not row:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    row.status = status
+    row.status = normalize_application_status(status)
     row.notes = compose_notes(notes, follow_up_date)
     row.updated_at = datetime.utcnow()
     session.add(row)
@@ -777,7 +798,7 @@ def add_client_lead_from_form(
     contact_phone: Annotated[str, Form()] = "",
     contact_channel: Annotated[str, Form()] = "email",
     offer_type: Annotated[str, Form()] = "services",
-    status: Annotated[str, Form()] = "new",
+    status: Annotated[str, Form()] = "discover",
     notes: Annotated[str, Form()] = "",
     follow_up_date: Annotated[str, Form()] = "",
     session: Annotated[Session, Depends(get_session)] = None,
@@ -792,7 +813,7 @@ def add_client_lead_from_form(
         contact_phone=contact_phone,
         contact_channel=contact_channel,
         offer_type=offer_type,
-        status=status,
+        status=normalize_client_status(status),
         notes=notes,
         follow_up_date=follow_up_date,
     )
@@ -817,7 +838,7 @@ def update_client_lead_from_form(
     if not row:
         raise HTTPException(status_code=404, detail="Client lead not found")
 
-    row.status = status
+    row.status = normalize_client_status(status)
     row.notes = notes
     row.follow_up_date = follow_up_date
     row.contact_email = contact_email
@@ -926,7 +947,7 @@ def dashboard_matches(
     candidate_id: int,
     top_k: int = 5,
     sources: str = "",
-    platform_targets: str = "indeed,linkedin,upwork,google_clients",
+    platform_targets: str = "indeed,linkedin",
     search_mode: str = "job_search",
     offer_type: str = "software",
     client_type: str = "startup",
@@ -935,19 +956,19 @@ def dashboard_matches(
     counterparty_type: str = "any",
     posted_within: str = "7d",
     verified_payment_only: bool = False,
-    trust_signal: str = "any",
+    trust_signal: str = "verified_company",
     company_size: str = "any",
     proposal_pressure: str = "any",
     custom_keywords: str = "",
     min_match_level: str = "all",
-    backend_only: bool = False,
+    backend_only: bool = True,
     remote_only: bool = True,
-    junior_only: bool = True,
+    junior_only: bool = False,
     search_focus: str = "python",
-    pakistan_friendly_only: bool = True,
+    pakistan_friendly_only: bool = False,
     salary_only: bool = False,
     visa_support_only: bool = False,
-    region_preference: str = "pakistan",
+    region_preference: str = "global",
     session: Annotated[Session, Depends(get_session)] = None,
 ):
     profiles = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).all()
@@ -1022,6 +1043,7 @@ def dashboard_matches(
     selected_sources = resolve_selected_sources(request, sources, selected.is_premium)
     external_only_mode = is_external_only_mode(search_mode, selected_sources, selected_platform_targets)
     client_only_mode = is_client_only_mode(search_mode, selected_sources, selected_platform_targets)
+    active_ui_mode = resolve_ui_mode(search_mode)
 
     live_search_links = build_dashboard_live_links(
         profile=selected,
@@ -1165,6 +1187,7 @@ def dashboard_matches(
             "selected_platform_targets": selected_platform_targets,
             "external_only_mode": external_only_mode,
             "client_only_mode": client_only_mode,
+            "active_ui_mode": active_ui_mode,
             "search_mode": search_mode,
             "offer_type": offer_type,
             "client_type": client_type,

@@ -48,6 +48,10 @@ body {
   gap: 18px;
 }
 
+.mode-hero {
+  gap: 22px;
+}
+
 .hero-shell {
   position: relative;
   z-index: 1;
@@ -114,6 +118,52 @@ body {
 .panel-label {
   background: rgba(11, 114, 133, 0.1);
   color: var(--accent);
+}
+
+.mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+  border-radius: 20px;
+  background: rgba(16, 35, 44, 0.08);
+}
+
+.mode-switch-button {
+  border-radius: 16px;
+  border: 1px solid rgba(22, 33, 42, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--ink);
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 1rem;
+}
+
+.mode-switch-button.active {
+  background: linear-gradient(135deg, var(--accent), #2a9d8f);
+  color: #fff;
+  box-shadow: 0 16px 30px rgba(11, 114, 133, 0.22);
+}
+
+.mode-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mode-summary-card {
+  border: 1px solid rgba(194, 208, 215, 0.7);
+  border-radius: 18px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(242, 248, 250, 0.9));
+  opacity: 0.72;
+  transition: transform 0.18s ease, opacity 0.18s ease, border-color 0.18s ease;
+}
+
+.mode-summary-card.active {
+  opacity: 1;
+  transform: translateY(-2px);
+  border-color: rgba(11, 114, 133, 0.28);
 }
 
 .hero-spotlight {
@@ -273,6 +323,86 @@ h1 {
   color: var(--muted);
 }
 
+.mode-shell {
+  display: grid;
+  gap: 18px;
+}
+
+.mode-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.mode-panel-head {
+  align-items: start;
+}
+
+.mode-filters {
+  gap: 16px;
+}
+
+.job-mode-grid,
+.sell-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mode-preset-bar {
+  margin-top: -4px;
+}
+
+.mode-result-panel,
+.mode-tracker-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.mode-link-bar {
+  border: 1px solid rgba(194, 208, 215, 0.7);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(244, 249, 251, 0.9));
+}
+
+.mode-link-head {
+  margin-bottom: 10px;
+}
+
+.mode-link-head h3,
+.profile-links-shell h3 {
+  margin: 0 0 4px;
+}
+
+.mode-link-head p,
+.profile-links-shell p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.mode-note-box {
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(11, 114, 133, 0.08);
+  border: 1px solid rgba(11, 114, 133, 0.16);
+}
+
+.mode-note-box strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.mode-note-box p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.profile-links-shell {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
 .stack-form, .filters {
   display: grid;
   gap: 10px;
@@ -297,6 +427,11 @@ h1 {
   color: var(--ink);
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.mode-status-bar {
+  margin-top: 10px;
+  padding-top: 4px;
 }
 
 .workflow-head {
@@ -381,6 +516,10 @@ h1 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.sell-channel-grid {
+  align-items: start;
+}
+
 .filter-grid-preset {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
   align-items: end;
@@ -401,8 +540,9 @@ h1 {
 
 .toggle-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 8px;
+  align-items: start;
 }
 
 .filter-cluster {
@@ -444,6 +584,10 @@ h1 {
   min-width: 220px;
 }
 
+.compact-status-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
 .preset-actions {
   display: flex;
   gap: 8px;
@@ -460,6 +604,11 @@ h1 {
   align-items: center;
   gap: 8px;
   color: var(--muted);
+  min-height: 42px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(191, 208, 218, 0.45);
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .inline-check input {
@@ -783,6 +932,13 @@ button:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .mode-summary-grid,
+  .job-mode-grid,
+  .sell-mode-grid,
+  .compact-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .filter-grid-four,
   .filter-grid-two,
   .filter-grid-preset,
@@ -815,6 +971,9 @@ button:hover {
 
   .filters,
   .feature-grid,
+  .mode-summary-grid,
+  .job-mode-grid,
+  .sell-mode-grid,
   .hero-spotlight-grid,
   .filter-grid-four,
   .filter-grid-two,
@@ -829,6 +988,10 @@ button:hover {
 
   .preset-actions {
     justify-content: stretch;
+  }
+
+  .mode-switch {
+    grid-template-columns: 1fr;
   }
 
   .preset-actions button {
