@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadStatus {
+  discovered
+  scanned
+  contacted
+  replied
+  interested
+  meeting_booked
+  proposal_sent
+  closed_won
+  closed_lost
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         String     @default("sales")
+  businesses   Business[]
+  leads        LeadPipeline[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Business {
+  id                  String                     @id @default(cuid())
+  ownerUserId         String
+  name                String
+  niche               String
+  city                String
+  website             String?
+  phone               String?
+  email               String?
+  address             String?
+  source              String?
+  googleMapsUrl       String?
+  discoveredAt        DateTime                   @default(now())
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  owner               User                       @relation(fields: [ownerUserId], references: [id])
+  scans               WebsiteScan[]
+  recommendations     SolutionRecommendation[]
+  demos               Demo[]
+  outreachMessages    OutreachMessage[]
+  leadPipeline        LeadPipeline?
+}
+
+model WebsiteScan {
+  id                String        @id @default(cuid())
+  businessId        String
+  scannerVersion    String
+  homepageUrl       String?
+  loadTimeMs        Int?
+  contactFormFound  Boolean       @default(false)
+  whatsappFound     Boolean       @default(false)
+  bookingFound      Boolean       @default(false)
+  crmHintFound      Boolean       @default(false)
+  chatbotFound      Boolean       @default(false)
+  leadCaptureScore  Int           @default(0)
+  responseScore     Int           @default(0)
+  opportunityScore  Int           @default(0)
+  createdAt         DateTime      @default(now())
+  business          Business      @relation(fields: [businessId], references: [id])
+  issues            ScanIssue[]
+}
+
+model ScanIssue {
+  id                 String      @id @default(cuid())
+  scanId             String
+  issueType          String
+  severity           String
+  description        String
+  revenueLossNote    String?
+  recommendationKey  String?
+  createdAt          DateTime    @default(now())
+  scan               WebsiteScan @relation(fields: [scanId], references: [id])
+}
+
+model SolutionRecommendation {
+  id                   String    @id @default(cuid())
+  businessId           String
+  title                String
+  summary              String
+  recommendedModules   Json
+  pricingHint          String?
+  aiReasoning          String?
+  createdAt            DateTime  @default(now())
+  business             Business  @relation(fields: [businessId], references: [id])
+}
+
+model Demo {
+  id                String    @id @default(cuid())
+  businessId        String
+  templateName      String
+  demoUrl           String?
+  headline          String
+  content           Json
+  createdAt         DateTime  @default(now())
+  business          Business  @relation(fields: [businessId], references: [id])
+}
+
+model OutreachMessage {
+  id                 String    @id @default(cuid())
+  businessId         String
+  channel            String
+  subject            String?
+  messageBody        String
+  personalization    Json?
+  status             String    @default("draft")
+  createdAt          DateTime  @default(now())
+  sentAt             DateTime?
+  business           Business  @relation(fields: [businessId], references: [id])
+}
+
+model LeadPipeline {
+  id               String       @id @default(cuid())
+  businessId       String       @unique
+  ownerUserId      String
+  currentStatus    LeadStatus   @default(discovered)
+  priority         Int          @default(0)
+  interestScore    Int          @default(0)
+  lastContactedAt  DateTime?
+  nextFollowUpAt   DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  business         Business     @relation(fields: [businessId], references: [id])
+  owner            User         @relation(fields: [ownerUserId], references: [id])
+}

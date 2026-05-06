@@ -1,0 +1,9 @@
+{
+  "name": "@mind-manage/types",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./business": "./src/business.ts",
+    "./lead": "./src/lead.ts"
+  }
+}

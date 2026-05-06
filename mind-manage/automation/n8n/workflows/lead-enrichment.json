@@ -1,0 +1,14 @@
+{
+  "name": "Lead Enrichment",
+  "nodes": [
+    {
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook"
+    },
+    {
+      "name": "Enrich Lead",
+      "type": "n8n-nodes-base.code"
+    }
+  ],
+  "connections": {}
+}

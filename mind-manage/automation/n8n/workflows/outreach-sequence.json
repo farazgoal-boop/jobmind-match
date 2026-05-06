@@ -1,0 +1,14 @@
+{
+  "name": "Outreach Sequence",
+  "nodes": [
+    {
+      "name": "Start Outreach",
+      "type": "n8n-nodes-base.webhook"
+    },
+    {
+      "name": "Send Email or Queue",
+      "type": "n8n-nodes-base.code"
+    }
+  ],
+  "connections": {}
+}

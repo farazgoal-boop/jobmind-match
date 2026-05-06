@@ -1,0 +1,17 @@
+{
+  "name": "mind-manage",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "dev": "corepack pnpm -r --parallel --filter @mind-manage/api --filter @mind-manage/web run dev",
+    "build": "corepack pnpm -r --filter @mind-manage/api --filter @mind-manage/web run build",
+    "lint": "corepack pnpm -r --filter @mind-manage/api --filter @mind-manage/web run lint",
+    "db:generate": "corepack pnpm --filter @mind-manage/db prisma generate",
+    "db:migrate": "corepack pnpm --filter @mind-manage/db prisma migrate dev",
+    "db:studio": "corepack pnpm --filter @mind-manage/db prisma studio"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.12",
+    "typescript": "^5.6.3"
+  }
+}

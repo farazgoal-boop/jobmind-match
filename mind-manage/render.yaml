@@ -1,0 +1,47 @@
+databases:
+  - name: mind-manage-db
+    plan: free
+
+services:
+  - type: web
+    name: mind-manage-api
+    env: node
+    rootDir: mind-manage
+    plan: free
+    autoDeploy: true
+    buildCommand: corepack enable && corepack pnpm install --frozen-lockfile && corepack pnpm --filter @mind-manage/db prisma generate && corepack pnpm --filter @mind-manage/api build
+    preDeployCommand: corepack pnpm --filter @mind-manage/db prisma migrate deploy
+    startCommand: corepack pnpm --filter @mind-manage/api start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mind-manage-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: N8N_WEBHOOK_BASE_URL
+        sync: false
+      - key: NODE_VERSION
+        value: 22.17.0
+
+  - type: web
+    name: mind-manage-web
+    env: node
+    rootDir: mind-manage
+    plan: free
+    autoDeploy: true
+    buildCommand: corepack enable && corepack pnpm install --frozen-lockfile && corepack pnpm --filter @mind-manage/web build
+    startCommand: corepack pnpm --filter @mind-manage/web start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://mind-manage-api.onrender.com/api
+      - key: NODE_VERSION
+        value: 22.17.0

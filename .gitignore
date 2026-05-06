@@ -8,3 +8,9 @@ write_test.txt
 *.log
 mobile-wrapper/node_modules/
 mobile-wrapper/android/
+mind-manage/node_modules/
+mind-manage/.turbo/
+mind-manage/.env
+mind-manage/apps/api/.env
+mind-manage/apps/web/.env.local
+mind-manage/apps/web/.next/
