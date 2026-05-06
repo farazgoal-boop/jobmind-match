@@ -142,7 +142,7 @@ def build_client_access_links(
 ) -> list[dict[str, str]]:
     base_terms = [
         offer_type.replace("_", " "),
-        client_type.replace("_", " "),
+        _client_type_query_label(client_type),
         _counterparty_label(counterparty_type),
         _posted_within_label(posted_within),
         "verified buyer" if verified_payment_only else "",
@@ -288,7 +288,7 @@ def _compose_live_search_query(
         "automation": "automation solution",
     }
     tokens.append(offer_map.get(offer_type, offer_type.replace("_", " ")))
-    tokens.append(client_type.replace("_", " "))
+    tokens.append(_client_type_query_label(client_type))
     tokens.append(_counterparty_label(counterparty_type))
     tokens.append(_trust_signal_label(trust_signal))
     tokens.append(_company_size_label(company_size))
@@ -395,6 +395,20 @@ def _company_size_label(company_size: str) -> str:
         "enterprise": "enterprise company",
     }
     return labels.get(company_size, company_size.replace("_", " "))
+
+
+def _client_type_query_label(client_type: str) -> str:
+    labels = {
+        "startup": "startup",
+        "agency": "agency",
+        "ecommerce": "ecommerce business",
+        "saas": "SaaS company",
+        "local_business": "local business",
+        "hr_recruiter": "HR team recruiter",
+        "wholesale_buyer": "wholesale buyer",
+        "property_management": "apartment management housing society property management company",
+    }
+    return labels.get(client_type, client_type.replace("_", " "))
 
 
 def _proposal_pressure_label(proposal_pressure: str) -> str:

@@ -279,9 +279,16 @@ def resolve_selected_sources(request: Request, sources: str, is_premium: bool) -
     return selected_sources
 
 
-def is_external_only_mode(selected_sources: list[str], selected_platform_targets: list[str]) -> bool:
+def is_external_only_mode(search_mode: str, selected_sources: list[str], selected_platform_targets: list[str]) -> bool:
     external_job_targets = {"upwork", "fiverr", "linkedin"}
-    return not selected_sources and any(target in external_job_targets for target in selected_platform_targets)
+    return search_mode == "job_search" and not selected_sources and any(
+        target in external_job_targets for target in selected_platform_targets
+    )
+
+
+def is_client_only_mode(search_mode: str, selected_sources: list[str], selected_platform_targets: list[str]) -> bool:
+    client_modes = {"sell_services", "sell_products", "direct_clients"}
+    return search_mode in client_modes and not selected_sources and bool(selected_platform_targets)
 
 
 def score_to_level(score: float) -> str:
@@ -647,6 +654,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "platform_targets": "indeed,linkedin,upwork,google_clients",
             "selected_platform_targets": selected_platform_targets,
             "external_only_mode": False,
+            "client_only_mode": False,
             "search_mode": "job_search",
             "offer_type": "software",
             "client_type": "startup",
@@ -971,6 +979,7 @@ def dashboard_matches(
                 "platform_targets": platform_targets,
                 "selected_platform_targets": selected_platform_targets,
                 "external_only_mode": False,
+                "client_only_mode": False,
                 "search_mode": search_mode,
                 "offer_type": offer_type,
                 "client_type": client_type,
@@ -1011,7 +1020,8 @@ def dashboard_matches(
     client_status_summary = build_client_status_summary(client_leads)
 
     selected_sources = resolve_selected_sources(request, sources, selected.is_premium)
-    external_only_mode = is_external_only_mode(selected_sources, selected_platform_targets)
+    external_only_mode = is_external_only_mode(search_mode, selected_sources, selected_platform_targets)
+    client_only_mode = is_client_only_mode(search_mode, selected_sources, selected_platform_targets)
 
     live_search_links = build_dashboard_live_links(
         profile=selected,
@@ -1065,7 +1075,7 @@ def dashboard_matches(
         verified_payment_only=verified_payment_only,
     )
 
-    jobs = fetch_jobs_from_sources(selected_sources, limit_per_source=80) if not external_only_mode else []
+    jobs = fetch_jobs_from_sources(selected_sources, limit_per_source=80) if not external_only_mode and not client_only_mode else []
     candidate_text = " ".join([selected.skills_csv, selected.cv_text])
     matches = rank_jobs(candidate_text=candidate_text, jobs=jobs, top_k=40)
     enriched_matches = []
@@ -1154,6 +1164,7 @@ def dashboard_matches(
             "platform_targets": platform_targets,
             "selected_platform_targets": selected_platform_targets,
             "external_only_mode": external_only_mode,
+            "client_only_mode": client_only_mode,
             "search_mode": search_mode,
             "offer_type": offer_type,
             "client_type": client_type,

@@ -32,7 +32,7 @@
         </div>
         <aside class="hero-spotlight">
           <p class="eyebrow">Today Focus</p>
-          <h3>{% if external_only_mode %}Mini Python Gigs{% elif search_mode in ['direct_clients', 'sell_services', 'sell_products'] %}Direct Client Selling{% else %}Job Match Execution{% endif %}</h3>
+          <h3>{% if external_only_mode %}Mini Python Gigs{% elif client_only_mode and client_type == 'property_management' %}Residency Client Hunt{% elif search_mode in ['direct_clients', 'sell_services', 'sell_products'] %}Direct Client Selling{% else %}Job Match Execution{% endif %}</h3>
           <p>{% if selected %}Active profile: {{ selected.full_name }}{% else %}Select a profile to activate search, tracking, and outreach workflows.{% endif %}</p>
           <div class="hero-spotlight-grid">
             <div>
@@ -78,6 +78,7 @@
         <button type="button" class="preset-chip" data-mode="job_search" data-focus="flask" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="true" data-remote="true" data-junior="true" data-region="pakistan">Flask Roles</button>
         <button type="button" class="preset-chip" data-mode="job_search" data-focus="fullstack" data-offer="software" data-client="startup" data-goal="apply" data-demand="latest" data-side="any" data-trust="any" data-backend="false" data-remote="true" data-junior="true" data-region="global">Full Stack</button>
         <button type="button" class="preset-chip" data-mode="job_search" data-focus="python" data-offer="software" data-client="startup" data-goal="apply" data-demand="budget" data-posted="1d" data-region="global" data-remote="true" data-junior="false" data-backend="false" data-sources="" data-platforms="upwork" data-keywords="small bug fix script automation API Flask FastAPI quick task" data-verified="true" data-pakistan="false">Mini Python Gigs</button>
+        <button type="button" class="preset-chip" data-mode="sell_services" data-focus="all" data-offer="software" data-client="property_management" data-goal="meeting" data-demand="premium" data-side="founder" data-trust="verified_company" data-remote="false" data-junior="false" data-backend="false" data-region="global" data-sources="" data-platforms="linkedin,google_clients,google_maps" data-keywords="residency management system apartment management software housing society software flat management tenant billing maintenance visitor gate pass society ERP property management SaaS">Shaz Residency Hunt</button>
         <button type="button" class="preset-chip" data-mode="sell_services" data-offer="automation" data-client="agency" data-goal="pitch" data-demand="urgent" data-region="global">Agency Outreach</button>
         <button type="button" class="preset-chip" data-mode="sell_products" data-offer="products" data-client="wholesale_buyer" data-goal="meeting" data-demand="premium" data-region="asia">Product Buyers</button>
         <button type="button" class="preset-chip" data-mode="direct_clients" data-offer="software" data-client="startup" data-goal="email" data-demand="latest" data-region="europe">Direct Startup Leads</button>
@@ -112,6 +113,25 @@
           <span class="feature-tag">Tracking</span>
           <strong>Dual Tracking</strong>
           <p>Job applications and client sales leads are tracked separately so follow-ups stay organized.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="card feature-showcase">
+      <div class="section-head">
+        <div>
+          <h2>Shaz Residency Hunt</h2>
+          <p class="hint">Use this dedicated mode when you want to sell your residency management system to apartments, residential towers, housing societies, and property operators globally.</p>
+        </div>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="feature-tag">Property Sales</span>
+          <strong>Global Residency Clients</strong>
+          <p>Loads a founder-focused global search for housing societies, apartment operators, gated communities, and flat management companies that can buy your software or services.</p>
+          <div class="assisted-links">
+            <button type="button" class="ghost-action" data-role="residency-hunt-launch">Load Shaz Residency Hunt</button>
+          </div>
         </article>
       </div>
     </section>
@@ -309,8 +329,8 @@
           </div>
         </div>
 
-        <input type="hidden" name="sources" value="{{ sources or 'remotive,weworkremotely' }}" data-role="source-input" />
-        <input type="hidden" name="platform_targets" value="{{ platform_targets or 'indeed,linkedin,upwork,google_clients' }}" data-role="platform-targets" />
+        <input type="hidden" name="sources" value="{{ sources if sources is not none else 'remotive,weworkremotely' }}" data-role="source-input" />
+        <input type="hidden" name="platform_targets" value="{{ platform_targets if platform_targets is not none else 'indeed,linkedin,upwork,google_clients' }}" data-role="platform-targets" />
         <div class="filter-panel span-all">
           <div class="filter-panel-head">
             <h3>Offer Targeting</h3>
@@ -336,6 +356,7 @@
                 <option value="ecommerce" {% if client_type == 'ecommerce' %}selected{% endif %}>E-commerce</option>
                 <option value="saas" {% if client_type == 'saas' %}selected{% endif %}>SaaS</option>
                 <option value="local_business" {% if client_type == 'local_business' %}selected{% endif %}>Local businesses</option>
+                <option value="property_management" {% if client_type == 'property_management' %}selected{% endif %}>Residency / housing management</option>
                 <option value="hr_recruiter" {% if client_type == 'hr_recruiter' %}selected{% endif %}>HR and recruiters</option>
                 <option value="wholesale_buyer" {% if client_type == 'wholesale_buyer' %}selected{% endif %}>Wholesale buyers</option>
               </select>
@@ -522,11 +543,13 @@
         {% endfor %}
       </div>
       <p class="hint">These links follow your dropdowns and tick marks so the search goes exactly where you want.</p>
-      <p class="hint">Scored job results still come from the selected internal sources below; web targets control the quick-search links.</p>
+      <p class="hint">{% if client_only_mode %}These search routes are for prospecting buyers and operators, not internal job-card matching.{% else %}Scored job results still come from the selected internal sources below; web targets control the quick-search links.{% endif %}</p>
       {% endif %}
 
       {% if external_only_mode %}
       <p class="hint">External mini-job mode is active. Internal feeds are skipped, so use the selected platform links above for focused Upwork or Fiverr searches.</p>
+      {% elif client_only_mode %}
+      <p class="hint">Client-hunt mode is active. Internal job feeds are skipped, so use LinkedIn, Google Clients, and Google Maps links above to find housing societies, apartment operators, and flat management buyers.</p>
       {% endif %}
 
       {% if client_access_links %}
@@ -536,6 +559,9 @@
         {% endfor %}
       </div>
       <p class="hint">Client access links make it easier to reach companies, buyers, founders, and decision makers.</p>
+      {% if client_type == 'property_management' %}
+      <p class="hint">Residency hunt plan: target apartment operators, housing societies, gated communities, HOA teams, and residential property managers first, then pitch demo, billing, maintenance, visitor, and resident-app workflows.</p>
+      {% endif %}
       {% endif %}
 
       {% if outreach_links %}
@@ -551,8 +577,8 @@
     <section class="card workflow-panel" data-role="workflow-panel" data-tab-panel="jobs">
       <div class="section-head">
         <div>
-          <h2>{% if external_only_mode %}External Job Search{% else %}Top Job Results{% endif %}</h2>
-          <p class="hint">{% if external_only_mode %}Use the focused platform links above for mini Python jobs, verified-payment gigs, and global searches without internal feed mixing.{% else %}Scored by CV and skills overlap, then cleaned with role, remote, and seniority filters.{% endif %}</p>
+          <h2>{% if client_only_mode %}Client Hunt Results{% elif external_only_mode %}External Job Search{% else %}Top Job Results{% endif %}</h2>
+          <p class="hint">{% if client_only_mode %}Use the focused client links above to prospect global residency-management buyers without mixing internal job feeds.{% elif external_only_mode %}Use the focused platform links above for mini Python jobs, verified-payment gigs, and global searches without internal feed mixing.{% else %}Scored by CV and skills overlap, then cleaned with role, remote, and seniority filters.{% endif %}</p>
         </div>
         <div class="summary-pills">
           <span>{{ match_summary.total if match_summary else 0 }} shown</span>
@@ -668,7 +694,7 @@
             <a href="{{ item.job.url }}" target="_blank" rel="noopener">Open Apply Page</a>
           </article>
         {% else %}
-          <p class="hint">{% if external_only_mode %}No internal result cards are shown in external-only mode. Open the selected Upwork or Fiverr links above to search mini Python gigs directly.{% else %}No matches yet. First select your profile, upload CV, then click Run My Match.{% endif %}</p>
+          <p class="hint">{% if client_only_mode %}No internal job cards are shown in client-hunt mode. Open the LinkedIn, Google Clients, and Google Maps links above to find residency management buyers, housing societies, and apartment operators.{% elif external_only_mode %}No internal result cards are shown in external-only mode. Open the selected Upwork or Fiverr links above to search mini Python gigs directly.{% else %}No matches yet. First select your profile, upload CV, then click Run My Match.{% endif %}</p>
         {% endfor %}
       </div>
     </section>
