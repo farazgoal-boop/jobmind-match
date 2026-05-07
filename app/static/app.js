@@ -1,6 +1,9 @@
 window.addEventListener("DOMContentLoaded", () => {
   let installPrompt = null;
   let lastNativePath = window.location.pathname;
+  const staticVersion = document
+    .querySelector('meta[name="jobmind-static-version"]')
+    ?.getAttribute("content") || "local-dev";
   const cards = document.querySelectorAll(".card");
   cards.forEach((card, index) => {
     card.animate(
@@ -749,7 +752,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/static/sw.js").catch(() => {
+    navigator.serviceWorker.register(`/static/sw.js?v=${encodeURIComponent(staticVersion)}`).catch(() => {
       // Ignore registration failures.
     });
   }

@@ -1,15 +1,8 @@
-const CACHE_NAME = "jobmind-match-v2";
-const APP_SHELL = [
-  "/",
-  "/dashboard",
-  "/static/styles.css",
-  "/static/app.js",
-  "/static/icon.svg",
-  "/static/manifest.webmanifest"
-];
+const VERSION = new URL(self.location.href).searchParams.get("v") || "local-dev";
+const CACHE_NAME = `jobmind-match-${VERSION}`;
+const STATIC_PATH_PREFIX = `${self.location.origin}/static/`;
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
   self.skipWaiting();
 });
 
@@ -27,17 +20,23 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (!event.request.url.startsWith(STATIC_PATH_PREFIX)) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const cloned = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
-        return response;
-      })
-      .catch(() =>
-        caches
-          .match(event.request)
-          .then((cached) => cached || caches.match("/") || caches.match("/dashboard"))
-      )
+    caches.match(event.request).then((cached) => {
+      const networkFetch = fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const cloned = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          }
+          return response;
+        })
+        .catch(() => cached);
+
+      return cached || networkFetch;
+    })
   );
 });

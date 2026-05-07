@@ -8,6 +8,13 @@ load_dotenv()
 class Settings(BaseModel):
     app_name: str = os.getenv("APP_NAME", "JobMind Match")
     app_env: str = os.getenv("APP_ENV", "dev")
+    asset_version: str = (
+        os.getenv("RENDER_GIT_COMMIT")
+        or os.getenv("RAILWAY_GIT_COMMIT_SHA")
+        or os.getenv("GITHUB_SHA")
+        or os.getenv("APP_ASSET_VERSION")
+        or "local-dev"
+    )[:12]
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./jobmind.db")
     github_token: str = os.getenv("GITHUB_TOKEN", "")
     telegram_bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "")

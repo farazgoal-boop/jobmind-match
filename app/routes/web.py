@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, select
 
+from app.config import settings
 from app.db import get_session
 from app.models import ApplicationRecord, CandidateProfile, ClientLead, FilterPreset
 from app.services.assisted_apply import (
@@ -24,6 +25,7 @@ from app.services.source_registry import fetch_jobs_from_sources, free_sources_l
 
 router = APIRouter(tags=["web"])
 templates = Jinja2Templates(directory="app/templates")
+templates.env.globals["static_version"] = settings.asset_version
 
 FOLLOW_UP_PATTERN = re.compile(r"\[follow-up:(\d{4}-\d{2}-\d{2})\]")
 BUILTIN_RESUME_SOURCES = {
