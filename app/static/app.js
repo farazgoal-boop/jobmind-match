@@ -249,6 +249,21 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function scrollToActiveResults(mode) {
+    if (!isResultsPage) {
+      return;
+    }
+    const panel = document.querySelector(`[data-role="${mode}-results-panel"]`);
+    if (!(panel instanceof HTMLElement)) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        panel.scrollIntoView({ behavior: "auto", block: "start" });
+      });
+    });
+  }
+
   function syncHiddenValues(config) {
     if (config.sourceInput) {
       const sourceValues = Array.from(document.querySelectorAll(config.sourceSelector))
@@ -755,6 +770,7 @@ window.addEventListener("DOMContentLoaded", () => {
         const mode = button.dataset.mode || "job";
         setActiveMode(mode);
         restoreModeState(mode);
+        scrollToActiveResults(mode);
       });
     });
   }
@@ -845,4 +861,5 @@ window.addEventListener("DOMContentLoaded", () => {
   restoreModeState("sell");
   const preferredMode = isResultsPage ? initialMode : (readStorage(storageKeys.uiMode, initialMode) || initialMode);
   setActiveMode(preferredMode);
+  scrollToActiveResults(preferredMode);
 });
