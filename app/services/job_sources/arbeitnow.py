@@ -19,6 +19,7 @@ def fetch_arbeitnow_jobs(limit: int = 50) -> List[Dict]:
                 "url": item.get("url", ""),
                 "description": item.get("description", ""),
                 "salary": item.get("salary", ""),
+                "published_at": item.get("created_at", ""),
                 "visa_support": bool(item.get("visa_sponsorship", False)),
             }
         )

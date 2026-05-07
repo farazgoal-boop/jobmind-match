@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 import json
 from pathlib import Path
 import re
@@ -367,10 +368,10 @@ def matches_region(job: dict, region: str) -> bool:
         return True
     text = f"{job.get('location', '')} {job.get('description', '')}".lower()
     region_terms = {
-        "pakistan": ["pakistan", "asia", "worldwide", "global", "remote"],
-        "asia": ["asia", "singapore", "india", "pakistan", "uae", "remote"],
-        "europe": ["europe", "eu", "germany", "france", "spain", "remote"],
-        "americas": ["america", "americas", "usa", "canada", "latam", "remote"],
+        "pakistan": ["pakistan"],
+        "asia": ["asia", "singapore", "india", "pakistan", "uae", "japan", "malaysia"],
+        "europe": ["europe", "eu", "germany", "france", "spain", "italy", "netherlands", "poland"],
+        "americas": ["america", "americas", "usa", "united states", "canada", "latam", "brazil", "mexico"],
         "global": ["worldwide", "global", "anywhere", "remote"],
     }
     return any(term in text for term in region_terms.get(region, []))
@@ -383,11 +384,52 @@ def matches_search_focus(job: dict, search_focus: str) -> bool:
     text = f"{job.get('title', '')} {job.get('description', '')}".lower()
     focus_terms = {
         "python": ["python", "django", "flask", "fastapi"],
-        "fastapi": ["fastapi", "api", "backend"],
-        "flask": ["flask", "python", "backend"],
+        "fastapi": ["fastapi"],
+        "flask": ["flask"],
         "fullstack": ["full stack", "full-stack", "backend", "frontend"],
     }
     return any(term in text for term in focus_terms.get(search_focus, []))
+
+
+def parse_job_datetime(raw_value: str) -> datetime | None:
+    raw_text = str(raw_value or "").strip()
+    if not raw_text:
+        return None
+
+    try:
+        normalized = raw_text.replace("Z", "+00:00")
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        try:
+            parsed = parsedate_to_datetime(raw_text)
+        except (TypeError, ValueError):
+            return None
+
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def matches_posted_window(job: dict, posted_within: str) -> bool:
+    if posted_within in {"", "any"}:
+        return True
+
+    published_at = parse_job_datetime(job.get("published_at", ""))
+    if published_at is None:
+        return False
+
+    day_windows = {
+        "1d": 1,
+        "3d": 3,
+        "7d": 7,
+        "14d": 14,
+        "30d": 30,
+    }
+    max_age_days = day_windows.get(posted_within)
+    if max_age_days is None:
+        return True
+
+    return published_at >= datetime.now(timezone.utc) - timedelta(days=max_age_days)
 
 
 def build_match_summary(matches: list[dict]) -> dict[str, int]:
@@ -1117,6 +1159,8 @@ def dashboard_matches(
         if salary_only and not has_salary_signal(job):
             continue
         if visa_support_only and not has_visa_signal(job):
+            continue
+        if not matches_posted_window(job, posted_within):
             continue
         if not matches_region(job, region_preference):
             continue

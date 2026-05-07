@@ -19,6 +19,7 @@ def fetch_weworkremotely_jobs(limit: int = 50) -> List[Dict]:
         title = item.findtext("title", default="")
         link = item.findtext("link", default="")
         description = item.findtext("description", default="")
+        published_at = item.findtext("pubDate", default="")
 
         parts = [p.strip() for p in title.split(":", 1)]
         company = parts[0] if len(parts) > 1 else "Unknown"
@@ -33,6 +34,7 @@ def fetch_weworkremotely_jobs(limit: int = 50) -> List[Dict]:
                 "url": link,
                 "description": description,
                 "salary": "",
+                "published_at": published_at,
                 "visa_support": False,
             }
         )

@@ -1,4 +1,5 @@
 from typing import Dict, List
+
 import requests
 
 
@@ -18,6 +19,7 @@ def fetch_remotive_jobs(limit: int = 50) -> List[Dict]:
                 "url": item.get("url", ""),
                 "description": item.get("description", ""),
                 "salary": item.get("salary", ""),
+                "published_at": item.get("publication_date", ""),
                 "visa_support": False,
             }
         )
