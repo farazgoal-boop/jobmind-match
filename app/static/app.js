@@ -41,6 +41,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const sellSearchModes = new Set(["sell_services", "sell_products", "direct_clients"]);
   const serverResultMode = sellSearchModes.has(currentQuery.get("search_mode")) ? "sell" : "job";
   const initialMode = currentQuery.get("active_mode") || serverResultMode;
+  const isResultsPage = currentPath === "/dashboard/matches";
   const modeMeta = {
     job: {
       title: "Job Search Mode",
@@ -280,6 +281,11 @@ window.addEventListener("DOMContentLoaded", () => {
       feedback.classList.toggle("is-visible", isBusy);
     }
     config.form.classList.toggle("is-submitting", isBusy);
+  }
+
+  function clearSubmitStates() {
+    setSubmitState("job", false);
+    setSubmitState("sell", false);
   }
 
   function wireResumeLibraryImport() {
@@ -804,6 +810,10 @@ window.addEventListener("DOMContentLoaded", () => {
     lastNativePath = window.location.pathname;
   });
 
+  window.addEventListener("pageshow", () => {
+    clearSubmitStates();
+  });
+
   if (typeof capacitorApp?.addListener === "function") {
     capacitorApp.addListener("backButton", async () => {
       const hasBrowserHistory = window.history.length > 1;
@@ -830,7 +840,9 @@ window.addEventListener("DOMContentLoaded", () => {
   wireResumeLibraryImport();
   syncServerTrackersToLocal();
   wireModeToggles();
+  clearSubmitStates();
   restoreModeState("job");
   restoreModeState("sell");
-  setActiveMode(readStorage(storageKeys.uiMode, initialMode) || initialMode);
+  const preferredMode = isResultsPage ? initialMode : (readStorage(storageKeys.uiMode, initialMode) || initialMode);
+  setActiveMode(preferredMode);
 });

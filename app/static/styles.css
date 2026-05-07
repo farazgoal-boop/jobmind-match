@@ -792,12 +792,19 @@ button:hover {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
+.job > div {
+  min-width: 0;
+}
+
 .job:hover {
   border-color: rgba(15, 118, 110, 0.26);
   box-shadow: 0 16px 28px rgba(15, 118, 110, 0.08);
 }
 
 .job a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   white-space: nowrap;
   text-decoration: none;
   color: #fff;
@@ -805,6 +812,33 @@ button:hover {
   padding: 10px 12px;
   border-radius: 10px;
   font-weight: 700;
+}
+
+.client-result-card {
+  align-items: stretch;
+}
+
+.client-result-card .why-row span,
+.client-result-card .summary-pills span,
+.client-result-card .source,
+.client-result-card p,
+.client-result-card h3 {
+  overflow-wrap: anywhere;
+}
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.secondary-link {
+  color: #fff;
+  background: linear-gradient(120deg, var(--accent-2), #bf5533);
 }
 
 .job-topline,
@@ -931,6 +965,14 @@ button:hover {
   display: grid;
   gap: 8px;
   max-width: 420px;
+}
+
+.action-row {
+  align-items: stretch;
+}
+
+.action-row > * {
+  min-width: 0;
 }
 
 .tracker {
@@ -1127,5 +1169,45 @@ button:hover {
 
   .filter-actions button {
     width: 100%;
+  }
+
+  .job {
+    padding: 16px;
+  }
+
+  .job,
+  .client-result-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .job > div,
+  .client-result-card > div,
+  .save-form {
+    width: 100%;
+    max-width: none;
+  }
+
+  .job a,
+  .button-link {
+    width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .action-row > * {
+    width: 100%;
+  }
+
+  .why-row span,
+  .summary-pills span,
+  .meta-badge,
+  .match-badge {
+    max-width: 100%;
   }
 }
