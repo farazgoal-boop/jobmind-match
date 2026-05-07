@@ -1,6 +1,6 @@
 window.addEventListener("DOMContentLoaded", () => {
   let installPrompt = null;
-  let lastNativePath = window.location.pathname;
+  let lastNativeLocation = window.location.href;
   const staticVersion = document
     .querySelector('meta[name="jobmind-static-version"]')
     ?.getAttribute("content") || "local-dev";
@@ -34,6 +34,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const resumeLibrarySelect = document.querySelector('[data-role="resume-library-select"]');
   const resumeLibrarySubmit = document.querySelector('[data-role="resume-library-submit"]');
   const resumeLibraryFeedback = document.querySelector('[data-role="resume-library-feedback"]');
+  const mobileBackButton = document.querySelector('[data-role="mobile-back"]');
+  const mobileRefreshButton = document.querySelector('[data-role="mobile-refresh"]');
   const jobForm = document.querySelector('[data-role="job-form"]');
   const sellForm = document.querySelector('[data-role="sell-form"]');
   const currentPath = window.location.pathname;
@@ -301,6 +303,52 @@ window.addEventListener("DOMContentLoaded", () => {
   function clearSubmitStates() {
     setSubmitState("job", false);
     setSubmitState("sell", false);
+  }
+
+  function buildDashboardUrl() {
+    const candidateId = currentQuery.get("candidate_id");
+    const activeMode = currentQuery.get("active_mode") || serverResultMode;
+    const params = new URLSearchParams();
+    if (candidateId) {
+      params.set("candidate_id", candidateId);
+    }
+    if (activeMode) {
+      params.set("active_mode", activeMode);
+    }
+    const query = params.toString();
+    return query ? `/dashboard?${query}` : "/dashboard";
+  }
+
+  function hasInAppReferrer() {
+    if (!document.referrer) {
+      return false;
+    }
+    try {
+      const referrerUrl = new URL(document.referrer);
+      return referrerUrl.origin === window.location.origin && referrerUrl.pathname.startsWith("/dashboard");
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function navigateBackInApp() {
+    const hasBrowserHistory = window.history.length > 1;
+    if (hasBrowserHistory && hasInAppReferrer()) {
+      window.history.back();
+      return;
+    }
+    if (currentPath !== "/dashboard") {
+      window.location.assign(buildDashboardUrl());
+      return;
+    }
+    if (typeof capacitorApp?.exitApp === "function") {
+      capacitorApp.exitApp();
+    }
+  }
+
+  function refreshCurrentView() {
+    clearSubmitStates();
+    window.location.reload();
   }
 
   function wireResumeLibraryImport() {
@@ -823,7 +871,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   window.addEventListener("popstate", () => {
-    lastNativePath = window.location.pathname;
+    lastNativeLocation = window.location.href;
   });
 
   window.addEventListener("pageshow", () => {
@@ -833,10 +881,14 @@ window.addEventListener("DOMContentLoaded", () => {
   if (typeof capacitorApp?.addListener === "function") {
     capacitorApp.addListener("backButton", async () => {
       const hasBrowserHistory = window.history.length > 1;
-      const movedWithinApp = window.location.pathname !== lastNativePath;
-      lastNativePath = window.location.pathname;
-      if (hasBrowserHistory || movedWithinApp) {
+      const movedWithinApp = window.location.href !== lastNativeLocation;
+      lastNativeLocation = window.location.href;
+      if ((hasBrowserHistory && hasInAppReferrer()) || movedWithinApp) {
         window.history.back();
+        return;
+      }
+      if (currentPath !== "/dashboard") {
+        window.location.assign(buildDashboardUrl());
         return;
       }
       if (typeof capacitorApp.exitApp === "function") {
@@ -844,6 +896,14 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  mobileBackButton?.addEventListener("click", () => {
+    navigateBackInApp();
+  });
+
+  mobileRefreshButton?.addEventListener("click", () => {
+    refreshCurrentView();
+  });
 
   const mergedPresets = mergePresets(getPresetBuckets(), normalizeServerPresets());
   writePresetBuckets(mergedPresets);
