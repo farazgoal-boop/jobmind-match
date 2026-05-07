@@ -28,6 +28,7 @@ body {
     radial-gradient(circle at 18% 100%, rgba(219, 106, 69, 0.12) 0%, transparent 24%),
     linear-gradient(135deg, var(--bg-a) 0%, #f7fbfd 44%, var(--bg-b) 100%);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 body::before,
@@ -72,6 +73,7 @@ body::after {
   padding: 22px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
+  min-width: 0;
 }
 
 .hero {
@@ -590,6 +592,7 @@ h3 {
 .field-group {
   display: grid;
   gap: 6px;
+  min-width: 0;
 }
 
 .field-group > span {
@@ -718,6 +721,8 @@ input, select, button, textarea {
 input,
 select,
 textarea {
+  width: 100%;
+  min-width: 0;
   background: rgba(255, 255, 255, 0.88);
   color: var(--ink);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
@@ -797,6 +802,27 @@ button:hover {
 
 .job > div {
   min-width: 0;
+}
+
+.job h3,
+.job p,
+.tracker-row h3,
+.tracker-row p,
+.command-card h3,
+.command-card p,
+.hero-copy h1,
+.hero-copy p,
+.hero-spotlight h3,
+.hero-spotlight p,
+.mode-summary-card h3,
+.mode-summary-card p,
+.filter-panel h3,
+.filter-panel p,
+.status-card p,
+.status-card strong,
+.insight-panel h3,
+.insight-panel p {
+  overflow-wrap: anywhere;
 }
 
 .job:hover {
@@ -1018,6 +1044,7 @@ button:hover {
   display: grid;
   gap: 10px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(243, 249, 251, 0.82));
+  min-width: 0;
 }
 
 .tracker-form {
@@ -1042,6 +1069,7 @@ button:hover {
   border-radius: 18px;
   padding: 16px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(238, 248, 249, 0.84));
+  min-width: 0;
 }
 
 .compact-links {
@@ -1095,6 +1123,10 @@ button:hover {
 }
 
 @media (max-width: 820px) {
+  .layout {
+    width: min(96vw, 96vw);
+  }
+
   .hero-shell,
   .grid-two {
     grid-template-columns: 1fr;
@@ -1144,6 +1176,17 @@ button:hover {
     justify-content: stretch;
   }
 
+  .hero,
+  .profile-panel,
+  .filter-panel,
+  .mode-link-bar,
+  .job,
+  .tracker-row,
+  .command-card,
+  .insight-panel {
+    padding: 16px;
+  }
+
   .filter-actions button,
   .preset-actions button,
   .action-row > *,
@@ -1169,10 +1212,6 @@ button:hover {
 }
 
 @media (max-width: 560px) {
-  .layout {
-    width: min(96vw, 96vw);
-  }
-
   .filters,
   .feature-grid,
   .mode-summary-grid,
@@ -1196,6 +1235,10 @@ button:hover {
 
   .mode-switch {
     grid-template-columns: 1fr;
+  }
+
+  .mode-switch-button {
+    text-align: center;
   }
 
   .preset-actions button {
@@ -1248,5 +1291,10 @@ button:hover {
   .meta-badge,
   .match-badge {
     max-width: 100%;
+  }
+
+  .card {
+    border-radius: 18px;
+    padding: 14px;
   }
 }

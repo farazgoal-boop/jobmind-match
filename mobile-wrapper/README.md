@@ -30,6 +30,32 @@ npx cap sync android
 npx cap open android
 ```
 
+## Local Emulator Testing
+
+If you want the Android emulator to load your local FastAPI app instead of production:
+
+```powershell
+cd "C:\Users\HAROON TRADERS\OneDrive\Desktop\JobMind Match"
+& ".\.venv\Scripts\python.exe" -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+cd "C:\Users\HAROON TRADERS\OneDrive\Desktop\JobMind Match\mobile-wrapper"
+npm run android:sync:local
+npx cap open android
+```
+
+Android emulators reach the host machine through `http://10.0.2.2:8000`, which is already wired into the local sync script.
+
+## CLI Build Shortcuts
+
+```powershell
+npm run android:prepare:jdk17
+npm run android:sync:prod
+npm run android:build:debug
+npm run android:build:release
+```
+
+If this machine only has JDK 17 installed, run the prepare step before the Android build. It patches the Capacitor-generated Android Gradle files back to Java 17 compatibility.
+
 ## Build APK In Android Studio
 
 1. Open the generated Android project.

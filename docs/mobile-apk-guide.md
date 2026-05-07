@@ -66,6 +66,22 @@ Use this wording:
 
 ## Important Note
 
-This workspace does not currently contain Android SDK, Gradle Android project, signing keys, or Java toolchain setup for emitting a final signed APK directly from here.
+This workspace now contains a Capacitor Android wrapper project under `mobile-wrapper/`.
 
-So this repo is now APK-ready in architecture, but a final production APK still needs the Android wrapper build step.
+What still depends on the local machine or Android Studio environment:
+- Android SDK availability
+- Gradle wrapper dependency download
+- keystore creation/signing
+- final signed APK or AAB export
+
+So the repo is build-ready in architecture and wrapper structure, but the final signed APK still depends on the Android toolchain being able to download Gradle and complete the release build.
+
+## Local Emulator Flow
+
+For local testing before a release APK:
+
+1. Run the FastAPI app on your computer.
+2. Sync the wrapper with `JOBMIND_APP_URL=http://10.0.2.2:8000/dashboard`.
+3. Open Android Studio and run the emulator.
+
+The wrapper now includes Android network security config for `10.0.2.2`, `localhost`, and `127.0.0.1` so local HTTP testing works during development.
