@@ -618,6 +618,60 @@ def build_dashboard_client_links(
     )
 
 
+def build_client_search_results(
+    live_search_links: list[dict[str, str]],
+    client_access_links: list[dict[str, str]],
+    offer_type: str,
+    client_type: str,
+    contact_goal: str,
+    counterparty_type: str,
+    custom_keywords: str,
+    top_k: int,
+) -> list[dict[str, str]]:
+    seen_urls: set[str] = set()
+    query_focus = custom_keywords.strip() or client_type.replace("_", " ")
+    target_label = counterparty_type.replace("_", " ") if counterparty_type != "any" else "decision maker"
+    offer_label = offer_type.replace("_", " ")
+
+    results: list[dict[str, str]] = []
+    for link in [*live_search_links, *client_access_links]:
+        url = str(link.get("url", "") or "").strip()
+        platform = str(link.get("platform", "") or "Client Route").strip()
+        caption = str(link.get("caption", "") or "Open buyer route").strip()
+        if not url or url in seen_urls:
+            continue
+        seen_urls.add(url)
+
+        source_label = "Search Route" if link in live_search_links else "Client Access"
+        company = f"{platform} {client_type.replace('_', ' ')} prospects".title()
+        title = f"{platform} {offer_label.title()} buyers"
+        notes = (
+            f"Target {target_label} for {query_focus}. "
+            f"Goal: {contact_goal.replace('_', ' ')}. "
+            f"Route: {caption}."
+        )
+        results.append(
+            {
+                "title": title,
+                "company": company,
+                "platform": platform,
+                "caption": caption,
+                "url": url,
+                "source": source_label,
+                "query_focus": query_focus,
+                "target_label": target_label,
+                "notes": notes,
+                "contact_channel": "linkedin" if "linkedin" in platform.lower() else "website",
+                "lead_name": target_label.title(),
+                "offer_type": offer_type,
+                "follow_up_hint": "Open route, shortlist a real buyer, then save the lead below.",
+            }
+        )
+        if len(results) >= top_k:
+            break
+    return results
+
+
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, session: Annotated[Session, Depends(get_session)], candidate_id: int | None = None):
     seed_profile = ensure_seed_profile(session)
@@ -743,6 +797,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "active_ui_mode": "job",
             "match_summary": build_match_summary([]),
             "active_filter_badges": active_filter_badges,
+            "client_search_results": [],
         },
     )
 
@@ -1071,6 +1126,7 @@ def dashboard_matches(
                 "visa_support_only": visa_support_only,
                 "region_preference": region_preference,
                 "match_summary": build_match_summary([]),
+                "client_search_results": [],
             },
         )
 
@@ -1201,6 +1257,18 @@ def dashboard_matches(
         )
     enriched_matches = enriched_matches[:top_k]
     match_summary = build_match_summary(enriched_matches)
+    client_search_results = []
+    if active_ui_mode == "sell":
+        client_search_results = build_client_search_results(
+            live_search_links=live_search_links,
+            client_access_links=client_access_links,
+            offer_type=offer_type,
+            client_type=client_type,
+            contact_goal=contact_goal,
+            counterparty_type=counterparty_type,
+            custom_keywords=custom_keywords,
+            top_k=top_k,
+        )
 
     error = ""
     usage = None
@@ -1261,5 +1329,6 @@ def dashboard_matches(
             "region_preference": region_preference,
             "match_summary": match_summary,
             "active_filter_badges": active_filter_badges,
+            "client_search_results": client_search_results,
         },
     )

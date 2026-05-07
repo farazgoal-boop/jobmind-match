@@ -764,9 +764,56 @@
           </div>
         </div>
         {% endif %}
+        <div class="matches">
+          {% for item in client_search_results %}
+          <article class="job client-result-card">
+            <div>
+              <div class="job-topline">
+                <h3>{{ item.title }}</h3>
+                <div class="summary-pills">
+                  <span>{{ item.platform }}</span>
+                  <span>{{ item.source }}</span>
+                </div>
+              </div>
+              <p>{{ item.company }}</p>
+              <div class="why-row">
+                <span>Focus: {{ item.query_focus }}</span>
+                <span>Target: {{ item.target_label }}</span>
+                <span>Goal: {{ contact_goal|replace('_', ' ')|title }}</span>
+              </div>
+              <p>{{ item.caption }}</p>
+              <p class="source">{{ item.follow_up_hint }}</p>
+              <div class="assisted-links">
+                <a href="{{ item.url }}" target="_blank" rel="noopener">Open Client Route</a>
+                <button type="button" class="ghost-action" data-copy-query="{{ item.query_focus }}">Copy Query</button>
+              </div>
+              {% if selected %}
+              <form action="/dashboard/client-leads" method="post" class="save-form">
+                <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
+                <input type="hidden" name="company" value="{{ item.company }}" />
+                <input type="hidden" name="lead_name" value="{{ item.lead_name }}" />
+                <input type="hidden" name="source" value="{{ item.platform }}" />
+                <input type="hidden" name="lead_url" value="{{ item.url }}" />
+                <input type="hidden" name="contact_channel" value="{{ item.contact_channel }}" />
+                <input type="hidden" name="offer_type" value="{{ item.offer_type }}" />
+                <input type="hidden" name="status" value="discover" />
+                <input type="text" name="notes" value="{{ item.notes }}" placeholder="Add outreach note" />
+                <input type="date" name="follow_up_date" />
+                <div class="action-row">
+                  <button type="submit">Save Lead</button>
+                  <a href="{{ item.url }}" target="_blank" rel="noopener" class="button-link secondary-link">Open and Prospect</a>
+                </div>
+              </form>
+              {% endif %}
+            </div>
+          </article>
+          {% else %}
+          <p class="hint">No client routes generated yet. Keep at least one selling channel selected and run client search again.</p>
+          {% endfor %}
+        </div>
         <div class="mode-note-box">
           <strong>Mode-specific behavior</strong>
-          <p>No job cards are rendered here. Search routes, pitch actions, and saved leads are the core outputs for this mode.</p>
+          <p>No job cards are rendered here. These are client-route opportunities built from your selling filters, alongside pitch actions and saved leads.</p>
         </div>
         </div>
       </section>
