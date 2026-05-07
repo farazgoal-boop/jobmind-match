@@ -1,6 +1,5 @@
 window.addEventListener("DOMContentLoaded", () => {
   let installPrompt = null;
-  let lastNativeLocation = window.location.href;
   const staticVersion = document
     .querySelector('meta[name="jobmind-static-version"]')
     ?.getAttribute("content") || "local-dev";
@@ -34,8 +33,6 @@ window.addEventListener("DOMContentLoaded", () => {
   const resumeLibrarySelect = document.querySelector('[data-role="resume-library-select"]');
   const resumeLibrarySubmit = document.querySelector('[data-role="resume-library-submit"]');
   const resumeLibraryFeedback = document.querySelector('[data-role="resume-library-feedback"]');
-  const mobileBackButton = document.querySelector('[data-role="mobile-back"]');
-  const mobileRefreshButton = document.querySelector('[data-role="mobile-refresh"]');
   const jobForm = document.querySelector('[data-role="job-form"]');
   const sellForm = document.querySelector('[data-role="sell-form"]');
   const currentPath = window.location.pathname;
@@ -73,6 +70,11 @@ window.addEventListener("DOMContentLoaded", () => {
     modeState: "jobmind.modeState.v2",
     presets: "jobmind.modePresets.v2",
     trackers: "jobmind.modeTrackers.v2"
+  };
+  const pullToRefreshState = {
+    startY: 0,
+    shouldRefresh: false,
+    active: false
   };
 
   const formConfig = {
@@ -349,6 +351,53 @@ window.addEventListener("DOMContentLoaded", () => {
   function refreshCurrentView() {
     clearSubmitStates();
     window.location.reload();
+  }
+
+  function shouldIgnorePullRefreshTarget(target) {
+    if (!(target instanceof Element)) {
+      return false;
+    }
+    return Boolean(target.closest('input, textarea, select, button, a, [contenteditable="true"]'));
+  }
+
+  function wirePullToRefresh() {
+    if (typeof window.TouchEvent === "undefined") {
+      return;
+    }
+
+    window.addEventListener("touchstart", (event) => {
+      if (event.touches.length !== 1) {
+        pullToRefreshState.active = false;
+        return;
+      }
+      if (window.scrollY > 0 || shouldIgnorePullRefreshTarget(event.target)) {
+        pullToRefreshState.active = false;
+        return;
+      }
+      pullToRefreshState.startY = event.touches[0].clientY;
+      pullToRefreshState.shouldRefresh = false;
+      pullToRefreshState.active = true;
+    }, { passive: true });
+
+    window.addEventListener("touchmove", (event) => {
+      if (!pullToRefreshState.active || event.touches.length !== 1) {
+        return;
+      }
+      const deltaY = event.touches[0].clientY - pullToRefreshState.startY;
+      pullToRefreshState.shouldRefresh = window.scrollY <= 0 && deltaY > 88;
+    }, { passive: true });
+
+    window.addEventListener("touchend", () => {
+      if (!pullToRefreshState.active) {
+        return;
+      }
+      const shouldRefresh = pullToRefreshState.shouldRefresh;
+      pullToRefreshState.active = false;
+      pullToRefreshState.shouldRefresh = false;
+      if (shouldRefresh) {
+        refreshCurrentView();
+      }
+    }, { passive: true });
   }
 
   function wireResumeLibraryImport() {
@@ -870,25 +919,14 @@ window.addEventListener("DOMContentLoaded", () => {
     installButton.classList.add("hidden");
   });
 
-  window.addEventListener("popstate", () => {
-    lastNativeLocation = window.location.href;
-  });
-
   window.addEventListener("pageshow", () => {
     clearSubmitStates();
   });
 
   if (typeof capacitorApp?.addListener === "function") {
     capacitorApp.addListener("backButton", async () => {
-      const hasBrowserHistory = window.history.length > 1;
-      const movedWithinApp = window.location.href !== lastNativeLocation;
-      lastNativeLocation = window.location.href;
-      if ((hasBrowserHistory && hasInAppReferrer()) || movedWithinApp) {
-        window.history.back();
-        return;
-      }
       if (currentPath !== "/dashboard") {
-        window.location.assign(buildDashboardUrl());
+        navigateBackInApp();
         return;
       }
       if (typeof capacitorApp.exitApp === "function") {
@@ -896,14 +934,6 @@ window.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  mobileBackButton?.addEventListener("click", () => {
-    navigateBackInApp();
-  });
-
-  mobileRefreshButton?.addEventListener("click", () => {
-    refreshCurrentView();
-  });
 
   const mergedPresets = mergePresets(getPresetBuckets(), normalizeServerPresets());
   writePresetBuckets(mergedPresets);
@@ -913,6 +943,7 @@ window.addEventListener("DOMContentLoaded", () => {
   wirePresetControls("sell");
   wireForm(formConfig.job);
   wireForm(formConfig.sell);
+  wirePullToRefresh();
   wireResumeLibraryImport();
   syncServerTrackersToLocal();
   wireModeToggles();
