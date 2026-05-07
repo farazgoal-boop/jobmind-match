@@ -979,6 +979,10 @@ def import_cv_from_library(
     if not profile:
         raise HTTPException(status_code=404, detail="Candidate not found")
 
+    source_key = source_key.strip()
+    if not source_key:
+        raise HTTPException(status_code=400, detail="Choose a saved resume before importing")
+
     profile.cv_text = read_builtin_resume_text(source_key)
     session.add(profile)
     session.commit()

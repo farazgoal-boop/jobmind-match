@@ -30,6 +30,10 @@ window.addEventListener("DOMContentLoaded", () => {
   const staleResultsNotes = document.querySelectorAll('[data-role="stale-results-note"]');
   const liveResultsContent = document.querySelectorAll('[data-role="results-live-content"]');
   const submitFeedbackNodes = document.querySelectorAll('[data-role="submit-feedback"]');
+  const resumeLibraryForm = document.querySelector('[data-role="resume-library-form"]');
+  const resumeLibrarySelect = document.querySelector('[data-role="resume-library-select"]');
+  const resumeLibrarySubmit = document.querySelector('[data-role="resume-library-submit"]');
+  const resumeLibraryFeedback = document.querySelector('[data-role="resume-library-feedback"]');
   const jobForm = document.querySelector('[data-role="job-form"]');
   const sellForm = document.querySelector('[data-role="sell-form"]');
   const currentPath = window.location.pathname;
@@ -276,6 +280,29 @@ window.addEventListener("DOMContentLoaded", () => {
       feedback.classList.toggle("is-visible", isBusy);
     }
     config.form.classList.toggle("is-submitting", isBusy);
+  }
+
+  function wireResumeLibraryImport() {
+    if (!(resumeLibraryForm instanceof HTMLFormElement) || !(resumeLibrarySelect instanceof HTMLSelectElement) || !(resumeLibrarySubmit instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    if (!resumeLibrarySelect.value && resumeLibrarySelect.options.length === 2) {
+      resumeLibrarySelect.selectedIndex = 1;
+    }
+
+    const syncState = () => {
+      const hasSelection = !!resumeLibrarySelect.value;
+      resumeLibrarySubmit.disabled = !hasSelection;
+      if (resumeLibraryFeedback) {
+        resumeLibraryFeedback.textContent = hasSelection
+          ? "Saved resume ready to import."
+          : "Choose a saved resume to enable import.";
+      }
+    };
+
+    resumeLibrarySelect.addEventListener("change", syncState);
+    syncState();
   }
 
   function hydrateCheckboxGroup(selector, csv) {
@@ -800,6 +827,7 @@ window.addEventListener("DOMContentLoaded", () => {
   wirePresetControls("sell");
   wireForm(formConfig.job);
   wireForm(formConfig.sell);
+  wireResumeLibraryImport();
   syncServerTrackersToLocal();
   wireModeToggles();
   restoreModeState("job");
