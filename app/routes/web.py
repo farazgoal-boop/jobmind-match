@@ -1,12 +1,16 @@
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
+import csv
+import io
 import json
-from pathlib import Path
 import re
-from typing import Annotated
+import random
+import time
+from pathlib import Path
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, select
 
@@ -1332,3 +1336,817 @@ def dashboard_matches(
             "client_search_results": client_search_results,
         },
     )
+
+
+# ──────────────────────────────────────────────────────────────────
+#  NEW FEATURE 1: Duplicate Check
+#  URL: GET /dashboard/client-leads/check-duplicate?email=...&phone=...
+# ──────────────────────────────────────────────────────────────────
+@router.get("/dashboard/client-leads/check-duplicate")
+def check_lead_duplicate(
+    session: Annotated[Session, Depends(get_session)],
+    email: Optional[str] = None,
+    phone: Optional[str] = None,
+):
+    if email:
+        row = session.exec(
+            select(ClientLead).where(ClientLead.contact_email == email)
+        ).first()
+        if row:
+            return {"duplicate": True, "company": row.company, "lead_name": row.lead_name}
+
+    if phone:
+        clean_input = phone.replace(" ", "").replace("-", "").replace("+", "")
+        all_leads = session.exec(select(ClientLead)).all()
+        for row in all_leads:
+            if row.contact_phone:
+                stored = row.contact_phone.replace(" ", "").replace("-", "").replace("+", "")
+                if stored == clean_input:
+                    return {"duplicate": True, "company": row.company, "lead_name": row.lead_name}
+
+    return {"duplicate": False}
+
+
+# ──────────────────────────────────────────────────────────────────
+#  NEW FEATURE 2: CSV Export
+#  URL: GET /dashboard/client-leads/export-csv?candidate_id=1
+# ──────────────────────────────────────────────────────────────────
+@router.get("/dashboard/client-leads/export-csv")
+def export_leads_csv(
+    candidate_id: int,
+    session: Annotated[Session, Depends(get_session)],
+):
+    leads = session.exec(
+        select(ClientLead)
+        .where(ClientLead.candidate_id == candidate_id)
+        .order_by(ClientLead.updated_at.desc())
+    ).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "ID", "Company", "Contact Person", "Source",
+        "Email", "WhatsApp/Phone", "Channel",
+        "Offer Type", "Status", "Follow-up Date",
+        "Notes", "Lead URL", "Updated At",
+    ])
+    for lead in leads:
+        writer.writerow([
+            lead.id,
+            lead.company,
+            lead.lead_name or "",
+            lead.source or "",
+            lead.contact_email or "",
+            lead.contact_phone or "",
+            lead.contact_channel or "",
+            lead.offer_type or "",
+            lead.status,
+            lead.follow_up_date or "",
+            lead.notes or "",
+            lead.lead_url or "",
+            lead.updated_at.strftime("%Y-%m-%d %H:%M") if lead.updated_at else "",
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=leads.csv"},
+    )
+
+
+
+
+# ══════════════════════════════════════════════════════════════════
+#  LEAD HUNTER PRO — Maximum Power Scraper
+#  Sources: GitHub (500+), Dev.to, HackerNews, IndieHackers,
+#           RSS Feeds, Remotive, WeWorkRemotely, Freelancer boards
+# ══════════════════════════════════════════════════════════════════
+
+import requests as _req
+from bs4 import BeautifulSoup
+import xml.etree.ElementTree as ET
+
+_EMAIL_RE = re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,7}')
+_WA_RE    = re.compile(
+    r'wa\.me/(\d{7,15})'
+    r'|whatsapp\.com/send\?phone=(\d{7,15})'
+    r'|whatsapp[:\s\-]+(\+?[\d][\d\s\-]{9,14})'
+    r'|\bwa[:\s\-]+(\+?[\d][\d\s\-]{9,14})'
+    r'|\+92[\s\-]?3\d{2}[\s\-]?\d{7}'
+    r'|\+1[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}'
+    r'|\+44[\s\-]?\d{10}'
+    r'|\+91[\s\-]?\d{10}'
+    r'|\+971[\s\-]?\d{9}',
+    re.IGNORECASE
+)
+
+_SKIP_DOMAINS = {
+    'example.com','test.com','email.com','domain.com','sentry.io',
+    'github.com','google.com','cloudflare.com','w3.org','schema.org',
+    'npmjs.com','pypi.org','jquery.com','wordpress.org','wix.com',
+    'shopify.com','amazonaws.com','vercel.app','netlify.app',
+    'heroku.com','railway.app','render.com','squarespace.com',
+    'noreply.com','no-reply.com','notifications.com','support.com',
+    'mailer.com','sendgrid.net','mailchimp.com','mailgun.org',
+}
+
+_HDRS = [
+    {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
+    {'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'},
+    {'User-Agent':'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36'},
+]
+
+def _hdr(): return random.choice(_HDRS)
+
+def _valid_email(e: str) -> bool:
+    d = e.split('@')[-1].lower()
+    return (
+        d not in _SKIP_DOMAINS
+        and '..' not in e
+        and len(e) < 80
+        and '.' in d
+        and not e.startswith('.')
+        and not e.endswith('.')
+    )
+
+def _extract(text: str) -> tuple[list, list]:
+    """Extract emails and WhatsApp numbers from text"""
+    emails = list({e for e in _EMAIL_RE.findall(text) if _valid_email(e)})
+
+    wa = []
+    # wa.me links
+    for m in re.finditer(r'wa\.me/(\d{7,15})', text, re.I):
+        wa.append('+' + m.group(1))
+    # whatsapp.com/send?phone=
+    for m in re.finditer(r'whatsapp\.com/send\?phone=(\d{7,15})', text, re.I):
+        wa.append('+' + m.group(1))
+    # "whatsapp: +923001234567" or "wa: +923001234567"
+    for m in re.finditer(r'(?:whatsapp|wa)[:\s\-]+(\+?[\d][\d\s\-]{9,14})', text, re.I):
+        n = re.sub(r'[\s\-]', '', m.group(1))
+        if len(n) >= 10:
+            wa.append(n if n.startswith('+') else '+' + n)
+    # Phone numbers with country codes
+    for pattern in [
+        r'\+92[\s\-]?3\d{2}[\s\-]?\d{7}',  # Pakistan
+        r'\+1[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{4}',  # USA
+        r'\+44[\s\-]?\d{10}',  # UK
+        r'\+91[\s\-]?\d{10}',  # India
+        r'\+971[\s\-]?\d{9}',  # UAE
+        r'\+966[\s\-]?\d{9}',  # Saudi
+        r'\+61[\s\-]?\d{9}',   # Australia
+        r'\+49[\s\-]?\d{10,11}', # Germany
+    ]:
+        for m in re.finditer(pattern, text):
+            n = re.sub(r'[\s\-\(\)]', '', m.group(0))
+            if len(n) >= 10:
+                wa.append(n)
+
+    return emails, list(set(wa))
+
+def _desig(bio: str) -> str:
+    if not bio: return ''
+    for pat in [
+        r'([\w\s]+developer)', r'([\w\s]+designer)',
+        r'(freelance[\w\s]+)', r'([\w\s]+engineer)',
+        r'([\w\s]+marketer)', r'([\w\s]+creator)',
+        r'([\w\s]+consultant)', r'([\w\s]+writer)',
+        r'([\w\s]+coach)', r'([\w\s]+seller)',
+        r'([\w\s]+founder)', r'([\w\s]+maker)',
+    ]:
+        m = re.search(pat, bio, re.IGNORECASE)
+        if m: return m.group(0).strip()[:50]
+    return bio.split('.')[0][:50]
+
+
+# ── SOURCE 1: GitHub Profiles (best for emails) ──────────────────
+
+GH_SEARCH_QUERIES = [
+    # Freelancers with emails
+    'freelance developer email hire',
+    'hire me developer email contact',
+    'open to work email developer',
+    'available for hire email developer',
+    'freelance designer email hire',
+    'freelance marketer email contact',
+    'indie maker email contact',
+    'solopreneur email hire',
+    'python developer freelance email',
+    'react developer freelance email',
+    'fullstack developer freelance email',
+    'web developer hire email contact',
+    'mobile developer freelance email',
+    'wordpress developer email hire',
+    'shopify developer email contact',
+    'django developer freelance email',
+    'node developer freelance email',
+    'flutter developer freelance email',
+    'data scientist freelance email',
+    'machine learning engineer email',
+    'devops engineer freelance email',
+    'blockchain developer email hire',
+    'graphic designer email whatsapp hire',
+    'UI UX designer email contact hire',
+    'content creator email whatsapp',
+    'digital marketer email whatsapp hire',
+    'SEO expert email hire contact',
+    'video editor email hire whatsapp',
+    'copywriter email whatsapp hire',
+    'virtual assistant email hire',
+]
+
+def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
+    """GitHub user profiles with public emails — page support for 500+ results"""
+    leads = []
+    try:
+        url = f"https://api.github.com/search/users?q={_req.utils.quote(keyword)}&per_page=30&page={page}"
+        r = _req.get(url, headers={'Accept': 'application/vnd.github.v3+json'}, timeout=15)
+        if r.status_code == 422: return leads  # Bad query
+        if r.status_code == 403: 
+            time.sleep(10)
+            return leads
+        if r.status_code != 200: return leads
+
+        users = r.json().get('items', [])
+        for u in users[:20]:
+            try:
+                pr = _req.get(
+                    f"https://api.github.com/users/{u['login']}",
+                    headers={'Accept': 'application/vnd.github.v3+json'},
+                    timeout=10
+                )
+                if pr.status_code != 200: continue
+                p = pr.json()
+
+                # Get all possible contact info
+                email = p.get('email') or ''
+                bio = f"{p.get('bio') or ''} {p.get('blog') or ''} {p.get('location') or ''} {p.get('company') or ''}"
+                bio_emails, bio_wa = _extract(bio)
+
+                if not email and bio_emails:
+                    email = bio_emails[0]
+                wa = bio_wa[0] if bio_wa else ''
+
+                # Check blog URL for email
+                blog = p.get('blog') or ''
+                if blog and not email:
+                    be, bw = _extract(blog)
+                    email = be[0] if be else ''
+                    if not wa and bw: wa = bw[0]
+
+                if email or wa:
+                    leads.append({
+                        'name': p.get('name') or p.get('login', ''),
+                        'designation': _desig(p.get('bio') or 'Developer'),
+                        'email': email,
+                        'whatsapp': wa,
+                        'source': 'github',
+                        'url': p.get('html_url', ''),
+                        'notes': (p.get('bio') or '')[:100],
+                    })
+                time.sleep(0.2)
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return leads
+
+
+def _fetch_github_readme(keyword: str, page: int = 1) -> list[dict]:
+    """Search GitHub READMEs for contact info"""
+    leads = []
+    try:
+        q = f"{keyword} email in:readme"
+        url = f"https://api.github.com/search/repositories?q={_req.utils.quote(q)}&per_page=20&sort=updated&page={page}"
+        r = _req.get(url, headers={'Accept': 'application/vnd.github.v3+json'}, timeout=15)
+        if r.status_code != 200: return leads
+
+        for repo in r.json().get('items', [])[:12]:
+            try:
+                owner = repo.get('owner', {}).get('login', '')
+                rname = repo.get('name', '')
+                # Try main then master branch
+                for branch in ['main', 'master']:
+                    rm = _req.get(
+                        f"https://raw.githubusercontent.com/{owner}/{rname}/{branch}/README.md",
+                        timeout=8
+                    )
+                    if rm.status_code == 200:
+                        emails, wa = _extract(rm.text)
+                        if emails or wa:
+                            leads.append({
+                                'name': owner,
+                                'designation': _desig(repo.get('description') or 'Developer'),
+                                'email': emails[0] if emails else '',
+                                'whatsapp': wa[0] if wa else '',
+                                'source': 'github',
+                                'url': repo.get('html_url', ''),
+                                'notes': (repo.get('description') or '')[:100],
+                            })
+                        break
+                time.sleep(0.25)
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return leads
+
+
+# ── SOURCE 2: Dev.to (great for developer emails) ────────────────
+
+DEVTO_TAGS = [
+    'forhire', 'freelance', 'hiring', 'opentowork', 'career',
+    'developer', 'webdev', 'python', 'javascript', 'react',
+    'node', 'fullstack', 'backend', 'frontend', 'devops',
+    'design', 'ux', 'marketing', 'productivity', 'startup',
+]
+
+def _fetch_devto_articles(tag: str, page: int = 1) -> list[dict]:
+    """Dev.to articles — fetch full body for contact info"""
+    leads = []
+    try:
+        r = _req.get(
+            f"https://dev.to/api/articles?tag={tag}&per_page=20&page={page}",
+            headers=_hdr(), timeout=12
+        )
+        if r.status_code != 200: return leads
+        for a in r.json():
+            try:
+                # Get full article with body
+                art_id = a.get('id', '')
+                if not art_id: continue
+                ar = _req.get(
+                    f"https://dev.to/api/articles/{art_id}",
+                    headers=_hdr(), timeout=10
+                )
+                if ar.status_code != 200: continue
+                full = ar.json()
+                body = full.get('body_markdown', '') or full.get('body_html', '') or ''
+                # Clean HTML tags
+                body_clean = re.sub(r'<[^>]+>', ' ', body)
+                txt = f"{a.get('title','')} {a.get('description','')} {body_clean}"
+                emails, wa = _extract(txt)
+                if emails or wa:
+                    user = a.get('user', {})
+                    leads.append({
+                        'name': user.get('name', ''),
+                        'designation': _desig(a.get('title', '')),
+                        'email': emails[0] if emails else '',
+                        'whatsapp': wa[0] if wa else '',
+                        'source': 'devto',
+                        'url': a.get('url', ''),
+                        'notes': a.get('title', '')[:100],
+                    })
+                time.sleep(0.15)
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return leads
+
+
+# ── SOURCE 3: HackerNews (great for dev emails) ──────────────────
+
+def _fetch_hackernews() -> list[dict]:
+    """HackerNews Who Is Hiring + Freelancer threads"""
+    leads = []
+    try:
+        # Search for hiring/freelance posts via Algolia
+        for query in ['Ask HN Who is hiring', 'Ask HN Freelancer']:
+            r = _req.get(
+                f'https://hn.algolia.com/api/v1/search?query={_req.utils.quote(query)}&tags=story&hitsPerPage=3',
+                timeout=12
+            )
+            if r.status_code != 200: continue
+            for hit in r.json().get('hits', [])[:2]:
+                story_id = hit.get('objectID', '')
+                if not story_id: continue
+                # Get comments
+                sr = _req.get(
+                    f'https://hacker-news.firebaseio.com/v0/item/{story_id}.json',
+                    timeout=10
+                )
+                if sr.status_code != 200: continue
+                kids = (sr.json().get('kids') or [])[:100]
+                for kid_id in kids:
+                    try:
+                        kr = _req.get(
+                            f'https://hacker-news.firebaseio.com/v0/item/{kid_id}.json',
+                            timeout=8
+                        )
+                        if kr.status_code != 200: continue
+                        k = kr.json()
+                        txt = re.sub(r'<[^>]+>', ' ', k.get('text', '') or '')
+                        emails, wa = _extract(txt)
+                        if emails or wa:
+                            leads.append({
+                                'name': k.get('by', ''),
+                                'designation': _desig(txt[:200]),
+                                'email': emails[0] if emails else '',
+                                'whatsapp': wa[0] if wa else '',
+                                'source': 'hackernews',
+                                'url': f"https://news.ycombinator.com/item?id={k.get('id','')}",
+                                'notes': txt[:100],
+                            })
+                        time.sleep(0.1)
+                    except Exception:
+                        continue
+    except Exception:
+        pass
+    return leads
+
+
+# ── SOURCE 4: IndieHackers ───────────────────────────────────────
+
+def _fetch_indiehackers() -> list[dict]:
+    leads = []
+    try:
+        r = _req.get('https://www.indiehackers.com/api/posts?limit=50', timeout=12)
+        if r.status_code != 200: return leads
+        for p in r.json()[:30]:
+            txt = f"{p.get('title','')} {p.get('content','')}"
+            emails, wa = _extract(txt)
+            if emails or wa:
+                leads.append({
+                    'name': p.get('userDisplayName', ''),
+                    'designation': _desig(p.get('title', '')),
+                    'email': emails[0] if emails else '',
+                    'whatsapp': wa[0] if wa else '',
+                    'source': 'indiehackers',
+                    'url': f"https://www.indiehackers.com{p.get('url','')}",
+                    'notes': p.get('title', '')[:100],
+                })
+    except Exception:
+        pass
+    return leads
+
+
+# ── SOURCE 5: RSS Feeds from Job Boards ─────────────────────────
+
+def _fetch_remotive_rss() -> list[dict]:
+    """Remotive.com RSS — remote jobs with company emails"""
+    leads = []
+    try:
+        r = _req.get('https://remotive.com/remote-jobs/feed', headers=_hdr(), timeout=15)
+        if r.status_code != 200: return leads
+        root = ET.fromstring(r.content)
+        ns = {'content': 'http://purl.org/rss/1.0/modules/content/'}
+        for item in root.findall('.//item')[:30]:
+            title = (item.findtext('title') or '')
+            company = (item.findtext('author') or '')
+            link = (item.findtext('link') or '')
+            desc = (item.findtext('description') or '')
+            content = (item.find('content:encoded', ns) or item.find('{http://purl.org/rss/1.0/modules/content/}encoded'))
+            body = content.text if content is not None else ''
+            txt = f"{title} {company} {desc} {body}"
+            txt_clean = re.sub(r'<[^>]+>', ' ', txt)
+            emails, wa = _extract(txt_clean)
+            if emails or wa:
+                leads.append({
+                    'name': company or title[:40],
+                    'designation': _desig(title),
+                    'email': emails[0] if emails else '',
+                    'whatsapp': wa[0] if wa else '',
+                    'source': 'remotive',
+                    'url': link,
+                    'notes': title[:100],
+                })
+    except Exception:
+        pass
+    return leads
+
+
+def _fetch_weworkremotely_rss() -> list[dict]:
+    """WeWorkRemotely RSS feeds"""
+    leads = []
+    feeds = [
+        'https://weworkremotely.com/remote-jobs.rss',
+        'https://weworkremotely.com/categories/remote-programming-jobs.rss',
+        'https://weworkremotely.com/categories/remote-design-jobs.rss',
+    ]
+    for feed_url in feeds:
+        try:
+            r = _req.get(feed_url, headers=_hdr(), timeout=12)
+            if r.status_code != 200: continue
+            root = ET.fromstring(r.content)
+            for item in root.findall('.//item')[:20]:
+                title = (item.findtext('title') or '')
+                link = (item.findtext('link') or '')
+                desc = item.findtext('{http://purl.org/rss/1.0/modules/content/}encoded') or item.findtext('description') or ''
+                txt_clean = re.sub(r'<[^>]+>', ' ', f"{title} {desc}")
+                emails, wa = _extract(txt_clean)
+                if emails or wa:
+                    leads.append({
+                        'name': title.split('at ')[-1][:50] if ' at ' in title else title[:50],
+                        'designation': _desig(title),
+                        'email': emails[0] if emails else '',
+                        'whatsapp': wa[0] if wa else '',
+                        'source': 'weworkremotely',
+                        'url': link,
+                        'notes': title[:100],
+                    })
+        except Exception:
+            continue
+    return leads
+
+
+def _fetch_github_jobs_rss() -> list[dict]:
+    """GitHub discussions and community posts"""
+    leads = []
+    try:
+        # GitHub explore feed
+        r = _req.get(
+            'https://api.github.com/search/issues?q=freelance+email+hire+label:hiring&sort=created&order=desc&per_page=30',
+            headers={'Accept': 'application/vnd.github.v3+json'},
+            timeout=12
+        )
+        if r.status_code != 200: return leads
+        for issue in r.json().get('items', [])[:20]:
+            txt = f"{issue.get('title','')} {issue.get('body','') or ''}"
+            txt_clean = re.sub(r'<[^>]+>', ' ', txt)
+            emails, wa = _extract(txt_clean)
+            if emails or wa:
+                leads.append({
+                    'name': issue.get('user',{}).get('login',''),
+                    'designation': _desig(issue.get('title','')),
+                    'email': emails[0] if emails else '',
+                    'whatsapp': wa[0] if wa else '',
+                    'source': 'github',
+                    'url': issue.get('html_url',''),
+                    'notes': issue.get('title','')[:100],
+                })
+    except Exception:
+        pass
+    return leads
+
+
+def _fetch_reddit_rss(subreddit: str) -> list[dict]:
+    """Reddit via RSS — different from JSON API, often works"""
+    leads = []
+    try:
+        url = f"https://www.reddit.com/r/{subreddit}/new/.rss?limit=50"
+        hdrs = {
+            'User-Agent': 'Mozilla/5.0 (compatible; RSS reader)',
+            'Accept': 'application/rss+xml, application/xml, text/xml',
+        }
+        r = _req.get(url, headers=hdrs, timeout=15)
+        if r.status_code != 200: return leads
+        root = ET.fromstring(r.content)
+        ns = {
+            'atom': 'http://www.w3.org/2005/Atom',
+            'content': 'http://purl.org/rss/1.0/modules/content/',
+        }
+        entries = root.findall('.//entry') or root.findall('.//item')
+        for entry in entries[:30]:
+            title = (
+                (entry.find('atom:title', ns) or entry.find('title'))
+            )
+            title_txt = title.text if title is not None else ''
+            content_el = (
+                entry.find('content') or
+                entry.find('atom:content', ns) or
+                entry.find('{http://purl.org/rss/1.0/modules/content/}encoded')
+            )
+            body = content_el.text if content_el is not None else ''
+            author_el = entry.find('atom:author/atom:name', ns) or entry.find('author')
+            author = author_el.text if author_el is not None else ''
+            link_el = entry.find('atom:link', ns) or entry.find('link')
+            link = link_el.get('href','') if link_el is not None else ''
+            txt_clean = re.sub(r'<[^>]+>', ' ', f"{title_txt} {body}")
+            emails, wa = _extract(txt_clean)
+            if emails or wa:
+                leads.append({
+                    'name': author,
+                    'designation': _desig(title_txt),
+                    'email': emails[0] if emails else '',
+                    'whatsapp': wa[0] if wa else '',
+                    'source': 'reddit',
+                    'url': link,
+                    'notes': title_txt[:100],
+                })
+    except Exception:
+        pass
+    return leads
+
+
+# ── SOURCE 6: Public Portfolio Sites ────────────────────────────
+
+def _fetch_carrd_profiles(keyword: str) -> list[dict]:
+    """Carrd.co portfolio pages via Google search-like approach"""
+    leads = []
+    # These are already indexed public pages
+    portfolio_urls = [
+        f"https://dev.to/t/forhire",
+        f"https://www.indiehackers.com/group/forhire",
+    ]
+    try:
+        for url in portfolio_urls:
+            r = _req.get(url, headers=_hdr(), timeout=12)
+            if r.status_code != 200: continue
+            soup = BeautifulSoup(r.text, 'html.parser')
+            txt = soup.get_text(' ', strip=True)
+            emails, wa = _extract(txt)
+            for email in emails[:5]:
+                leads.append({
+                    'name': '',
+                    'designation': 'Freelancer',
+                    'email': email,
+                    'whatsapp': wa[0] if wa else '',
+                    'source': 'portfolio',
+                    'url': url,
+                    'notes': f'From {url}',
+                })
+    except Exception:
+        pass
+    return leads
+
+
+# ── API Endpoints ─────────────────────────────────────────────────
+
+GH_KEYWORDS = GH_SEARCH_QUERIES  # alias
+
+@router.get("/api/scrape/test")
+async def test_scraper():
+    """Test which sources are accessible"""
+    results = {}
+    tests = [
+        ('reddit_rss', 'https://www.reddit.com/r/forhire/new/.rss?limit=5', {'User-Agent':'Mozilla/5.0 (compatible; RSS)','Accept':'application/rss+xml'}),
+        ('github', 'https://api.github.com/search/users?q=freelance+developer+email&per_page=3', {'Accept':'application/vnd.github.v3+json'}),
+        ('devto', 'https://dev.to/api/articles?tag=forhire&per_page=3', {}),
+        ('hackernews', 'https://hn.algolia.com/api/v1/search?query=freelancer&tags=story&hitsPerPage=3', {}),
+        ('indiehackers', 'https://www.indiehackers.com/api/posts?limit=3', {}),
+        ('remotive_rss', 'https://remotive.com/remote-jobs/feed', _hdr()),
+        ('weworkremotely', 'https://weworkremotely.com/remote-jobs.rss', _hdr()),
+    ]
+    for name, url, hdrs in tests:
+        try:
+            r = _req.get(url, headers=hdrs, timeout=8)
+            results[name] = {'status': r.status_code, 'ok': r.status_code == 200}
+        except Exception as e:
+            results[name] = {'status': 'error', 'error': str(e)[:60], 'ok': False}
+    return JSONResponse(results)
+
+
+@router.get("/api/scrape/leads")
+async def scrape_leads(
+    target: str = Query(default="all"),
+    keywords: str = Query(default=""),
+    country: str = Query(default=""),
+    batch_size: int = Query(default=50),
+    source: str = Query(default="github"),
+    offset: int = Query(default=0),
+):
+    """Server-side lead scraper — called in batches by frontend"""
+    leads = []
+    kw = keywords.strip()
+    error_msg = ""
+
+    try:
+        if source == "github":
+            # Rotate through keywords for maximum unique results
+            kw_idx = offset % len(GH_KEYWORDS)
+            kw_to_use = GH_KEYWORDS[kw_idx] + (f" {kw}" if kw else "")
+            page = (offset // len(GH_KEYWORDS)) + 1
+            leads = _fetch_github_profiles(kw_to_use, page=page)
+
+        elif source == "github_readme":
+            q = f"freelance developer email {kw}" if kw else GH_KEYWORDS[offset % len(GH_KEYWORDS)]
+            leads = _fetch_github_readme(q, page=(offset // 5) + 1)
+
+        elif source == "github_issues":
+            leads = _fetch_github_jobs_rss()
+
+        elif source == "devto":
+            tag = kw if kw else DEVTO_TAGS[offset % len(DEVTO_TAGS)]
+            page = (offset // len(DEVTO_TAGS)) + 1
+            leads = _fetch_devto_articles(tag, page=page)
+
+        elif source == "hackernews":
+            leads = _fetch_hackernews()
+
+        elif source == "indiehackers":
+            leads = _fetch_indiehackers()
+
+        elif source == "remotive":
+            leads = _fetch_remotive_rss()
+
+        elif source == "weworkremotely":
+            leads = _fetch_weworkremotely_rss()
+
+        elif source == "reddit_rss":
+            subs = ['forhire', 'freelance', 'slavelabour', 'hiring', 'WorkOnline']
+            sub = subs[offset % len(subs)]
+            leads = _fetch_reddit_rss(sub)
+
+    except Exception as e:
+        error_msg = str(e)
+
+    return JSONResponse({
+        'leads': leads,
+        'count': len(leads),
+        'source': source,
+        'offset': offset,
+        'error': error_msg,
+    })
+
+
+@router.get("/api/scrape/export")
+async def export_scraped_leads(
+    fmt: str = Query(default="csv"),
+    data: str = Query(default="[]"),
+    filename: str = Query(default="leads"),
+):
+    """Export scraped leads in multiple formats"""
+    try:
+        leads = json.loads(data)
+    except Exception:
+        leads = []
+
+    if not leads:
+        raise HTTPException(status_code=400, detail="No leads to export")
+
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_name = re.sub(r'[^\w\-]', '_', filename) or 'leads'
+    fname = f"{safe_name}_{ts}"
+
+    if fmt == "csv":
+        out = io.StringIO()
+        w = csv.writer(out)
+        w.writerow(['#','Name','Designation','Email','WhatsApp','Source','Profile URL','Notes'])
+        for i, l in enumerate(leads, 1):
+            w.writerow([i, l.get('name',''), l.get('designation',''), l.get('email',''), l.get('whatsapp',''), l.get('source',''), l.get('url',''), l.get('notes','')])
+        out.seek(0)
+        return StreamingResponse(
+            iter([out.getvalue()]),
+            media_type='text/csv',
+            headers={'Content-Disposition': f'attachment; filename="{fname}.csv"'}
+        )
+
+    elif fmt == "json":
+        return StreamingResponse(
+            iter([json.dumps(leads, indent=2, ensure_ascii=False)]),
+            media_type='application/json',
+            headers={'Content-Disposition': f'attachment; filename="{fname}.json"'}
+        )
+
+    elif fmt == "txt_email":
+        emails = '\n'.join(l.get('email','') for l in leads if l.get('email'))
+        return StreamingResponse(
+            iter([emails]),
+            media_type='text/plain',
+            headers={'Content-Disposition': f'attachment; filename="{fname}_emails.txt"'}
+        )
+
+    elif fmt == "txt_wa":
+        wa_nums = '\n'.join(l.get('whatsapp','') for l in leads if l.get('whatsapp'))
+        return StreamingResponse(
+            iter([wa_nums]),
+            media_type='text/plain',
+            headers={'Content-Disposition': f'attachment; filename="{fname}_whatsapp.txt"'}
+        )
+
+    elif fmt in ("xls", "xlsx"):
+        hdr = '<tr>' + ''.join(f'<th style="background:#7c3aed;color:white;padding:8px">{h}</th>' for h in ['#','Name','Designation','Email','WhatsApp','Source','Profile URL','Notes']) + '</tr>'
+        rows = ''.join(
+            f'<tr><td>{i}</td><td>{l.get("name","")}</td><td>{l.get("designation","")}</td>'
+            f'<td>{l.get("email","")}</td><td>{l.get("whatsapp","")}</td>'
+            f'<td>{l.get("source","")}</td><td>{l.get("url","")}</td><td>{l.get("notes","")}</td></tr>'
+            for i, l in enumerate(leads, 1)
+        )
+        xls = f'<html><head><meta charset="UTF-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px">{hdr}{rows}</table></body></html>'
+        return StreamingResponse(
+            iter([xls]),
+            media_type='application/vnd.ms-excel',
+            headers={'Content-Disposition': f'attachment; filename="{fname}.xls"'}
+        )
+
+    elif fmt == "html":
+        cards = ''.join(
+            f'<div style="border:1px solid #7c3aed;border-radius:10px;padding:16px;margin:8px;display:inline-block;min-width:240px;max-width:300px;background:#0e0e1c;color:#eeeef8;vertical-align:top;font-family:sans-serif">'
+            f'<div style="font-weight:700;font-size:14px;margin-bottom:4px">#{i} {l.get("name","Unknown")}</div>'
+            f'<div style="font-size:11px;color:#a07cfc;margin-bottom:8px">{l.get("designation","")}</div>'
+            f'{(chr(10).join(["<a href=\'mailto:"+l.get("email","")+"\'style=\'color:#60a5fa;font-size:12px\'>✉ "+l.get("email","")+"</a><br>"]) if l.get("email") else "")}'
+            f'{(chr(10).join(["<a href=\'https://wa.me/"+l.get("whatsapp","").replace("+","")+"\'style=\'color:#25d366;font-size:12px\'>💬 "+l.get("whatsapp","")+"</a><br>"]) if l.get("whatsapp") else "")}'
+            f'<div style="font-size:10px;color:#6666a0;margin-top:6px">{l.get("source","")}</div>'
+            f'</div>'
+            for i, l in enumerate(leads, 1)
+        )
+        html_out = (
+            f'<!DOCTYPE html><html><head><meta charset="UTF-8">'
+            f'<title>Lead Hunter — {len(leads)} Contacts</title>'
+            f'<style>body{{background:#080812;padding:24px;font-family:sans-serif}}'
+            f'h2{{color:#c084fc;margin-bottom:20px}}'
+            f'.stats{{color:#6666a0;font-size:13px;margin-bottom:20px}}</style></head>'
+            f'<body><h2>🎯 Lead Hunter Pro — {len(leads)} Contacts</h2>'
+            f'<div class="stats">Generated: {datetime.now().strftime("%d %b %Y %H:%M")} | '
+            f'Emails: {sum(1 for l in leads if l.get("email"))} | '
+            f'WhatsApp: {sum(1 for l in leads if l.get("whatsapp"))}</div>'
+            f'{cards}</body></html>'
+        )
+        return StreamingResponse(
+            iter([html_out]),
+            media_type='text/html',
+            headers={'Content-Disposition': f'attachment; filename="{fname}.html"'}
+        )
+
+    raise HTTPException(status_code=400, detail=f"Invalid format: {fmt}. Use: csv, json, xls, xlsx, txt_email, txt_wa, html")

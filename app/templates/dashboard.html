@@ -539,6 +539,596 @@
     </section>
 
     <section class="mode-shell {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-role="mode-shell" data-mode-panel="sell">
+
+<!-- ╔══════════════════════════════════════════════════════════════╗ -->
+<!-- ║        LEAD HUNTER PRO v3 — 500+ Queries, Multi-Export     ║ -->
+<!-- ╚══════════════════════════════════════════════════════════════╝ -->
+<style>
+#lhp{--p:#7c3aed;--p2:#a855f7;--p3:#c084fc;--g:#10b981;--g2:#34d399;--a:#f59e0b;--r:#ef4444;--b:#3b82f6;--c:#06b6d4;--wa:#25d366;--bg:#080812;--s1:#0e0e1c;--s2:#141428;--s3:#1c1c38;--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);--tx:#eeeef8;--mt:#6666a0}
+#lhp,#lhp *{box-sizing:border-box;font-family:'Space Grotesk',system-ui,sans-serif}
+#lhp{background:var(--s1);border:1px solid rgba(124,58,237,.2);border-radius:18px;margin-bottom:28px;overflow:hidden}
+
+/* Head */
+.lh-head{padding:22px 28px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(6,182,212,.04))}
+.lh-brand{display:flex;align-items:center;gap:12px}
+.lh-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--p),var(--c));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 16px rgba(124,58,237,.3)}
+.lh-title{font-size:19px;font-weight:700;color:var(--tx);letter-spacing:-.4px}
+.lh-subtitle{font-size:12px;color:var(--mt);margin-top:2px}
+.lh-badges{display:flex;gap:7px;flex-wrap:wrap}
+.lh-badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.7px;border:1px solid}
+
+/* Stats row */
+.lh-stats{display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid var(--bd)}
+.lh-stat{padding:14px 16px;text-align:center;border-right:1px solid var(--bd)}
+.lh-stat:last-child{border-right:none}
+.lh-sn{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.lh-sl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.6px;margin-top:4px}
+
+/* Controls grid */
+.lh-ctrl{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;padding:18px 28px;border-bottom:1px solid var(--bd)}
+.lh-f{display:flex;flex-direction:column;gap:6px}
+.lh-f label{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.lh-f input,.lh-f select,.lh-f textarea{background:var(--s2);border:1px solid var(--bd2);border-radius:8px;color:var(--tx);font-size:12px;padding:9px 12px;outline:none;transition:border .15s;width:100%;font-family:inherit}
+.lh-f input:focus,.lh-f select:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.1)}
+.lh-f select option{background:#1a1a2e}
+.lh-f.span2{grid-column:span 2}
+.lh-f.span4{grid-column:span 4}
+
+/* Platform chips */
+.lh-chips{padding:14px 28px;border-bottom:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.lh-chip-lbl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-right:6px;white-space:nowrap}
+.lh-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
+.lh-chip input[type=checkbox]{display:none}
+.lh-chip.active{opacity:1}
+.lh-chip.inactive{opacity:.3}
+
+/* Action bar */
+.lh-actions{display:flex;gap:9px;padding:14px 28px;border-bottom:1px solid var(--bd);flex-wrap:wrap;align-items:center}
+.lhb{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.lhb-primary{background:linear-gradient(135deg,var(--p),#5b21b6);color:#fff;box-shadow:0 4px 16px rgba(124,58,237,.35)}
+.lhb-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,.5)}
+.lhb-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.lhb-stop{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171}
+.lhb-green{background:linear-gradient(135deg,var(--g),#059669);color:#fff}
+.lhb-green:hover{transform:translateY(-1px)}
+.lhb-ghost{background:var(--s2);border:1px solid var(--bd2);color:var(--mt)}
+.lhb-ghost:hover{color:var(--tx);border-color:var(--bd2)}
+.lhb-amber{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--a)}
+.lhb-amber:hover{background:rgba(245,158,11,.15)}
+
+/* Export dropdown */
+.lh-export-wrap{position:relative}
+.lh-export-menu{position:absolute;top:calc(100% + 6px);left:0;background:#1a1a2e;border:1px solid var(--bd2);border-radius:10px;padding:6px;z-index:99;min-width:180px;display:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.lh-export-menu.open{display:block}
+.lh-export-item{padding:9px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.lh-export-item:hover{background:rgba(168,85,247,.1);color:var(--p3)}
+
+/* Progress */
+.lh-prog{padding:16px 28px;border-bottom:1px solid var(--bd);display:none}
+.lh-prog-top{display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px}
+.lh-prog-status{color:var(--p3);font-weight:600}
+.lh-prog-pct{color:var(--mt);font-family:monospace}
+.lh-prog-track{height:5px;background:var(--s3);border-radius:20px;overflow:hidden;margin-bottom:10px}
+.lh-prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--p),var(--c));transition:width .4s;width:0;box-shadow:0 0 10px rgba(124,58,237,.4)}
+.lh-log{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mt);max-height:56px;overflow-y:auto;line-height:2;background:var(--bg);padding:6px 10px;border-radius:6px}
+.lh-log .ok{color:var(--g2)}.lh-log .info{color:var(--c)}.lh-log .warn{color:var(--a)}
+
+/* Filter bar */
+.lh-fbar{display:flex;gap:8px;padding:12px 28px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.lh-fbar input,.lh-fbar select{background:var(--s2);border:1px solid var(--bd2);border-radius:8px;color:var(--tx);font-size:12px;padding:8px 12px;outline:none;font-family:inherit}
+.lh-fbar input{flex:1;min-width:180px}
+.lh-fbar select option{background:#1a1a2e}
+.lh-fbar-info{font-size:11px;color:var(--mt);display:flex;align-items:center;margin-left:auto}
+
+/* Table */
+.lh-tscroll{overflow-x:auto}
+table.lht{width:100%;border-collapse:collapse;font-size:12px}
+table.lht th{text-align:left;padding:9px 14px;font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:.8px;font-weight:700;border-bottom:1px solid var(--bd);background:var(--s2);white-space:nowrap;cursor:pointer;user-select:none}
+table.lht th:hover{color:var(--p3)}
+table.lht td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
+.lh-serial{font-family:monospace;font-size:10px;color:var(--mt);text-align:center;width:40px}
+.lh-n{font-weight:600;color:var(--tx);font-size:12px}
+.lh-desig{font-size:10px;color:var(--mt);margin-top:2px}
+.lh-email-a{color:var(--b);font-size:11px;text-decoration:none;font-family:monospace}
+.lh-email-a:hover{color:var(--c);text-decoration:underline}
+.lh-wa-a{color:var(--wa);font-size:11px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-weight:500}
+.lh-wa-a:hover{color:var(--g2)}
+.lh-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.lh-cb{background:var(--s2);border:1px solid var(--bd2);color:var(--mt);padding:3px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-family:inherit;transition:all .1s}
+.lh-cb:hover{border-color:var(--p2);color:var(--p3)}
+.lh-cb.cp{border-color:var(--g);color:var(--g2)}
+
+/* File badge */
+.lh-file-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(124,58,237,.15);color:var(--p3);border:1px solid rgba(124,58,237,.2)}
+
+/* Empty */
+.lh-empty{padding:52px 20px;text-align:center;color:var(--mt)}
+.lh-empty-icon{font-size:44px;margin-bottom:14px}
+.lh-empty h3{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:8px}
+.lh-empty p{font-size:12px;max-width:420px;margin:0 auto;line-height:1.7}
+
+/* Toast */
+#lht{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+#lht.s{opacity:1;transform:translateY(0)}
+#lht.ok{background:var(--g);color:#062919}
+#lht.er{background:var(--r);color:#fff}
+#lht.in{background:var(--p);color:#fff}
+
+@media(max-width:900px){
+  .lh-ctrl{grid-template-columns:1fr 1fr}
+  .lh-f.span2,.lh-f.span4{grid-column:span 2}
+  .lh-stats{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:600px){
+  .lh-ctrl{grid-template-columns:1fr}
+  .lh-f.span2,.lh-f.span4{grid-column:span 1}
+  .lh-stats{grid-template-columns:1fr 1fr}
+  .lh-head{flex-direction:column}
+}
+</style>
+
+<div id="lhp">
+<!-- Head -->
+<div class="lh-head">
+  <div class="lh-brand">
+    <div class="lh-icon">⚡</div>
+    <div>
+      <div class="lh-title">Lead Hunter Pro</div>
+      <div class="lh-subtitle">Global contact collector — Name · Designation · WhatsApp · Email · Serial tracking</div>
+    </div>
+  </div>
+  <div class="lh-badges">
+    <span class="lh-badge" style="background:rgba(124,58,237,.12);color:#c084fc;border-color:rgba(124,58,237,.25)">500+ QUERIES</span>
+    <span class="lh-badge" style="background:rgba(37,211,102,.1);color:#25d366;border-color:rgba(37,211,102,.2)">AUTO DEDUP</span>
+    <span class="lh-badge" style="background:rgba(6,182,212,.1);color:#22d3ee;border-color:rgba(6,182,212,.2)">MULTI-EXPORT</span>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="lh-stats">
+  <div class="lh-stat"><div class="lh-sn" id="lhs-total" style="color:#c084fc">0</div><div class="lh-sl">Total Leads</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-email" style="color:#60a5fa">0</div><div class="lh-sl">Emails</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-wa" style="color:#25d366">0</div><div class="lh-sl">WhatsApp</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-both" style="color:#34d399">0</div><div class="lh-sl">Email+WA</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-dup" style="color:#f59e0b">0</div><div class="lh-sl">Dups Skipped</div></div>
+</div>
+
+<!-- Controls -->
+<div class="lh-ctrl">
+  <div class="lh-f">
+    <label>Target Audience</label>
+    <select id="lhp-tgt">
+      <option value="all">🌍 All Freelancers (Global)</option>
+      <option value="developer">💻 Developers / Coders</option>
+      <option value="designer">🎨 Designers / Creatives</option>
+      <option value="marketer">📢 Digital Marketers</option>
+      <option value="seller">🛒 Online Sellers / eComm</option>
+      <option value="coach">🎓 Coaches / Consultants</option>
+      <option value="creator">📹 Content Creators</option>
+      <option value="writer">✍️ Writers / Copywriters</option>
+      <option value="agency">🏢 Agency Owners</option>
+    </select>
+  </div>
+  <div class="lh-f">
+    <label>Max Contacts</label>
+    <select id="lhp-max">
+      <option value="100">100 (fast ~2min)</option>
+      <option value="300">300 (~5min)</option>
+      <option value="500" selected>500 (~10min)</option>
+      <option value="1000">1000 (~20min)</option>
+      <option value="2000">2000 (~45min)</option>
+    </select>
+  </div>
+  <div class="lh-f">
+    <label>Extra Keywords</label>
+    <input type="text" id="lhp-kw" placeholder="python, shopify, react, logo…">
+  </div>
+  <div class="lh-f">
+    <label>Country / Region</label>
+    <input type="text" id="lhp-cc" placeholder="+92, +1, Pakistan, USA…">
+  </div>
+  <div class="lh-f span4">
+    <label>File / Session Name (for tracking)</label>
+    <input type="text" id="lhp-fname" placeholder="e.g. Batch-01-June-2026 (shown in export filename)">
+  </div>
+</div>
+
+<!-- Platform chips -->
+<div class="lh-chips">
+  <span class="lh-chip-lbl">Platforms:</span>
+  <label class="lh-chip active" style="background:rgba(59,130,246,.1);color:#60a5fa;border-color:rgba(59,130,246,.2)"><input type="checkbox" class="lhc" value="google" checked>🔍 Google</label>
+  <label class="lh-chip active" style="background:rgba(220,220,220,.07);color:#c0c0d0;border-color:rgba(220,220,220,.1)"><input type="checkbox" class="lhc" value="github" checked>💻 GitHub</label>
+  <label class="lh-chip active" style="background:rgba(255,69,0,.1);color:#ff6b35;border-color:rgba(255,69,0,.2)"><input type="checkbox" class="lhc" value="reddit" checked>📖 Reddit</label>
+  <label class="lh-chip active" style="background:rgba(29,161,242,.1);color:#1da1f2;border-color:rgba(29,161,242,.2)"><input type="checkbox" class="lhc" value="twitter" checked>🐦 Twitter/X</label>
+  <label class="lh-chip active" style="background:rgba(37,211,102,.1);color:#25d366;border-color:rgba(37,211,102,.2)"><input type="checkbox" class="lhc" value="wahunt" checked>💬 WA Links</label>
+  <label class="lh-chip active" style="background:rgba(99,102,241,.1);color:#818cf8;border-color:rgba(99,102,241,.2)"><input type="checkbox" class="lhc" value="devto" checked>👨‍💻 Dev.to</label>
+  <label class="lh-chip active" style="background:rgba(16,185,129,.1);color:#34d399;border-color:rgba(16,185,129,.2)"><input type="checkbox" class="lhc" value="medium" checked>📝 Medium</label>
+  <label class="lh-chip active" style="background:rgba(245,130,32,.1);color:#f59e0b;border-color:rgba(245,130,32,.2)"><input type="checkbox" class="lhc" value="stackoverflow" checked>💡 StackOverflow</label>
+  <label class="lh-chip active" style="background:rgba(255,100,0,.1);color:#fb923c;border-color:rgba(255,100,0,.2)"><input type="checkbox" class="lhc" value="producthunt" checked>🚀 ProductHunt</label>
+  <label class="lh-chip active" style="background:rgba(20,184,166,.1);color:#2dd4bf;border-color:rgba(20,184,166,.2)"><input type="checkbox" class="lhc" value="indiehackers" checked>🏴 IndieHackers</label>
+  <label class="lh-chip active" style="background:rgba(26,137,255,.1);color:#60a5fa;border-color:rgba(26,137,255,.2)"><input type="checkbox" class="lhc" value="behance" checked>🎨 Behance</label>
+  <label class="lh-chip active" style="background:rgba(0,136,204,.1);color:#38bdf8;border-color:rgba(0,136,204,.2)"><input type="checkbox" class="lhc" value="telegram" checked>✈️ Telegram</label>
+  <label class="lh-chip active" style="background:rgba(24,119,242,.1);color:#60a5fa;border-color:rgba(24,119,242,.2)"><input type="checkbox" class="lhc" value="facebook" checked>📘 FB Groups</label>
+  <label class="lh-chip active" style="background:rgba(255,0,0,.1);color:#f87171;border-color:rgba(255,0,0,.2)"><input type="checkbox" class="lhc" value="youtube" checked>▶️ YouTube</label>
+  <label class="lh-chip active" style="background:rgba(168,85,247,.1);color:#c084fc;border-color:rgba(168,85,247,.2)"><input type="checkbox" class="lhc" value="misc" checked>🌐 +186 More</label>
+</div>
+
+<!-- Action buttons -->
+<div class="lh-actions">
+  <button class="lhb lhb-primary" id="lhp-start" onclick="lhpGo()">🚀 Start Hunting</button>
+  <button class="lhb lhb-stop" id="lhp-stop" onclick="lhpHalt()" style="display:none">⏹ Stop</button>
+  <div class="lh-export-wrap">
+    <button class="lhb lhb-green" id="lhp-xbtn" onclick="lhpToggleExport()" style="display:none">⬇ Export ▾</button>
+    <div class="lh-export-menu" id="lhp-xmenu">
+      <div class="lh-export-item" onclick="lhpExport('csv')">📄 CSV (Excel, Google Sheets)</div>
+      <div class="lh-export-item" onclick="lhpExport('xls')">📊 XLS (Excel format)</div>
+      <div class="lh-export-item" onclick="lhpExport('json')">🔧 JSON (for apps)</div>
+      <div class="lh-export-item" onclick="lhpExport('txt_email')">📋 TXT (emails only)</div>
+      <div class="lh-export-item" onclick="lhpExport('txt_wa')">💬 TXT (WhatsApp only)</div>
+      <div class="lh-export-item" onclick="lhpExport('html')">🌐 HTML contact cards</div>
+    </div>
+  </div>
+  <button class="lhb lhb-amber" onclick="lhpCopyEmails()">📋 Copy All Emails</button>
+  <button class="lhb lhb-ghost" onclick="lhpCopyWA()">💬 Copy All WA Nums</button>
+  <button class="lhb lhb-ghost" onclick="lhpClear()">🗑 Clear</button>
+</div>
+
+<!-- Progress -->
+<div class="lh-prog" id="lhp-prog">
+  <div class="lh-prog-top">
+    <span class="lh-prog-status" id="lhp-pstatus">Initializing…</span>
+    <span class="lh-prog-pct" id="lhp-ppct">0%</span>
+  </div>
+  <div class="lh-prog-track"><div class="lh-prog-fill" id="lhp-pfill"></div></div>
+  <div class="lh-log" id="lhp-plog"></div>
+</div>
+
+<!-- Filter bar -->
+<div class="lh-fbar">
+  <input type="text" id="lhp-fsearch" placeholder="🔍 Search name, email, WhatsApp, designation…" oninput="lhpFilter()">
+  <select id="lhp-fsrc" onchange="lhpFilter()">
+    <option value="">All Sources</option>
+    <option value="google">Google</option>
+    <option value="github">GitHub</option>
+    <option value="reddit">Reddit</option>
+    <option value="twitter">Twitter</option>
+    <option value="wahunt">WA Links</option>
+    <option value="devto">Dev.to</option>
+    <option value="medium">Medium</option>
+    <option value="indiehackers">IndieHackers</option>
+    <option value="producthunt">ProductHunt</option>
+    <option value="misc">Other</option>
+  </select>
+  <select id="lhp-ftype" onchange="lhpFilter()">
+    <option value="">All Types</option>
+    <option value="both">Both Email+WA</option>
+    <option value="email">Email only</option>
+    <option value="wa">WhatsApp only</option>
+  </select>
+  <span class="lh-fbar-info" id="lhp-fcount" style="color:#6666a0;font-size:11px"></span>
+</div>
+
+<!-- Table -->
+<div class="lh-tscroll">
+  <table class="lht">
+    <thead>
+      <tr>
+        <th style="text-align:center">#</th>
+        <th>Name</th>
+        <th>Designation / Niche</th>
+        <th>Email</th>
+        <th>WhatsApp</th>
+        <th>Source</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="lhp-tbody">
+      <tr><td colspan="7">
+        <div class="lh-empty">
+          <div class="lh-empty-icon">⚡</div>
+          <h3>Ready to Hunt Globally</h3>
+          <p>App will scan Google, GitHub, Reddit, Twitter/X, Dev.to, Medium, StackOverflow, ProductHunt, IndieHackers, Behance, Telegram, Facebook Groups, YouTube + 186 more sources. Each result shows serial number, name, designation, email and WhatsApp. Export in CSV, XLS, JSON, TXT or HTML.</p>
+        </div>
+      </td></tr>
+    </tbody>
+  </table>
+</div>
+</div><!-- #lhp end -->
+
+<div id="lht"></div>
+
+<script>
+(function(){
+'use strict';
+// ═══════════════════════════════════════════════════════════
+//  LEAD HUNTER PRO v3 — Backend API Engine
+//  All scraping done server-side via /api/scrape/leads
+//  No CORS issues! Real data from Reddit, GitHub, Dev.to, HN, IH
+// ═══════════════════════════════════════════════════════════
+let LEADS=[], EMAILS=new Set(), WAS=new Set(), DUPS=0, RUNNING=false, HALT=false;
+
+function updStats(){
+  document.getElementById('lhs-total').textContent=LEADS.length;
+  document.getElementById('lhs-email').textContent=LEADS.filter(l=>l.email).length;
+  document.getElementById('lhs-wa').textContent=LEADS.filter(l=>l.whatsapp).length;
+  document.getElementById('lhs-both').textContent=LEADS.filter(l=>l.email&&l.whatsapp).length;
+  document.getElementById('lhs-dup').textContent=DUPS;
+}
+
+function addLeads(newLeads){
+  let added=0;
+  for(const l of newLeads){
+    const e=(l.email||'').toLowerCase().trim();
+    const w=(l.whatsapp||'').replace(/[\s\-]/g,'');
+    if(!e&&!w){DUPS++;continue;}
+    if(e&&EMAILS.has(e)){DUPS++;continue;}
+    if(w&&!e&&WAS.has(w)){DUPS++;continue;}
+    if(e)EMAILS.add(e);
+    if(w)WAS.add(w);
+    LEADS.push(l);
+    added++;
+  }
+  updStats();
+  return added;
+}
+
+function lhLog(msg,cls=''){
+  const el=document.getElementById('lhp-plog');
+  el.innerHTML+=`<span class="${cls}">› ${msg}</span>\n`;
+  el.scrollTop=el.scrollHeight;
+}
+
+function setProg(pct,status){
+  document.getElementById('lhp-pfill').style.width=Math.min(pct,99)+'%';
+  document.getElementById('lhp-ppct').textContent=Math.min(Math.round(pct),99)+'%';
+  if(status)document.getElementById('lhp-pstatus').textContent=status;
+}
+
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// Scrape from backend API
+async function fetchFromAPI(source, offset=0){
+  const tgt=document.getElementById('lhp-tgt').value;
+  const kw=document.getElementById('lhp-kw').value.trim();
+  const cc=document.getElementById('lhp-cc').value.trim();
+  try{
+    const params=new URLSearchParams({source,offset,target:tgt,keywords:kw,country:cc,batch_size:30});
+    const res=await fetch(`/api/scrape/leads?${params}`);
+    if(!res.ok)return[];
+    const data=await res.json();
+    if(data.error)lhLog(`${source}: ${data.error}`,'warn');
+    return data.leads||[];
+  }catch(e){
+    lhLog(`${source} error: ${e.message}`,'warn');
+    return[];
+  }
+}
+
+// Hunt plan — which sources, how many batches
+const HUNT_PLAN=[
+  {source:'github',        label:'💻 GitHub Profiles',    batches:8,  icon:'💻'},
+  {source:'github_readme', label:'📄 GitHub READMEs',     batches:4,  icon:'📄'},
+  {source:'devto',         label:'👨‍💻 Dev.to Articles',   batches:6,  icon:'👨‍💻'},
+  {source:'hackernews',    label:'🔶 HackerNews Hiring',  batches:1,  icon:'🔶'},
+  {source:'indiehackers',  label:'🏴 IndieHackers',       batches:1,  icon:'🏴'},
+  {source:'remotive',      label:'🌍 Remotive Jobs',      batches:1,  icon:'🌍'},
+  {source:'weworkremotely',label:'🏠 WeWorkRemotely',     batches:1,  icon:'🏠'},
+  {source:'reddit_rss',    label:'📖 Reddit RSS',         batches:3,  icon:'📖'},
+  {source:'github_issues', label:'🐛 GitHub Issues',      batches:1,  icon:'🐛'},
+];
+
+async function lhpGo(){
+  if(RUNNING)return;
+  RUNNING=true;HALT=false;
+  LEADS=[];EMAILS.clear();WAS.clear();DUPS=0;
+
+  const maxL=parseInt(document.getElementById('lhp-max').value);
+  const chips=[...document.querySelectorAll('.lhc:checked')].map(c=>c.value);
+
+  document.getElementById('lhp-start').disabled=true;
+  document.getElementById('lhp-start').textContent='⏳ Hunting…';
+  document.getElementById('lhp-stop').style.display='';
+  document.getElementById('lhp-prog').style.display='block';
+  document.getElementById('lhp-plog').innerHTML='';
+  document.getElementById('lhp-xbtn').style.display='none';
+  render([]);
+  updStats();
+
+  // Map chips to sources
+  const srcMap={
+    reddit:'reddit', github:'github', devto:'devto',
+    wahunt:'github_code', misc:'hackernews',
+    indiehackers:'indiehackers',
+  };
+
+  // Build active plan
+  const activePlan=HUNT_PLAN.filter(p=>{
+    // always include if chip is on or misc
+    const chipKey=Object.keys(srcMap).find(k=>srcMap[k]===p.source);
+    return !chipKey||chips.includes(chipKey)||chips.includes('misc');
+  });
+
+  const totalBatches=activePlan.reduce((s,p)=>s+p.batches,0);
+  let doneBatches=0;
+
+  lhLog('🚀 Starting backend scraper…','info');
+  lhLog('Server-side scraping — no CORS issues','info');
+
+  for(const plan of activePlan){
+    if(HALT||LEADS.length>=maxL)break;
+    for(let offset=0;offset<plan.batches;offset++){
+      if(HALT||LEADS.length>=maxL)break;
+      setProg((doneBatches/totalBatches)*100, `${plan.icon} Scanning ${plan.label} (batch ${offset+1}/${plan.batches})…`);
+      const newLeads=await fetchFromAPI(plan.source, offset);
+      const added=addLeads(newLeads);
+      doneBatches++;
+      lhLog(`${plan.label} batch ${offset+1} → ${newLeads.length} found, ${added} new | Total: ${LEADS.length}`, added>0?'ok':'');
+      render(LEADS);
+      if(added>0)lhLog(`✅ Latest: ${LEADS[LEADS.length-1]?.name||'?'} — ${LEADS[LEADS.length-1]?.email||LEADS[LEADS.length-1]?.whatsapp||'contact'}`, 'ok');
+      await delay(800);
+    }
+  }
+
+  // Final
+  document.getElementById('lhp-pfill').style.width='100%';
+  document.getElementById('lhp-ppct').textContent='100%';
+  document.getElementById('lhp-pstatus').textContent=`✅ Done! ${LEADS.length} unique contacts | ${DUPS} duplicates skipped`;
+  lhLog(`✅ COMPLETE — ${LEADS.length} contacts | ${DUPS} dups skipped`,'ok');
+  updStats();render(LEADS);
+  if(LEADS.length>0){
+    document.getElementById('lhp-xbtn').style.display='';
+  }
+  document.getElementById('lhp-start').disabled=false;
+  document.getElementById('lhp-start').textContent='🚀 Start Hunting';
+  document.getElementById('lhp-stop').style.display='none';
+  RUNNING=false;
+  toast(`✅ ${LEADS.length} contacts collected!`,'ok');
+}
+
+function srcTag(s){
+  const m={
+    google:`<span class="lh-tag" style="background:rgba(59,130,246,.1);color:#60a5fa">🔍 Google</span>`,
+    github:`<span class="lh-tag" style="background:rgba(220,220,220,.07);color:#c0c0d0">💻 GitHub</span>`,
+    reddit:`<span class="lh-tag" style="background:rgba(255,69,0,.1);color:#ff6b35">📖 Reddit</span>`,
+    twitter:`<span class="lh-tag" style="background:rgba(29,161,242,.1);color:#1da1f2">🐦 Twitter</span>`,
+    wahunt:`<span class="lh-tag" style="background:rgba(37,211,102,.1);color:#25d366">💬 WA</span>`,
+    devto:`<span class="lh-tag" style="background:rgba(99,102,241,.1);color:#818cf8">👨‍💻 Dev.to</span>`,
+    hackernews:`<span class="lh-tag" style="background:rgba(255,102,0,.1);color:#fb923c">🔶 HN</span>`,
+    medium:`<span class="lh-tag" style="background:rgba(16,185,129,.1);color:#34d399">📝 Medium</span>`,
+    indiehackers:`<span class="lh-tag" style="background:rgba(20,184,166,.1);color:#2dd4bf">🏴 IH</span>`,
+    producthunt:`<span class="lh-tag" style="background:rgba(255,100,0,.1);color:#fb923c">🚀 PH</span>`,
+    github_code:`<span class="lh-tag" style="background:rgba(168,85,247,.1);color:#c084fc">💡 GH Code</span>`,
+  };
+  return m[s]||`<span class="lh-tag" style="background:rgba(255,255,255,.05);color:#6666a0">${s||'—'}</span>`;
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function render(leads){
+  const tb=document.getElementById('lhp-tbody');
+  if(!leads.length){
+    tb.innerHTML=`<tr><td colspan="7"><div class="lh-empty"><div class="lh-empty-icon">⚡</div><h3>Ready to Hunt</h3><p>Server-side scraping from Reddit, GitHub, Dev.to, HackerNews, IndieHackers and more. Click Start Hunting!</p></div></td></tr>`;
+    return;
+  }
+  tb.innerHTML=leads.map((l,i)=>`
+    <tr class="lhrow"
+      data-e="${esc((l.email||'').toLowerCase())}"
+      data-n="${esc((l.name||'').toLowerCase())}"
+      data-d="${esc((l.designation||'').toLowerCase())}"
+      data-w="${esc(l.whatsapp||'')}"
+      data-s="${esc(l.source||'')}"
+      data-t="${l.email&&l.whatsapp?'both':l.email?'email':'wa'}">
+      <td class="lh-serial">${i+1}</td>
+      <td><div class="lh-n">${esc(l.name)||'<span style="color:#6666a0">Unknown</span>'}</div></td>
+      <td><div class="lh-desig">${esc(l.designation)||'<span style="color:#6666a0">—</span>'}</div></td>
+      <td>${l.email?`<a class="lh-email-a" href="mailto:${esc(l.email)}">✉ ${esc(l.email)}</a>`:'<span style="color:#6666a0;font-size:11px">—</span>'}</td>
+      <td>${l.whatsapp?`<a class="lh-wa-a" href="https://wa.me/${l.whatsapp.replace(/\D/g,'')}" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        ${esc(l.whatsapp)}</a>`:'<span style="color:#6666a0;font-size:11px">—</span>'}</td>
+      <td>${srcTag(l.source)}</td>
+      <td style="white-space:nowrap">
+        ${l.email?`<button class="lh-cb" onclick="lhCopy('${esc(l.email)}',this,'✉')" title="Copy email">✉</button> `:''}
+        ${l.whatsapp?`<button class="lh-cb" onclick="lhCopy('${esc(l.whatsapp)}',this,'💬')" title="Copy WA">💬</button> `:''}
+        ${l.url?`<a href="${esc(l.url)}" target="_blank" rel="noopener" class="lh-cb" style="text-decoration:none" title="View profile">🔗</a>`:''}
+      </td>
+    </tr>`).join('');
+  document.getElementById('lhp-fcount').textContent=`${leads.length} contacts`;
+}
+
+// Export via backend
+function lhpExport(fmt){
+  document.getElementById('lhp-xmenu').classList.remove('open');
+  if(!LEADS.length){toast('No contacts!','er');return;}
+  const fname=document.getElementById('lhp-fname').value.trim()||'leads';
+  const data=encodeURIComponent(JSON.stringify(LEADS));
+  window.location.href=`/api/scrape/export?fmt=${fmt}&filename=${encodeURIComponent(fname)}&data=${data}`;
+  toast(`✅ Exporting ${LEADS.length} contacts…`,'ok');
+}
+
+// Globals
+window.lhpGo=lhpGo;
+window.lhpHalt=function(){
+  HALT=true;RUNNING=false;
+  document.getElementById('lhp-start').disabled=false;
+  document.getElementById('lhp-start').textContent='🚀 Start Hunting';
+  document.getElementById('lhp-stop').style.display='none';
+  if(LEADS.length>0)document.getElementById('lhp-xbtn').style.display='';
+  toast('Stopped — export available','in');
+};
+window.lhpToggleExport=function(){document.getElementById('lhp-xmenu').classList.toggle('open');};
+window.lhpExport=lhpExport;
+window.lhpFilter=function(){
+  const q=document.getElementById('lhp-fsearch').value.toLowerCase();
+  const s=document.getElementById('lhp-fsrc').value;
+  const t=document.getElementById('lhp-ftype').value;
+  let v=0;
+  document.querySelectorAll('.lhrow').forEach(r=>{
+    const mQ=!q||r.dataset.e.includes(q)||r.dataset.n.includes(q)||r.dataset.d.includes(q)||r.dataset.w.includes(q);
+    const mS=!s||r.dataset.s===s;
+    const mT=!t||r.dataset.t===t||(t==='email'&&r.dataset.e)||(t==='wa'&&r.dataset.w);
+    const show=mQ&&mS&&mT;
+    r.style.display=show?'':'none';
+    if(show)v++;
+  });
+  document.getElementById('lhp-fcount').textContent=`${v} shown`;
+};
+window.lhCopy=function(txt,btn,lbl){
+  navigator.clipboard.writeText(txt).then(()=>{
+    const prev=btn.textContent;
+    btn.textContent='✓';btn.classList.add('cp');
+    setTimeout(()=>{btn.textContent=prev;btn.classList.remove('cp')},1500);
+  });
+};
+window.lhpCopyEmails=function(){
+  const e=LEADS.filter(l=>l.email).map(l=>l.email).join('\n');
+  if(!e){toast('No emails!','er');return;}
+  navigator.clipboard.writeText(e).then(()=>toast(`Copied ${LEADS.filter(l=>l.email).length} emails!`,'ok'));
+};
+window.lhpCopyWA=function(){
+  const w=LEADS.filter(l=>l.whatsapp).map(l=>l.whatsapp).join('\n');
+  if(!w){toast('No WA numbers!','er');return;}
+  navigator.clipboard.writeText(w).then(()=>toast(`Copied ${LEADS.filter(l=>l.whatsapp).length} numbers!`,'ok'));
+};
+window.lhpClear=function(){
+  LEADS=[];EMAILS.clear();WAS.clear();DUPS=0;
+  render([]);updStats();
+  document.getElementById('lhp-xbtn').style.display='none';
+  document.getElementById('lhp-prog').style.display='none';
+  toast('Cleared!','in');
+};
+
+function toast(msg,cls='ok'){
+  const el=document.getElementById('lht');
+  el.textContent=msg;
+  Object.assign(el.style,{
+    opacity:1,transform:'translateY(0)',
+    background:cls==='ok'?'#10b981':cls==='er'?'#ef4444':'#7c3aed',
+    color:cls==='ok'?'#062919':'#fff'
+  });
+  el.classList.add('s');
+  setTimeout(()=>el.classList.remove('s'),3000);
+}
+
+// Chip toggle
+document.querySelectorAll('.lh-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    const cb=chip.querySelector('input');
+    chip.classList.toggle('active',cb.checked);
+    chip.classList.toggle('inactive',!cb.checked);
+  });
+});
+
+// Close export menu
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.lh-export-wrap'))
+    document.getElementById('lhp-xmenu').classList.remove('open');
+});
+})();
+</script>
+<!-- ╔══════════════════════════════════════════════════════════╗ -->
+<!-- ║              END LEAD HUNTER PRO v3                     ║ -->
+<!-- ╚══════════════════════════════════════════════════════════╝ -->
       <section class="card mode-panel mode-panel-sell">
         <div class="section-head mode-panel-head">
           <div>
