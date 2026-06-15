@@ -3,85 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0b7285" />
+  <meta name="theme-color" content="#07070f" />
   <meta name="jobmind-static-version" content="{{ static_version }}" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="JobMind Match" />
-  <title>Faraz Job Console | JobMind Match</title>
+  <title>JobMind Match — Premium Console</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="/static/manifest.webmanifest?v={{ static_version }}" />
-  <link rel="icon" href="/static/icon.svg?v={{ static_version }}" type="image/svg+xml" />
+  <link rel="icon" href="/static/icon-32.png?v={{ static_version }}" type="image/png" sizes="32x32" />
+  <link rel="icon" href="/static/icon-192.png?v={{ static_version }}" type="image/png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png?v={{ static_version }}" />
   <link rel="stylesheet" href="/static/styles.css?v={{ static_version }}" />
+  <style>
+    /* Critical — ensures premium dark UI + single-panel view before full CSS loads */
+    :root { --bg-primary:#07070f; --bg-surface:#0e0e1c; --accent:#7c3aed; --text-primary:#eeeef8; --text-muted:#6666a0; --sidebar-width:220px; --header-height:60px; }
+    html, body { margin:0; background:#07070f !important; color:#eeeef8 !important; font-family:Inter,system-ui,sans-serif; min-height:100vh; }
+    .panel:not(.active) { display:none !important; }
+    .mode-shell.hidden { display:none !important; }
+    .profile-dropdown { opacity:0; visibility:hidden; pointer-events:none; position:absolute; }
+    .profile-dropdown.open { opacity:1; visibility:visible; pointer-events:auto; }
+    .app-shell { display:flex; flex-direction:column; min-height:100vh; background:#07070f; }
+    .app-header { display:flex; align-items:center; gap:16px; padding:0 24px; height:60px; background:rgba(14,14,28,.92); border-bottom:1px solid rgba(255,255,255,.06); position:sticky; top:0; z-index:100; }
+    .app-body { display:flex; flex:1; flex-direction:row; min-height:0; }
+    .app-sidebar { width:220px; flex-shrink:0; background:#0e0e1c; border-right:1px solid rgba(255,255,255,.06); }
+    .app-main { flex:1; padding:24px; overflow-y:auto; min-width:0; }
+    .app-footer { border-top:1px solid rgba(124,58,237,.25); background:#0e0e1c; margin-top:auto; }
+    .footer-status-bar { position:fixed; bottom:0; left:0; right:0; z-index:95; display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 16px; font-size:11px; color:#6666a0; background:rgba(10,10,20,.96); border-top:1px solid rgba(124,58,237,.35); }
+    .footer-status-bar em { font-style:normal; color:#c084fc; }
+    .header-logo, .footer-logo { border-radius:8px; }
+    .sidebar-item { display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border:none; background:transparent; color:#6666a0; cursor:pointer; text-align:left; border-radius:8px; font-family:inherit; }
+    .sidebar-item.active { color:#eeeef8; background:rgba(124,58,237,.15); box-shadow:inset 3px 0 0 #7c3aed; }
+    .card { background:#0e0e1c; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:22px; }
+    button[type=submit], .mode-switch-button.active { background:linear-gradient(135deg,#7c3aed,#5b21b6); color:#fff; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; }
+    input, select, textarea { background:#141428; border:1px solid rgba(255,255,255,.08); color:#eeeef8; border-radius:8px; padding:10px 12px; }
+    html.is-mobile-app .mobile-mode-bar, html.is-mobile-app .mobile-nav { display:flex !important; }
+    html.is-mobile-app .app-sidebar, html.is-mobile-app .header-mode-toggle { display:none !important; }
+    html.is-mobile-app .app-footer, html.is-mobile-app .footer-status-bar { display:none !important; }
+  </style>
+  <script>
+    (function () {
+      var q = new URLSearchParams(location.search);
+      if (q.get("mobile") === "1" || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)) {
+        document.documentElement.classList.add("is-mobile-app");
+      }
+    })();
+  </script>
 </head>
 <body>
-  <main class="layout">
-    <section class="hero card mode-hero">
-      <div class="hero-shell">
-        <div class="hero-copy">
-          <p class="eyebrow">Two-Mode Operating System</p>
-          <h1>JobMind Match</h1>
-          <p class="hero-lead">One clean switch for job hunting and one clean switch for direct client selling. Filters, actions, and tracking stay separate by mode.</p>
-          <p class="hint">Active profile: {% if selected %}{{ selected.full_name }}{% else %}Select a profile to activate search, tracking, and outreach workflows.{% endif %}</p>
-        </div>
-        <aside class="hero-spotlight mode-spotlight">
-          <p class="eyebrow">Current Workspace</p>
-          <h3 data-role="mode-spotlight-title">{% if active_ui_mode == 'sell' %}Sell Services Mode{% else %}Job Search Mode{% endif %}</h3>
-          <p data-role="mode-spotlight-description">{% if active_ui_mode == 'sell' %}Prospect buyers for your residency management software or dev services with client-only tools and lead tracking.{% else %}Find remote Python and backend roles with job-only filters, match cards, and application tracking.{% endif %}</p>
-          <div class="hero-spotlight-grid">
-            <div>
-              <span>Profile</span>
-              <strong>{% if selected %}{{ selected.full_name }}{% else %}Not selected{% endif %}</strong>
-            </div>
-            <div>
-              <span>Job Tracker</span>
-              <strong>{{ status_summary.total }}</strong>
-            </div>
-            <div>
-              <span>Lead Tracker</span>
-              <strong>{{ client_status_summary.total }}</strong>
-            </div>
-            <div>
-              <span>Match Window</span>
-              <strong>{{ posted_within or '7d' }}</strong>
-            </div>
-          </div>
-        </aside>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="header-brand">
+        <img src="/static/icon-32.png?v={{ static_version }}" alt="JobMind Owl" class="header-logo" width="32" height="32" />
+        <span class="header-title">JobMind</span>
       </div>
-      <div class="mode-switch" data-role="mode-switch">
+      <div class="header-mode-toggle mode-switch" data-role="mode-switch">
         <button type="button" class="mode-switch-button {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="job">🔍 Job Search</button>
         <button type="button" class="mode-switch-button {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="sell">💼 Sell Services</button>
       </div>
-      <div class="mode-summary-grid">
-        <article class="mode-summary-card {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-summary-card" data-mode-card="job">
-          <span class="panel-label">Mode 1</span>
-          <h3>Job Search Mode</h3>
-          <p>Remote Python and backend job hunting with trusted sources, role filters, and application tracking only.</p>
-          <div class="hero-ribbon">
-            <span>Remotive</span>
-            <span>We Work Remotely</span>
-            <span>Arbeitnow</span>
-            <span>LinkedIn</span>
-            <span>Indeed</span>
-          </div>
-        </article>
-        <article class="mode-summary-card {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-summary-card" data-mode-card="sell">
-          <span class="panel-label">Mode 2</span>
-          <h3>Sell Services Mode</h3>
-          <p>Residency software and dev-service selling with buyer filters, outreach actions, and lead tracking only.</p>
-          <div class="hero-ribbon">
-            <span>Google Maps</span>
-            <span>Google Clients</span>
-            <span>LinkedIn</span>
-            <span>Upwork</span>
-            <span>Fiverr</span>
-          </div>
-        </article>
+      <div class="header-profile" data-role="header-profile">
+        <button type="button" class="header-profile-btn" data-role="profile-dropdown-toggle">
+          👤 {% if selected %}{{ selected.full_name }}{% else %}Select Profile{% endif %} ▾
+        </button>
+        <div class="profile-dropdown" data-role="profile-dropdown">
+          {% for p in profiles %}
+          <a href="/dashboard?candidate_id={{ p.id }}" class="profile-dropdown-item {% if selected and p.id == selected.id %}active{% endif %}">#{{ p.id }} — {{ p.full_name }}</a>
+          {% endfor %}
+          <a href="/dashboard" class="profile-dropdown-item">+ Create New Profile</a>
+        </div>
       </div>
-    </section>
+      <div class="header-actions">
+        <button type="button" class="ghost-action install-chip hidden" data-role="install-app">Install App</button>
+        <button type="button" class="ghost-action" data-role="settings-toggle" title="Settings">⚙</button>
+      </div>
+    </header>
 
+    <div class="app-body">
+      <aside class="app-sidebar" data-role="app-sidebar">
+        <nav class="sidebar-nav sidebar-nav-job {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-sidebar-mode="job">
+          <button type="button" class="sidebar-item active" data-nav-panel="job-search" data-nav-mode="job"><span class="sidebar-icon">🔍</span><span class="sidebar-label">Search &amp; Match</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-applications" data-nav-mode="job"><span class="sidebar-icon">📋</span><span class="sidebar-label">Applications</span><span class="sidebar-badge">{{ status_summary.total }}</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-profile" data-nav-mode="job"><span class="sidebar-icon">📄</span><span class="sidebar-label">CV &amp; Profile</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-links" data-nav-mode="job"><span class="sidebar-icon">🔗</span><span class="sidebar-label">Quick Links</span></button>
+        </nav>
+        <nav class="sidebar-nav sidebar-nav-sell {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-sidebar-mode="sell">
+          <button type="button" class="sidebar-item active" data-nav-panel="sell-hunter" data-nav-mode="sell"><span class="sidebar-icon">⚡</span><span class="sidebar-label">Lead Hunter</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-tracker" data-nav-mode="sell"><span class="sidebar-icon">👥</span><span class="sidebar-label">Lead Tracker</span><span class="sidebar-badge">{{ client_status_summary.total }}</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-search" data-nav-mode="sell"><span class="sidebar-icon">🎯</span><span class="sidebar-label">Client Search</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-profile" data-nav-mode="sell"><span class="sidebar-icon">📄</span><span class="sidebar-label">Profile &amp; Pitch</span></button>
+        </nav>
+      </aside>
+
+      <main class="app-main layout">
+        <div class="mode-spotlight hidden" aria-hidden="true">
+          <h3 data-role="mode-spotlight-title">{% if active_ui_mode == 'sell' %}Sell Services Mode{% else %}Job Search Mode{% endif %}</h3>
+          <p data-role="mode-spotlight-description">{% if active_ui_mode == 'sell' %}Prospect buyers for your residency management software or dev services with client-only tools and lead tracking.{% else %}Find remote Python and backend roles with job-only filters, match cards, and application tracking.{% endif %}</p>
+        </div>
+        <div class="mode-summary-grid hidden" aria-hidden="true">
+          <article class="mode-summary-card {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-summary-card" data-mode-card="job"></article>
+          <article class="mode-summary-card {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-summary-card" data-mode-card="sell"></article>
+        </div>
+
+    <div class="panel panel-animate" data-panel="job-profile" data-panel-mode="job">
     <section class="card grid-two profile-shell">
       <div class="profile-panel">
         <div class="panel-label">Profile Setup</div>
@@ -154,8 +179,28 @@
         {% endif %}
       </div>
     </section>
+    </div>
+
+    <div class="panel" data-panel="job-links" data-panel-mode="job">
+      <section class="card profile-links-panel">
+        <div class="panel-label">Quick Links</div>
+        <h2>Your Outreach Links</h2>
+        {% if selected and (selected.resume_url or selected.portfolio_url or selected.linkedin_url or selected.upwork_url or selected.fiverr_url) %}
+        <div class="assisted-links compact-links">
+          {% if selected.resume_url %}<a href="{{ selected.resume_url }}" target="_blank" rel="noopener">Open Resume</a>{% endif %}
+          {% if selected.portfolio_url %}<a href="{{ selected.portfolio_url }}" target="_blank" rel="noopener">Open Portfolio</a>{% endif %}
+          {% if selected.linkedin_url %}<a href="{{ selected.linkedin_url }}" target="_blank" rel="noopener">My LinkedIn</a>{% endif %}
+          {% if selected.upwork_url %}<a href="{{ selected.upwork_url }}" target="_blank" rel="noopener">My Upwork</a>{% endif %}
+          {% if selected.fiverr_url %}<a href="{{ selected.fiverr_url }}" target="_blank" rel="noopener">My Fiverr</a>{% endif %}
+        </div>
+        {% else %}
+        <p class="hint">Add profile links in CV &amp; Profile panel first.</p>
+        {% endif %}
+      </section>
+    </div>
 
     <section class="mode-shell {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-role="mode-shell" data-mode-panel="job">
+      <div class="panel panel-animate active job-search-layout" data-panel="job-search" data-panel-mode="job">
       <section class="card mode-panel mode-panel-job">
         <div class="section-head mode-panel-head">
           <div>
@@ -468,7 +513,9 @@
         </div>
         </div>
       </section>
+      </div>
 
+      <div class="panel" data-panel="job-applications" data-panel-mode="job">
       <section class="card mode-tracker-panel" data-role="job-tracker-panel">
         <div class="section-head">
           <div>
@@ -536,10 +583,12 @@
           {% endfor %}
         </div>
       </section>
+      </div>
     </section>
 
     <section class="mode-shell {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-role="mode-shell" data-mode-panel="sell">
 
+    <div class="panel panel-animate active" data-panel="sell-hunter" data-panel-mode="sell">
 <!-- ╔══════════════════════════════════════════════════════════════╗ -->
 <!-- ║        LEAD HUNTER PRO v3 — 500+ Queries, Multi-Export     ║ -->
 <!-- ╚══════════════════════════════════════════════════════════════╝ -->
@@ -665,6 +714,13 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
   .lh-f.span2,.lh-f.span4{grid-column:span 1}
   .lh-stats{grid-template-columns:1fr 1fr}
   .lh-head{flex-direction:column}
+  .lh-chips{padding:10px 12px}
+  .lh-actions{padding:10px 12px;gap:6px}
+  .lh-actions .lhb{font-size:11px;padding:8px 10px}
+  .lh-fbar{flex-direction:column;padding:10px 12px}
+  .lh-fbar input,.lh-fbar select{width:100%}
+  .lh-prog{padding:10px 12px}
+  #lhp{margin:0 -2px}
 }
 </style>
 
@@ -679,8 +735,8 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
     </div>
   </div>
   <div class="lh-badges">
-    <span class="lh-badge" style="background:rgba(124,58,237,.12);color:#c084fc;border-color:rgba(124,58,237,.25)">500+ QUERIES</span>
-    <span class="lh-badge" style="background:rgba(37,211,102,.1);color:#25d366;border-color:rgba(37,211,102,.2)">AUTO DEDUP</span>
+    <span class="lh-badge" style="background:rgba(124,58,237,.12);color:#c084fc;border-color:rgba(124,58,237,.25)">212+ PLATFORMS</span>
+    <span class="lh-badge" style="background:rgba(37,211,102,.1);color:#25d366;border-color:rgba(37,211,102,.2)">NEVER RE-HUNT</span>
     <span class="lh-badge" style="background:rgba(6,182,212,.1);color:#22d3ee;border-color:rgba(6,182,212,.2)">MULTI-EXPORT</span>
   </div>
 </div>
@@ -691,7 +747,8 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
   <div class="lh-stat"><div class="lh-sn" id="lhs-email" style="color:#60a5fa">0</div><div class="lh-sl">Emails</div></div>
   <div class="lh-stat"><div class="lh-sn" id="lhs-wa" style="color:#25d366">0</div><div class="lh-sl">WhatsApp</div></div>
   <div class="lh-stat"><div class="lh-sn" id="lhs-both" style="color:#34d399">0</div><div class="lh-sl">Email+WA</div></div>
-  <div class="lh-stat"><div class="lh-sn" id="lhs-dup" style="color:#f59e0b">0</div><div class="lh-sl">Dups Skipped</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-known" style="color:#a78bfa">0</div><div class="lh-sl">Saved (Never Re-hunt)</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-dup" style="color:#f59e0b">0</div><div class="lh-sl">Skipped This Run</div></div>
 </div>
 
 <!-- Controls -->
@@ -751,7 +808,7 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
   <label class="lh-chip active" style="background:rgba(0,136,204,.1);color:#38bdf8;border-color:rgba(0,136,204,.2)"><input type="checkbox" class="lhc" value="telegram" checked>✈️ Telegram</label>
   <label class="lh-chip active" style="background:rgba(24,119,242,.1);color:#60a5fa;border-color:rgba(24,119,242,.2)"><input type="checkbox" class="lhc" value="facebook" checked>📘 FB Groups</label>
   <label class="lh-chip active" style="background:rgba(255,0,0,.1);color:#f87171;border-color:rgba(255,0,0,.2)"><input type="checkbox" class="lhc" value="youtube" checked>▶️ YouTube</label>
-  <label class="lh-chip active" style="background:rgba(168,85,247,.1);color:#c084fc;border-color:rgba(168,85,247,.2)"><input type="checkbox" class="lhc" value="misc" checked>🌐 +186 More</label>
+  <label class="lh-chip active" style="background:rgba(168,85,247,.1);color:#c084fc;border-color:rgba(168,85,247,.2)"><input type="checkbox" class="lhc" value="misc" checked>🌐 +200 More</label>
 </div>
 
 <!-- Action buttons -->
@@ -772,6 +829,16 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
   <button class="lhb lhb-amber" onclick="lhpCopyEmails()">📋 Copy All Emails</button>
   <button class="lhb lhb-ghost" onclick="lhpCopyWA()">💬 Copy All WA Nums</button>
   <button class="lhb lhb-ghost" onclick="lhpClear()">🗑 Clear</button>
+</div>
+
+<div class="lh-export-bar" id="lhp-export-bar" style="display:none;padding:12px 28px;border-bottom:1px solid var(--bd);gap:8px;flex-wrap:wrap">
+  <span class="lh-chip-lbl" style="margin-right:4px">Export:</span>
+  <button class="lhb lhb-ghost" onclick="lhpExport('csv')">📄 CSV</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('xls')">📊 XLS</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('json')">🔧 JSON</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('txt_email')">📋 Emails.txt</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('txt_wa')">💬 WA.txt</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('html')">🌐 HTML</button>
 </div>
 
 <!-- Progress -->
@@ -828,13 +895,14 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
         <div class="lh-empty">
           <div class="lh-empty-icon">⚡</div>
           <h3>Ready to Hunt Globally</h3>
-          <p>App will scan Google, GitHub, Reddit, Twitter/X, Dev.to, Medium, StackOverflow, ProductHunt, IndieHackers, Behance, Telegram, Facebook Groups, YouTube + 186 more sources. Each result shows serial number, name, designation, email and WhatsApp. Export in CSV, XLS, JSON, TXT or HTML.</p>
+          <p>212+ platforms: GitHub, Reddit, Dev.to, RSS job boards, marketplaces + more. Each email/WhatsApp is saved forever — never hunted twice. Export CSV, XLS, JSON, TXT or HTML.</p>
         </div>
       </td></tr>
     </tbody>
   </table>
 </div>
 </div><!-- #lhp end -->
+    </div>
 
 <div id="lht"></div>
 
@@ -842,18 +910,43 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
 (function(){
 'use strict';
 // ═══════════════════════════════════════════════════════════
-//  LEAD HUNTER PRO v3 — Backend API Engine
-//  All scraping done server-side via /api/scrape/leads
-//  No CORS issues! Real data from Reddit, GitHub, Dev.to, HN, IH
+//  LEAD HUNTER PRO v4 — 212+ platforms + permanent registry
+//  Server-side via /api/scrape/leads — never re-hunt saved contacts
 // ═══════════════════════════════════════════════════════════
-let LEADS=[], EMAILS=new Set(), WAS=new Set(), DUPS=0, RUNNING=false, HALT=false;
+let LEADS=[], EMAILS=new Set(), WAS=new Set(), DUPS=0, KNOWN_TOTAL=0, RUNNING=false, HALT=false;
+let HUNT_PLAN=[];
 
 function updStats(){
   document.getElementById('lhs-total').textContent=LEADS.length;
   document.getElementById('lhs-email').textContent=LEADS.filter(l=>l.email).length;
   document.getElementById('lhs-wa').textContent=LEADS.filter(l=>l.whatsapp).length;
   document.getElementById('lhs-both').textContent=LEADS.filter(l=>l.email&&l.whatsapp).length;
+  document.getElementById('lhs-known').textContent=KNOWN_TOTAL;
   document.getElementById('lhs-dup').textContent=DUPS;
+}
+
+async function loadRegistry(){
+  try{
+    const res=await fetch('/api/scrape/registry');
+    if(!res.ok)return;
+    const data=await res.json();
+    (data.emails||[]).forEach(e=>EMAILS.add(e.toLowerCase().trim()));
+    (data.whatsapp||[]).forEach(w=>WAS.add(w.replace(/[\s\-]/g,'')));
+    KNOWN_TOTAL=data.total||EMAILS.size;
+    updStats();
+  }catch(e){/* silent */}
+}
+
+async function loadHuntPlan(chips){
+  try{
+    const res=await fetch(`/api/scrape/hunt-plan?chips=${encodeURIComponent(chips.join(','))}`);
+    if(!res.ok)return[];
+    const data=await res.json();
+    HUNT_PLAN=data.plan||[];
+    return HUNT_PLAN;
+  }catch(e){
+    return[];
+  }
 }
 
 function addLeads(newLeads){
@@ -887,7 +980,7 @@ function setProg(pct,status){
 
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
 
-// Scrape from backend API
+// Scrape from backend API (server filters permanent registry)
 async function fetchFromAPI(source, offset=0){
   const tgt=document.getElementById('lhp-tgt').value;
   const kw=document.getElementById('lhp-kw').value.trim();
@@ -895,33 +988,22 @@ async function fetchFromAPI(source, offset=0){
   try{
     const params=new URLSearchParams({source,offset,target:tgt,keywords:kw,country:cc,batch_size:30});
     const res=await fetch(`/api/scrape/leads?${params}`);
-    if(!res.ok)return[];
+    if(!res.ok)return{leads:[],skipped:0};
     const data=await res.json();
     if(data.error)lhLog(`${source}: ${data.error}`,'warn');
-    return data.leads||[];
+    if(data.registry_total!=null)KNOWN_TOTAL=Math.max(KNOWN_TOTAL,data.registry_total);
+    return{leads:data.leads||[],skipped:data.skipped_known||0};
   }catch(e){
     lhLog(`${source} error: ${e.message}`,'warn');
-    return[];
+    return{leads:[],skipped:0};
   }
 }
 
-// Hunt plan — which sources, how many batches
-const HUNT_PLAN=[
-  {source:'github',        label:'💻 GitHub Profiles',    batches:8,  icon:'💻'},
-  {source:'github_readme', label:'📄 GitHub READMEs',     batches:4,  icon:'📄'},
-  {source:'devto',         label:'👨‍💻 Dev.to Articles',   batches:6,  icon:'👨‍💻'},
-  {source:'hackernews',    label:'🔶 HackerNews Hiring',  batches:1,  icon:'🔶'},
-  {source:'indiehackers',  label:'🏴 IndieHackers',       batches:1,  icon:'🏴'},
-  {source:'remotive',      label:'🌍 Remotive Jobs',      batches:1,  icon:'🌍'},
-  {source:'weworkremotely',label:'🏠 WeWorkRemotely',     batches:1,  icon:'🏠'},
-  {source:'reddit_rss',    label:'📖 Reddit RSS',         batches:3,  icon:'📖'},
-  {source:'github_issues', label:'🐛 GitHub Issues',      batches:1,  icon:'🐛'},
-];
-
+// Hunt plan loaded dynamically from 212+ platform registry
 async function lhpGo(){
   if(RUNNING)return;
   RUNNING=true;HALT=false;
-  LEADS=[];EMAILS.clear();WAS.clear();DUPS=0;
+  LEADS=[];DUPS=0;
 
   const maxL=parseInt(document.getElementById('lhp-max').value);
   const chips=[...document.querySelectorAll('.lhc:checked')].map(c=>c.value);
@@ -932,58 +1014,59 @@ async function lhpGo(){
   document.getElementById('lhp-prog').style.display='block';
   document.getElementById('lhp-plog').innerHTML='';
   document.getElementById('lhp-xbtn').style.display='none';
+  document.getElementById('lhp-export-bar').style.display='none';
   render([]);
+  await loadRegistry();
   updStats();
 
-  // Map chips to sources
-  const srcMap={
-    reddit:'reddit', github:'github', devto:'devto',
-    wahunt:'github_code', misc:'hackernews',
-    indiehackers:'indiehackers',
-  };
-
-  // Build active plan
-  const activePlan=HUNT_PLAN.filter(p=>{
-    // always include if chip is on or misc
-    const chipKey=Object.keys(srcMap).find(k=>srcMap[k]===p.source);
-    return !chipKey||chips.includes(chipKey)||chips.includes('misc');
-  });
+  const activePlan=await loadHuntPlan(chips);
+  if(!activePlan.length){
+    lhLog('No platforms selected — enable at least one chip','warn');
+    RUNNING=false;
+    document.getElementById('lhp-start').disabled=false;
+    document.getElementById('lhp-start').textContent='🚀 Start Hunting';
+    document.getElementById('lhp-stop').style.display='none';
+    return;
+  }
 
   const totalBatches=activePlan.reduce((s,p)=>s+p.batches,0);
   let doneBatches=0;
 
-  lhLog('🚀 Starting backend scraper…','info');
-  lhLog('Server-side scraping — no CORS issues','info');
+  lhLog(`🚀 Hunting ${activePlan.length} platforms (${totalBatches} batches)…`,'info');
+  lhLog(`${KNOWN_TOTAL} contacts saved — will never re-hunt these`,'info');
 
   for(const plan of activePlan){
     if(HALT||LEADS.length>=maxL)break;
     for(let offset=0;offset<plan.batches;offset++){
       if(HALT||LEADS.length>=maxL)break;
-      setProg((doneBatches/totalBatches)*100, `${plan.icon} Scanning ${plan.label} (batch ${offset+1}/${plan.batches})…`);
-      const newLeads=await fetchFromAPI(plan.source, offset);
+      setProg((doneBatches/totalBatches)*100, `Scanning ${plan.label} (batch ${offset+1}/${plan.batches})…`);
+      const {leads:newLeads,skipped}=await fetchFromAPI(plan.source, offset);
+      DUPS+=skipped;
       const added=addLeads(newLeads);
       doneBatches++;
-      lhLog(`${plan.label} batch ${offset+1} → ${newLeads.length} found, ${added} new | Total: ${LEADS.length}`, added>0?'ok':'');
+      lhLog(`${plan.label} batch ${offset+1} → ${newLeads.length} new, ${skipped} already hunted | Session: ${LEADS.length}`, added>0?'ok':'');
       render(LEADS);
+      updStats();
       if(added>0)lhLog(`✅ Latest: ${LEADS[LEADS.length-1]?.name||'?'} — ${LEADS[LEADS.length-1]?.email||LEADS[LEADS.length-1]?.whatsapp||'contact'}`, 'ok');
-      await delay(800);
+      await delay(600);
     }
   }
 
   // Final
   document.getElementById('lhp-pfill').style.width='100%';
   document.getElementById('lhp-ppct').textContent='100%';
-  document.getElementById('lhp-pstatus').textContent=`✅ Done! ${LEADS.length} unique contacts | ${DUPS} duplicates skipped`;
-  lhLog(`✅ COMPLETE — ${LEADS.length} contacts | ${DUPS} dups skipped`,'ok');
+  document.getElementById('lhp-pstatus').textContent=`✅ Done! ${LEADS.length} new contacts | ${DUPS} skipped (saved registry)`;
+  lhLog(`✅ COMPLETE — ${LEADS.length} new | ${DUPS} skipped | ${KNOWN_TOTAL} total saved forever`,'ok');
   updStats();render(LEADS);
   if(LEADS.length>0){
     document.getElementById('lhp-xbtn').style.display='';
+    document.getElementById('lhp-export-bar').style.display='flex';
   }
   document.getElementById('lhp-start').disabled=false;
   document.getElementById('lhp-start').textContent='🚀 Start Hunting';
   document.getElementById('lhp-stop').style.display='none';
   RUNNING=false;
-  toast(`✅ ${LEADS.length} contacts collected!`,'ok');
+  toast(`✅ ${LEADS.length} new contacts (${DUPS} skipped — never re-hunted)`,'ok');
 }
 
 function srcTag(s){
@@ -1008,7 +1091,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function render(leads){
   const tb=document.getElementById('lhp-tbody');
   if(!leads.length){
-    tb.innerHTML=`<tr><td colspan="7"><div class="lh-empty"><div class="lh-empty-icon">⚡</div><h3>Ready to Hunt</h3><p>Server-side scraping from Reddit, GitHub, Dev.to, HackerNews, IndieHackers and more. Click Start Hunting!</p></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="7"><div class="lh-empty"><div class="lh-empty-icon">⚡</div><h3>Ready to Hunt</h3><p>212+ platforms with permanent dedup — saved emails &amp; WhatsApp are never searched again. Click Start Hunting!</p></div></td></tr>`;
     return;
   }
   tb.innerHTML=leads.map((l,i)=>`
@@ -1036,14 +1119,52 @@ function render(leads){
   document.getElementById('lhp-fcount').textContent=`${leads.length} contacts`;
 }
 
-// Export via backend
+// Client-side export — avoids URL length limits, no re-fetch
 function lhpExport(fmt){
   document.getElementById('lhp-xmenu').classList.remove('open');
   if(!LEADS.length){toast('No contacts!','er');return;}
-  const fname=document.getElementById('lhp-fname').value.trim()||'leads';
-  const data=encodeURIComponent(JSON.stringify(LEADS));
-  window.location.href=`/api/scrape/export?fmt=${fmt}&filename=${encodeURIComponent(fname)}&data=${data}`;
-  toast(`✅ Exporting ${LEADS.length} contacts…`,'ok');
+  const fname=(document.getElementById('lhp-fname').value.trim()||'leads').replace(/[^\w\-]/g,'_');
+  const ts=new Date().toISOString().slice(0,19).replace(/[-:T]/g,'');
+  const base=`${fname}_${ts}`;
+  const rows=LEADS.map((l,i)=>[i+1,l.name||'',l.designation||'',l.email||'',l.whatsapp||'',l.source||'',l.url||'',l.notes||'']);
+  const hdr=['#','Name','Designation','Email','WhatsApp','Source','Profile URL','Notes'];
+  let blob,mt,ext;
+  if(fmt==='csv'){
+    const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
+    const csv=[hdr,...rows].map(r=>r.map(esc).join(',')).join('\n');
+    blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    ext='csv';
+  }else if(fmt==='json'){
+    blob=new Blob([JSON.stringify(LEADS,null,2)],{type:'application/json'});
+    ext='json';
+  }else if(fmt==='txt_email'){
+    blob=new Blob([LEADS.filter(l=>l.email).map(l=>l.email).join('\n')],{type:'text/plain'});
+    ext='emails.txt';
+  }else if(fmt==='txt_wa'){
+    blob=new Blob([LEADS.filter(l=>l.whatsapp).map(l=>l.whatsapp).join('\n')],{type:'text/plain'});
+    ext='whatsapp.txt';
+  }else if(fmt==='xls'){
+    const th=hdr.map(h=>`<th style="background:#7c3aed;color:white;padding:8px">${h}</th>`).join('');
+    const tr=rows.map(r=>`<tr>${r.map(c=>`<td>${String(c).replace(/</g,'&lt;')}</td>`).join('')}</tr>`).join('');
+    const xls=`<html><head><meta charset="UTF-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial;font-size:12px"><tr>${th}</tr>${tr}</table></body></html>`;
+    blob=new Blob([xls],{type:'application/vnd.ms-excel'});
+    ext='xls';
+  }else if(fmt==='html'){
+    const cards=LEADS.map((l,i)=>{
+      const em=l.email?`<a href="mailto:${l.email}" style="color:#60a5fa">✉ ${l.email}</a><br>`:'';
+      const wa=l.whatsapp?`<a href="https://wa.me/${l.whatsapp.replace(/\D/g,'')}" style="color:#25d366">💬 ${l.whatsapp}</a><br>`:'';
+      return `<div style="border:1px solid #7c3aed;border-radius:10px;padding:16px;margin:8px;display:inline-block;min-width:240px;background:#0e0e1c;color:#eeeef8;vertical-align:top"><div style="font-weight:700">#${i+1} ${l.name||'Unknown'}</div><div style="font-size:11px;color:#a07cfc;margin:8px 0">${l.designation||''}</div>${em}${wa}<div style="font-size:10px;color:#666;margin-top:6px">${l.source||''}</div></div>`;
+    }).join('');
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lead Hunter — ${LEADS.length} Contacts</title></head><body style="background:#080812;padding:24px;font-family:sans-serif"><h2 style="color:#c084fc">Lead Hunter Pro — ${LEADS.length} Contacts</h2>${cards}</body></html>`;
+    blob=new Blob([html],{type:'text/html'});
+    ext='html';
+  }else{toast('Unknown format','er');return;}
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${base}.${ext}`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast(`✅ Exported ${LEADS.length} contacts as ${ext}`,'ok');
 }
 
 // Globals
@@ -1054,6 +1175,7 @@ window.lhpHalt=function(){
   document.getElementById('lhp-start').textContent='🚀 Start Hunting';
   document.getElementById('lhp-stop').style.display='none';
   if(LEADS.length>0)document.getElementById('lhp-xbtn').style.display='';
+  if(LEADS.length>0)document.getElementById('lhp-export-bar').style.display='flex';
   toast('Stopped — export available','in');
 };
 window.lhpToggleExport=function(){document.getElementById('lhp-xmenu').classList.toggle('open');};
@@ -1091,12 +1213,15 @@ window.lhpCopyWA=function(){
   navigator.clipboard.writeText(w).then(()=>toast(`Copied ${LEADS.filter(l=>l.whatsapp).length} numbers!`,'ok'));
 };
 window.lhpClear=function(){
-  LEADS=[];EMAILS.clear();WAS.clear();DUPS=0;
+  LEADS=[];DUPS=0;
   render([]);updStats();
   document.getElementById('lhp-xbtn').style.display='none';
+  document.getElementById('lhp-export-bar').style.display='none';
   document.getElementById('lhp-prog').style.display='none';
-  toast('Cleared!','in');
+  toast('Session cleared — saved registry kept forever','in');
 };
+
+loadRegistry();
 
 function toast(msg,cls='ok'){
   const el=document.getElementById('lht');
@@ -1129,6 +1254,40 @@ document.addEventListener('click',e=>{
 <!-- ╔══════════════════════════════════════════════════════════╗ -->
 <!-- ║              END LEAD HUNTER PRO v3                     ║ -->
 <!-- ╚══════════════════════════════════════════════════════════╝ -->
+
+    <div class="panel" data-panel="sell-profile" data-panel-mode="sell">
+    <section class="card grid-two profile-shell profile-shell-sell">
+      <div class="profile-panel">
+        <div class="panel-label">Profile &amp; Pitch</div>
+        <h2>Your Selling Profile</h2>
+        <form action="/dashboard/profile" method="post" class="stack-form">
+          <input type="hidden" name="profile_id" value="{{ selected.id if selected else '' }}" />
+          <input type="text" name="full_name" placeholder="Full name" value="{{ selected.full_name if selected else '' }}" required />
+          <input type="email" name="email" placeholder="Email" value="{{ selected.email if selected else '' }}" required />
+          <input type="text" name="skills_csv" placeholder="Python,Django,FastAPI,SQL" value="{{ selected.skills_csv if selected else '' }}" required />
+          <input type="text" name="product_name" placeholder="Product or service name" value="{{ selected.product_name if selected else '' }}" />
+          <input type="url" name="product_url" placeholder="Product URL https://..." value="{{ selected.product_url if selected else '' }}" />
+          <textarea name="sales_pitch" rows="5" placeholder="Short pitch reused in outreach">{{ selected.sales_pitch if selected else '' }}</textarea>
+          <input type="url" name="linkedin_url" placeholder="LinkedIn profile URL" value="{{ selected.linkedin_url if selected else '' }}" />
+          <input type="url" name="upwork_url" placeholder="Upwork profile URL" value="{{ selected.upwork_url if selected else '' }}" />
+          <input type="url" name="fiverr_url" placeholder="Fiverr profile URL" value="{{ selected.fiverr_url if selected else '' }}" />
+          <button type="submit">{{ 'Update Profile' if selected else 'Save Profile' }}</button>
+        </form>
+      </div>
+      <div class="profile-panel upload-panel">
+        <div class="panel-label">Pitch Preview</div>
+        <h2>Outreach Snapshot</h2>
+        {% if selected %}
+        <p class="hint"><strong>{{ selected.full_name }}</strong> — {{ selected.product_name or 'Your service' }}</p>
+        <p>{{ selected.sales_pitch or 'Add your sales pitch to reuse in client outreach.' }}</p>
+        {% else %}
+        <p class="hint">Create a profile to save your pitch and selling links.</p>
+        {% endif %}
+      </div>
+    </section>
+    </div>
+
+    <div class="panel" data-panel="sell-search" data-panel-mode="sell">
       <section class="card mode-panel mode-panel-sell">
         <div class="section-head mode-panel-head">
           <div>
@@ -1407,7 +1566,9 @@ document.addEventListener('click',e=>{
         </div>
         </div>
       </section>
+    </div>
 
+      <div class="panel" data-panel="sell-tracker" data-panel-mode="sell">
       <section class="card mode-tracker-panel" data-role="sell-tracker-panel">
         <div class="section-head">
           <div>
@@ -1527,9 +1688,148 @@ document.addEventListener('click',e=>{
           {% endfor %}
         </div>
       </section>
+      </div>
     </section>
-  </main>
+      </main>
+    </div>
 
+    <footer class="app-footer premium-footer" data-role="premium-footer">
+      <div class="premium-footer-glow"></div>
+      <div class="footer-inner">
+        <div class="footer-top">
+          <div class="footer-brand-block">
+            <div class="footer-brand">
+              <img src="/static/icon-48.png?v={{ static_version }}" alt="JobMind Owl" width="40" height="40" class="footer-logo" />
+              <div>
+                <strong>JobMind Match</strong>
+                <span class="footer-premium-badge">PREMIUM EDITION</span>
+              </div>
+            </div>
+            <p class="footer-tagline">Your private job console — matching, tracking, and lead hunting in one premium workspace.</p>
+          </div>
+          <div class="footer-stats">
+            <div class="footer-stat"><span>📋 Jobs Tracked</span><strong>{{ status_summary.total }}</strong></div>
+            <div class="footer-stat"><span>👥 Leads Saved</span><strong>{{ client_status_summary.total }}</strong></div>
+            <div class="footer-stat"><span>👤 Profile</span><strong>{% if selected %}{{ selected.full_name }}{% else %}None{% endif %}</strong></div>
+          </div>
+          <div class="footer-features">
+            <span>🔍 Job Search Mode</span>
+            <span>⚡ Lead Hunter Pro</span>
+            <span>📊 Multi-Format Export</span>
+            <span>💼 Sell Services Mode</span>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span class="footer-status-dot"></span>
+          <span>System Ready · Local Data Only</span>
+          <span class="footer-sep">|</span>
+          <span>© 2026 JobMind Match</span>
+          <span class="footer-sep">|</span>
+          <span>v{{ static_version }}</span>
+          <span class="footer-sep">|</span>
+          <span>Gumroad Licensed</span>
+          <span class="footer-sep">|</span>
+          <span class="footer-made">Crafted for freelancers &amp; serious hunters</span>
+        </div>
+      </div>
+    </footer>
+
+    <div class="footer-status-bar" data-role="footer-status-bar">
+      <img src="/static/icon-32.png?v={{ static_version }}" alt="" width="18" height="18" />
+      <span class="fsb-brand">JobMind <em>Premium</em></span>
+      <span class="fsb-sep">·</span>
+      <span class="fsb-live"><span class="footer-status-dot"></span> Live</span>
+      <span class="fsb-sep">·</span>
+      <span>v{{ static_version }}</span>
+      <span class="fsb-sep">·</span>
+      <span>100% On Your Machine</span>
+      <span class="fsb-sep">·</span>
+      <span>© 2026 Muhammad Faraz</span>
+    </div>
+
+    <div class="mobile-mode-bar" data-role="mobile-mode-bar">
+      <button type="button" class="mobile-mode-btn {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="job">🔍 Job Search</button>
+      <button type="button" class="mobile-mode-btn {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="sell">⚡ Sell &amp; Lead Hunter</button>
+    </div>
+
+    <nav class="mobile-nav" data-role="mobile-nav">
+      <div class="mobile-nav-job {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-mobile-mode="job">
+        <button type="button" class="mobile-nav-item active" data-nav-panel="job-search" data-nav-mode="job">🔍<span>Search</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="job-applications" data-nav-mode="job">📋<span>Apps</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="job-profile" data-nav-mode="job">📄<span>CV</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="job-links" data-nav-mode="job">🔗<span>Links</span></button>
+      </div>
+      <div class="mobile-nav-sell {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-mobile-mode="sell">
+        <button type="button" class="mobile-nav-item active" data-nav-panel="sell-hunter" data-nav-mode="sell">⚡<span>Hunt</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="sell-tracker" data-nav-mode="sell">👥<span>Leads</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="sell-search" data-nav-mode="sell">🎯<span>Search</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="sell-profile" data-nav-mode="sell">📄<span>Pitch</span></button>
+      </div>
+    </nav>
+  </div>
+
+  <div class="settings-modal hidden" data-role="license-modal" id="license-modal">
+    <div class="settings-backdrop" data-role="license-close"></div>
+    <div class="settings-box card" style="max-width:420px">
+      <div class="settings-head">
+        <h3>Activate Premium License</h3>
+      </div>
+      <div class="settings-body">
+        <p class="hint">Enter your Gumroad lifetime license key (1 PC). Find it in your Gumroad purchase email.</p>
+        <input type="text" id="license-key-input" placeholder="XXXX-XXXX-XXXX-XXXX" style="width:100%;margin:12px 0;font-family:JetBrains Mono,monospace" />
+        <p id="license-msg" class="hint" style="color:#f59e0b"></p>
+        <button type="button" id="license-activate-btn" class="ghost-action" style="width:100%;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer">Activate License</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="settings-modal hidden" data-role="settings-modal">
+    <div class="settings-backdrop" data-role="settings-close"></div>
+    <div class="settings-box card">
+      <div class="settings-head">
+        <h3>Settings</h3>
+        <button type="button" class="ghost-action" data-role="settings-close">✕</button>
+      </div>
+      <div class="settings-body">
+        <p class="hint">Active profile: {% if selected %}{{ selected.full_name }}{% else %}None selected{% endif %}</p>
+        <p class="hint">Job tracker: {{ status_summary.total }} · Lead tracker: {{ client_status_summary.total }}</p>
+        <button type="button" class="ghost-action install-chip hidden" data-role="install-app">Install as App</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const modal=document.getElementById('license-modal');
+    const input=document.getElementById('license-key-input');
+    const msg=document.getElementById('license-msg');
+    const btn=document.getElementById('license-activate-btn');
+    function show(){modal&&modal.classList.remove('hidden');}
+    function hide(){modal&&modal.classList.add('hidden');}
+    async function check(){
+      try{
+        const res=await fetch('/api/license/status');
+        const data=await res.json();
+        if(!data.activated)show();
+      }catch(e){}
+    }
+    btn&&btn.addEventListener('click',async()=>{
+      const key=(input&&input.value||'').trim();
+      if(!key){msg.textContent='Enter your license key.';return;}
+      btn.disabled=true;msg.textContent='Activating…';
+      try{
+        const body=new URLSearchParams({key});
+        const res=await fetch('/api/license/activate',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+        const data=await res.json();
+        if(data.ok){msg.style.color='#10b981';msg.textContent=data.message;setTimeout(hide,1200);}
+        else{msg.style.color='#f59e0b';msg.textContent=data.message||'Activation failed.';}
+      }catch(e){msg.textContent='Network error — try again.';}
+      btn.disabled=false;
+    });
+    document.querySelectorAll('[data-role=license-close]').forEach(el=>el.addEventListener('click',hide));
+    check();
+  })();
+  </script>
   <script src="/static/app.js?v={{ static_version }}"></script>
 </body>
 </html>

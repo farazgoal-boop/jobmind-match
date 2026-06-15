@@ -1,0 +1,60 @@
+╔══════════════════════════════════════════════════════════════╗
+║     JobMind Match Premium — Gumroad $79 Delivery Guide       ║
+║     Lifetime License · 1 PC · Bundled Python (Windows)       ║
+╚══════════════════════════════════════════════════════════════╝
+
+MAIN PRODUCT
+────────────
+JobMind-Match-Setup.exe (~99 MB)
+  • Professional Windows installer (Inno Setup)
+  • Bundled Python 3.11 — buyer does NOT need python.org
+  • Desktop launcher (JobMindMatch.exe) — no CMD window
+  • Lead Hunter Pro — 212+ platforms
+  • Permanent contact registry — never re-hunt same email/WhatsApp
+
+GUMROAD LISTING ($79)
+─────────────────────
+Title: JobMind Match Premium — Lifetime Lead Hunter + Job Matcher (1 PC)
+
+Bullets:
+  ✓ Lead Hunter Pro — 212+ platforms (GitHub, Reddit, Dev.to, RSS, marketplaces)
+  ✓ Never re-hunt — emails & WhatsApp saved forever in local database
+  ✓ Job search + CV matching + application CRM
+  ✓ Export CSV / XLS / JSON / TXT / HTML
+  ✓ Professional Windows installer — no Python setup
+  ✓ Lifetime license — activate with Gumroad key on first launch
+  ✓ 100% local — your data never leaves your PC
+
+GUMROAD SETTINGS
+────────────────
+  • Enable "Generate a license key per sale"
+  • Price: $79 (or $49 launch → $79 after reviews)
+  • File: JobMind-Match-Setup.exe (or ZIP with setup + docs)
+
+BUYER EMAIL TEMPLATE
+────────────────────
+Thanks for purchasing JobMind Match Premium!
+
+1. Run JobMind-Match-Setup.exe
+2. Enter your license key when the app opens (from this email)
+3. Go to Sell Services → Lead Hunter → Start Hunting
+
+Your license is for ONE computer, lifetime use.
+Reinstall on the same PC: reuse your Gumroad download link.
+
+BUILD SETUP.EXE (seller)
+────────────────────────
+  cd installer
+  build-setup.bat
+  Output: installer\output\JobMind-Match-Setup.exe
+
+INCLUDE IN ZIP (optional extras)
+────────────────────────────────
+  setup/GUMROAD_README.txt
+  setup/BUYER_SETUP_GUIDE.md
+  setup/AFTER_INSTALL.txt
+  setup/LICENSE.txt
+
+EXCLUDE
+───────
+  .venv/  jobmind.db  .env  __pycache__/  .git/

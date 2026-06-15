@@ -1,0 +1,39 @@
+╔══════════════════════════════════════════════════════════════╗
+║        JobMind Match — Android APK (Local PC Companion)      ║
+╚══════════════════════════════════════════════════════════════╝
+
+IMPORTANT — NO RENDER / NO OLD HOSTED APP
+──────────────────────────────────────────
+The APK does NOT load Render or any old online URL.
+It connects to YOUR desktop JobMind on the same Wi‑Fi.
+You always get the CURRENT app from your PC (Lead Hunter 212+, etc.).
+
+HOW IT WORKS
+────────────
+1. Run JobMind Match on Windows PC (installer).
+2. Phone + PC on same Wi‑Fi.
+3. Open APK → enter PC IPv4 (from ipconfig) → Connect.
+4. Full dashboard loads from http://YOUR-PC-IP:8000/dashboard
+
+BUILD RELEASE APK
+─────────────────
+  scripts\build_release_apk.bat
+
+Output:
+  dist\JobMind-Match-Release.apk
+
+QUICK BUILD (manual)
+────────────────────
+  cd mobile-wrapper
+  npm install
+  npx cap sync android
+  cd android
+  set JOBMIND_KEYSTORE_PASSWORD=JobMindMatch2026Release
+  set JOBMIND_KEYSTORE_FILE=keystore/jobmind-release.jks
+  gradlew.bat assembleRelease
+
+SIGNING — see setup\APK_SIGNING.txt
+
+GUMROAD
+───────
+Sell as BONUS with desktop. Buyer needs desktop running for mobile app.

@@ -1,0 +1,20 @@
+JobMind Match - Installation Complete
+=======================================
+
+WHAT HAPPENS NEXT:
+  JobMind Match opens automatically after setup.
+  No black CMD window. Runs like a normal desktop app.
+  First launch may finish one-time setup (about 1-2 minutes).
+
+ACTIVATE YOUR LICENSE:
+  Enter the Gumroad license key from your purchase email on first open.
+
+TO CLOSE THE APP:
+  Start Menu -> Quit JobMind Match
+
+IF YOU LAUNCH AGAIN:
+  If already running, it opens the browser directly.
+
+NO PYTHON REQUIRED:
+  Python is bundled inside the installer.
+  You do NOT need to visit python.org.

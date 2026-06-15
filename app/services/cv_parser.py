@@ -2,8 +2,15 @@ from io import BytesIO
 import re
 from typing import Dict, List
 
-import pdfplumber
-from docx import Document
+try:
+    import pdfplumber
+except ImportError:
+    pdfplumber = None
+
+try:
+    from docx import Document
+except ImportError:
+    Document = None
 
 
 TECH_KEYWORDS = [
@@ -22,6 +29,8 @@ TECH_KEYWORDS = [
 
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
+    if pdfplumber is None:
+        return file_bytes.decode("utf-8", errors="ignore")
     pages = []
     with pdfplumber.open(BytesIO(file_bytes)) as pdf:
         for page in pdf.pages:
@@ -30,6 +39,8 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
 
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
+    if Document is None:
+        return file_bytes.decode("utf-8", errors="ignore")
     doc = Document(BytesIO(file_bytes))
     return "\n".join(p.text for p in doc.paragraphs)
 

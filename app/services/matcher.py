@@ -1,8 +1,13 @@
 from collections import Counter
 from typing import Dict, List
 
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+try:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+
+    HAS_SKLEARN = True
+except ImportError:
+    HAS_SKLEARN = False
 
 
 BOOST_SKILLS = {
@@ -46,6 +51,12 @@ def rank_jobs(candidate_text: str, jobs: List[Dict], top_k: int = 5) -> List[Dic
     if not jobs:
         return []
 
+    if HAS_SKLEARN:
+        return _rank_jobs_sklearn(candidate_text, jobs, top_k)
+    return _rank_jobs_light(candidate_text, jobs, top_k)
+
+
+def _rank_jobs_sklearn(candidate_text: str, jobs: List[Dict], top_k: int) -> List[Dict]:
     normalized_candidate = candidate_text.lower()
     candidate_skill_hits = _extract_candidate_skills(normalized_candidate)
     job_docs = [f"{j['title']} {j['description']}" for j in jobs]
@@ -61,6 +72,32 @@ def rank_jobs(candidate_text: str, jobs: List[Dict], top_k: int = 5) -> List[Dic
     ranked = []
     for idx, job in enumerate(jobs):
         boosted, diagnostics = _score_job(base_scores[idx], candidate_skill_hits, job)
+        ranked.append(
+            {
+                "job": job,
+                "score": round(float(boosted), 4),
+                "reason": _build_reason(job, boosted, diagnostics),
+                "matched_skills": diagnostics["matched_skills"],
+                "missing_skills": diagnostics["missing_skills"],
+            }
+        )
+
+    ranked.sort(key=lambda x: x["score"], reverse=True)
+    return ranked[:top_k]
+
+
+def _rank_jobs_light(candidate_text: str, jobs: List[Dict], top_k: int) -> List[Dict]:
+    normalized_candidate = candidate_text.lower()
+    candidate_skill_hits = _extract_candidate_skills(normalized_candidate)
+    candidate_tokens = set(normalized_candidate.split())
+
+    ranked = []
+    for job in jobs:
+        job_text = f"{job['title']} {job['description']}".lower()
+        job_tokens = set(job_text.split())
+        overlap = len(candidate_tokens & job_tokens)
+        base = min(overlap / max(len(candidate_tokens), 1), 0.65)
+        boosted, diagnostics = _score_job(base, candidate_skill_hits, job)
         ranked.append(
             {
                 "job": job,

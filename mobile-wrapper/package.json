@@ -6,12 +6,14 @@
   "scripts": {
     "android:prepare:jdk17": "node scripts/prepare-jdk17.js",
     "android:sync:prod": "npx cap sync android",
-    "android:sync:local": "cross-env JOBMIND_APP_URL=http://10.0.2.2:8000/dashboard npx cap sync android",
+    "android:sync:local": "npx cap sync android",
     "android:build:debug": "npm run android:prepare:jdk17 ; cd android && gradlew.bat assembleDebug",
     "android:build:release": "npm run android:prepare:jdk17 ; cd android && gradlew.bat assembleRelease",
     "cap:sync": "npx cap sync android",
     "cap:open": "npx cap open android",
-    "android:add": "npx cap add android"
+    "android:add": "npx cap add android",
+    "icons:generate": "python ..\\scripts\\generate_icons.py",
+    "icons:sync": "npm run icons:generate && npx cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.1",

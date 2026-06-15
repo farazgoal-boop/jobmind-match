@@ -8,6 +8,13 @@ write_test.txt
 *.log
 mobile-wrapper/node_modules/
 mobile-wrapper/android/
+mobile-wrapper/android_backup_broken/
+installer/staging/
+installer/output/
+installer/runtime/
+installer/cache/
+dist/
+build/launcher/
 mind-manage/node_modules/
 mind-manage/**/node_modules/
 mind-manage/.turbo/

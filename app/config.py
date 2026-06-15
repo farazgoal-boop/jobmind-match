@@ -13,9 +13,16 @@ class Settings(BaseModel):
         or os.getenv("RAILWAY_GIT_COMMIT_SHA")
         or os.getenv("GITHUB_SHA")
         or os.getenv("APP_ASSET_VERSION")
-        or "local-dev"
+        or "premium-v9"
     )[:12]
-    database_url: str = os.getenv("DATABASE_URL", "sqlite:///./jobmind.db")
+    database_url: str = os.getenv(
+        "DATABASE_URL",
+        (
+            f"sqlite:///{os.getenv('JOBMIND_DATA_DIR', '.')}/jobmind.db"
+            if os.getenv("APP_ENV") == "android"
+            else "sqlite:///./jobmind.db"
+        ),
+    )
     github_token: str = os.getenv("GITHUB_TOKEN", "")
     telegram_bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
     telegram_chat_id: str = os.getenv("TELEGRAM_CHAT_ID", "")

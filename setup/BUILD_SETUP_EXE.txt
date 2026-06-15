@@ -1,0 +1,118 @@
+╔══════════════════════════════════════════════════════════════╗
+║     JobMind Match — setup.exe Kaise Banayein (Windows)       ║
+╚══════════════════════════════════════════════════════════════╝
+
+Aap Gumroad par EK file bech sakte hain: JobMind-Match-Setup.exe
+Buyer double-click kare → install → desktop shortcut → app chal jaye.
+
+
+METHOD 1 — PROFESSIONAL setup.exe (RECOMMENDED)
+────────────────────────────────────────────────
+
+STEP A — Inno Setup install karein (free, one time)
+  Download: https://jrsoftware.org/isdl.php
+  Install "Inno Setup 6"
+
+  NOTE: Agar "not found" aaye, yeh path check karein:
+  %LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe
+  (User install — Program Files mein nahi hota)
+
+STEP B — setup.exe banayein
+  PowerShell / CMD:
+
+    cd "D:\my apps\jobmind-match\installer"
+    build-setup.bat
+
+STEP C — Output file
+  installer\output\JobMind-Match-Setup.exe
+
+  Yeh file Gumroad par upload karein.
+
+
+METHOD 2 — ZIP (agar setup.exe na bana payein)
+──────────────────────────────────────────────
+  cd installer
+  prepare-staging.bat
+
+  Phir folder "installer\staging" ko ZIP karein:
+  JobMind-Match-Premium.zip
+
+  Buyer extract karke START_HERE.bat chalaye.
+
+
+KYA KARTA HAI setup.exe?
+────────────────────────
+  ✓ Files copy karta hai → C:\Users\...\AppData\...\JobMind Match
+  ✓ Start Menu shortcut banata hai
+  ✓ Desktop shortcut (optional checkbox)
+  ✓ LICENSE + readme installer wizard mein dikhata hai
+  ✓ Install ke baad app launch option
+  ✓ Uninstall entry Windows Settings mein
+  ✓ Owl icon installer par
+
+
+BUYER KO PYTHON CHAHIYE?
+────────────────────────
+  Haan — setup.exe Python 3.11 check karta hai.
+  Agar nahi hai to install python.org se (Add to PATH).
+
+  Pehli run par START_HERE.bat:
+    - venv banata hai
+    - pip install karta hai
+    - server start karta hai
+    - browser khulta hai
+
+
+GUMROAD PAR KYA UPLOAD KAREIN?
+──────────────────────────────
+
+  OPTION A (Best UX):
+    Sirf: JobMind-Match-Setup.exe
+
+  OPTION B (Backup):
+    JobMind-Match-Setup.exe  (main)
+    + APK bonus (optional)
+    + License key (Gumroad auto)
+
+  OPTION C (Simple):
+    JobMind-Match-Premium.zip (no Inno Setup needed)
+
+
+FILE ORDER (aap ka workflow)
+────────────────────────────
+  1. icon.png ready (owl) ✓
+  2. App test locally ✓
+  3. installer\build-setup.bat → setup.exe
+  4. Test setup.exe on clean PC / VM
+  5. Gumroad product create
+  6. Upload JobMind-Match-Setup.exe
+  7. Enable license key per sale
+  8. Sell!
+
+
+OTHER SETUP FILES (already in repo)
+──────────────────────────────────
+  setup/BUYER_SETUP_GUIDE.md   — buyer full guide
+  setup/GUMROAD_README.txt     — quick readme inside installer
+  setup/GUMROAD_DELIVERY.txt   — seller checklist
+  setup/APK_BUILD_STEPS.txt    — Android APK
+  setup/LICENSE.txt            — license shown in installer
+  setup/START_WINDOWS.bat      — runs after install
+  START_HERE.bat               — root launcher
+  installer/prepare-staging.bat — clean package folder
+  installer/build-setup.bat    — makes setup.exe
+
+
+TROUBLESHOOTING
+───────────────
+  "Inno Setup not found"
+    → Install from jrsoftware.org, rerun build-setup.bat
+
+  "Python not detected" on buyer PC
+    → Buyer installs Python 3.11 with Add to PATH
+
+  setup.exe blocked by Windows
+    → Buyer: More info → Run anyway (unsigned exe normal for indie apps)
+
+  Code signing (optional later)
+    → Removes SmartScreen warning; costs ~$70-200/year cert

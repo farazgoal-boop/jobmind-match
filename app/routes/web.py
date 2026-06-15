@@ -29,7 +29,9 @@ from app.services.quota import consume_matches, ensure_can_consume_matches
 from app.services.source_registry import fetch_jobs_from_sources, free_sources_list
 
 router = APIRouter(tags=["web"])
-templates = Jinja2Templates(directory="app/templates")
+from app.paths import templates_dir
+
+templates = Jinja2Templates(directory=str(templates_dir()))
 templates.env.globals["static_version"] = settings.asset_version
 
 FOLLOW_UP_PATTERN = re.compile(r"\[follow-up:(\d{4}-\d{2}-\d{2})\]")
@@ -60,6 +62,14 @@ CLIENT_SEARCH_MODES = {"sell_services", "sell_products", "direct_clients"}
 
 def resolve_ui_mode(search_mode: str) -> str:
     return "sell" if search_mode in CLIENT_SEARCH_MODES else "job"
+
+
+def resolve_dashboard_ui_mode(request: Request, search_mode: str) -> str:
+    """Honor ?active_mode=sell|job from mobile APK deep links."""
+    query_mode = (request.query_params.get("active_mode") or "").strip().lower()
+    if query_mode in {"sell", "job"}:
+        return query_mode
+    return resolve_ui_mode(search_mode)
 
 
 def normalize_application_status(status: str) -> str:
@@ -751,6 +761,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
         verified_payment_only=False,
     )
     outreach_links = build_outreach_links(selected, "software")
+    active_ui_mode = resolve_dashboard_ui_mode(request, "job_search")
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -798,7 +809,7 @@ def dashboard(request: Request, session: Annotated[Session, Depends(get_session)
             "salary_only": False,
             "visa_support_only": False,
             "region_preference": "global",
-            "active_ui_mode": "job",
+            "active_ui_mode": active_ui_mode,
             "match_summary": build_match_summary([]),
             "active_filter_badges": active_filter_badges,
             "client_search_results": [],
@@ -1151,7 +1162,7 @@ def dashboard_matches(
     selected_sources = resolve_selected_sources(request, sources, selected.is_premium)
     external_only_mode = is_external_only_mode(search_mode, selected_sources, selected_platform_targets)
     client_only_mode = is_client_only_mode(search_mode, selected_sources, selected_platform_targets)
-    active_ui_mode = resolve_ui_mode(search_mode)
+    active_ui_mode = resolve_dashboard_ui_mode(request, search_mode)
 
     live_search_links = build_dashboard_live_links(
         profile=selected,
@@ -1987,8 +1998,43 @@ async def test_scraper():
     return JSONResponse(results)
 
 
+@router.get("/api/scrape/platforms")
+async def scrape_platforms():
+    """212+ hunting platforms grouped by source type."""
+    from app.services.lead_hunter_engine import list_platforms, summary
+
+    return JSONResponse({"platforms": list_platforms(), "summary": summary()})
+
+
+@router.get("/api/scrape/hunt-plan")
+async def scrape_hunt_plan(chips: str = Query(default="github,reddit,devto,misc")):
+    """Dynamic hunt plan for enabled UI chips."""
+    from app.services.lead_hunter_engine import build_hunt_plan, summary
+
+    enabled = [c.strip() for c in chips.split(",") if c.strip()]
+    plan = build_hunt_plan(enabled)
+    return JSONResponse({"plan": plan, "total_batches": sum(p["batches"] for p in plan), "summary": summary()})
+
+
+@router.get("/api/scrape/registry")
+async def scrape_registry(session: Annotated[Session, Depends(get_session)]):
+    """Permanent hunted email/WhatsApp registry — never search these again."""
+    from app.services.lead_hunter_registry import load_known_keys, registry_stats
+
+    emails, whatsapps = load_known_keys(session)
+    stats = registry_stats(session)
+    return JSONResponse(
+        {
+            **stats,
+            "emails": sorted(emails),
+            "whatsapp": sorted(whatsapps),
+        }
+    )
+
+
 @router.get("/api/scrape/leads")
 async def scrape_leads(
+    session: Annotated[Session, Depends(get_session)],
     target: str = Query(default="all"),
     keywords: str = Query(default=""),
     country: str = Query(default=""),
@@ -1996,58 +2042,45 @@ async def scrape_leads(
     source: str = Query(default="github"),
     offset: int = Query(default=0),
 ):
-    """Server-side lead scraper — called in batches by frontend"""
-    leads = []
+    """Server-side lead scraper — filters against permanent hunted registry."""
+    from app.services.lead_hunter_engine import run_scrape_batch
+
     kw = keywords.strip()
-    error_msg = ""
+    if country.strip():
+        kw = f"{kw} {country.strip()}".strip()
 
     try:
-        if source == "github":
-            # Rotate through keywords for maximum unique results
-            kw_idx = offset % len(GH_KEYWORDS)
-            kw_to_use = GH_KEYWORDS[kw_idx] + (f" {kw}" if kw else "")
-            page = (offset // len(GH_KEYWORDS)) + 1
-            leads = _fetch_github_profiles(kw_to_use, page=page)
-
-        elif source == "github_readme":
-            q = f"freelance developer email {kw}" if kw else GH_KEYWORDS[offset % len(GH_KEYWORDS)]
-            leads = _fetch_github_readme(q, page=(offset // 5) + 1)
-
-        elif source == "github_issues":
-            leads = _fetch_github_jobs_rss()
-
-        elif source == "devto":
-            tag = kw if kw else DEVTO_TAGS[offset % len(DEVTO_TAGS)]
-            page = (offset // len(DEVTO_TAGS)) + 1
-            leads = _fetch_devto_articles(tag, page=page)
-
-        elif source == "hackernews":
-            leads = _fetch_hackernews()
-
-        elif source == "indiehackers":
-            leads = _fetch_indiehackers()
-
-        elif source == "remotive":
-            leads = _fetch_remotive_rss()
-
-        elif source == "weworkremotely":
-            leads = _fetch_weworkremotely_rss()
-
-        elif source == "reddit_rss":
-            subs = ['forhire', 'freelance', 'slavelabour', 'hiring', 'WorkOnline']
-            sub = subs[offset % len(subs)]
-            leads = _fetch_reddit_rss(sub)
-
+        result = run_scrape_batch(session, source, offset, kw)
+        return JSONResponse(result)
     except Exception as e:
-        error_msg = str(e)
+        return JSONResponse(
+            {
+                "leads": [],
+                "count": 0,
+                "source": source,
+                "offset": offset,
+                "skipped_known": 0,
+                "registry_total": 0,
+                "error": str(e),
+            }
+        )
 
-    return JSONResponse({
-        'leads': leads,
-        'count': len(leads),
-        'source': source,
-        'offset': offset,
-        'error': error_msg,
-    })
+
+@router.get("/api/license/status")
+async def license_status_api(session: Annotated[Session, Depends(get_session)]):
+    from app.services.license_service import license_status
+
+    return JSONResponse(license_status(session))
+
+
+@router.post("/api/license/activate")
+async def license_activate_api(
+    session: Annotated[Session, Depends(get_session)],
+    key: str = Form(default=""),
+):
+    from app.services.license_service import activate_license
+
+    return JSONResponse(activate_license(session, key))
 
 
 @router.get("/api/scrape/export")
@@ -2121,16 +2154,34 @@ async def export_scraped_leads(
         )
 
     elif fmt == "html":
-        cards = ''.join(
-            f'<div style="border:1px solid #7c3aed;border-radius:10px;padding:16px;margin:8px;display:inline-block;min-width:240px;max-width:300px;background:#0e0e1c;color:#eeeef8;vertical-align:top;font-family:sans-serif">'
-            f'<div style="font-weight:700;font-size:14px;margin-bottom:4px">#{i} {l.get("name","Unknown")}</div>'
-            f'<div style="font-size:11px;color:#a07cfc;margin-bottom:8px">{l.get("designation","")}</div>'
-            f'{(chr(10).join(["<a href=\'mailto:"+l.get("email","")+"\'style=\'color:#60a5fa;font-size:12px\'>✉ "+l.get("email","")+"</a><br>"]) if l.get("email") else "")}'
-            f'{(chr(10).join(["<a href=\'https://wa.me/"+l.get("whatsapp","").replace("+","")+"\'style=\'color:#25d366;font-size:12px\'>💬 "+l.get("whatsapp","")+"</a><br>"]) if l.get("whatsapp") else "")}'
-            f'<div style="font-size:10px;color:#6666a0;margin-top:6px">{l.get("source","")}</div>'
-            f'</div>'
-            for i, l in enumerate(leads, 1)
-        )
+        cards_parts = []
+        for i, l in enumerate(leads, 1):
+            email_html = ""
+            if l.get("email"):
+                email = l.get("email", "")
+                email_html = (
+                    f"<a href='mailto:{email}' style='color:#60a5fa;font-size:12px'>"
+                    f"✉ {email}</a><br>"
+                )
+            wa_html = ""
+            if l.get("whatsapp"):
+                wa = l.get("whatsapp", "")
+                wa_digits = wa.replace("+", "")
+                wa_html = (
+                    f"<a href='https://wa.me/{wa_digits}' style='color:#25d366;font-size:12px'>"
+                    f"💬 {wa}</a><br>"
+                )
+            cards_parts.append(
+                f'<div style="border:1px solid #7c3aed;border-radius:10px;padding:16px;margin:8px;'
+                f'display:inline-block;min-width:240px;max-width:300px;background:#0e0e1c;color:#eeeef8;'
+                f'vertical-align:top;font-family:sans-serif">'
+                f'<div style="font-weight:700;font-size:14px;margin-bottom:4px">#{i} {l.get("name", "Unknown")}</div>'
+                f'<div style="font-size:11px;color:#a07cfc;margin-bottom:8px">{l.get("designation", "")}</div>'
+                f'{email_html}{wa_html}'
+                f'<div style="font-size:10px;color:#6666a0;margin-top:6px">{l.get("source", "")}</div>'
+                f'</div>'
+            )
+        cards = "".join(cards_parts)
         html_out = (
             f'<!DOCTYPE html><html><head><meta charset="UTF-8">'
             f'<title>Lead Hunter — {len(leads)} Contacts</title>'

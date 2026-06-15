@@ -81,3 +81,21 @@ class FilterPreset(SQLModel, table=True):
     name: str
     preset_json: str = "{}"
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class HuntedContact(SQLModel, table=True):
+    """Permanent registry — never hunt the same email/WhatsApp twice."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str = Field(default="", index=True)
+    whatsapp: str = Field(default="", index=True)
+    name: str = ""
+    designation: str = ""
+    source: str = ""
+    url: str = ""
+    notes: str = ""
+    hunted_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class AppSetting(SQLModel, table=True):
+    key: str = Field(primary_key=True)
+    value: str = ""

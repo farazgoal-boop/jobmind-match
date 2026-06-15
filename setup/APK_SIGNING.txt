@@ -1,0 +1,25 @@
+JobMind Match — Android Release APK Signing
+==========================================
+
+Keystore location (local, not in git):
+  mobile-wrapper/android/keystore/jobmind-release.jks
+
+Default passwords (change before public sale if you want):
+  Store password: JobMindMatch2026Release
+  Key alias:      jobmind
+  Key password:   JobMindMatch2026Release
+
+BACKUP THIS FILE — you need the same keystore for all future APK updates.
+
+Build signed release APK:
+  scripts\build_release_apk.bat
+
+Output:
+  dist\JobMind-Match-Release.apk
+
+Custom passwords (recommended):
+  set JOBMIND_KEYSTORE_PASSWORD=YourSecret
+  scripts\build_release_apk.bat
+
+Gumroad upload:
+  Upload dist\JobMind-Match-Release.apk as bonus or separate product.

@@ -18,6 +18,26 @@ You need:
 - Java 17
 - A live HTTPS deployment URL for JobMind Match
 
+## App Icon (Owl Logo)
+
+All icons are generated from the root `icon.png` (your owl logo):
+
+```powershell
+# From project root
+.\.venv\Scripts\python.exe scripts\generate_icons.py
+```
+
+This updates:
+- `app/static/` — desktop web, PWA, favicon (16px to 512px)
+- `mobile-wrapper/resources/icon.png` — Capacitor source (1024px)
+- `mobile-wrapper/android/.../mipmap-*` — Android launcher icons (after `npx cap add android`)
+
+From `mobile-wrapper` folder:
+
+```powershell
+npm run icons:sync
+```
+
 ## Setup
 
 From this folder:

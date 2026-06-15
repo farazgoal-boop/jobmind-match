@@ -2,22 +2,51 @@ window.addEventListener("DOMContentLoaded", () => {
   let installPrompt = null;
   const staticVersion = document
     .querySelector('meta[name="jobmind-static-version"]')
-    ?.getAttribute("content") || "local-dev";
-  const cards = document.querySelectorAll(".card");
-  cards.forEach((card, index) => {
-    card.animate(
-      [
-        { opacity: 0, transform: "translateY(10px)" },
-        { opacity: 1, transform: "translateY(0)" }
-      ],
-      {
-        duration: 320,
-        delay: index * 50,
-        fill: "forwards",
-        easing: "ease-out"
-      }
-    );
-  });
+    ?.getAttribute("content") || "premium-v3";
+
+  const panelStorageKey = "jobmind.activePanel.v2";
+
+  function setActivePanel(panelId, mode) {
+    if (!panelId || !mode) {
+      return;
+    }
+    writeStorage(panelStorageKey, { mode, panelId });
+    document.querySelectorAll(".panel[data-panel-mode]").forEach((panel) => {
+      const panelMode = panel.dataset.panelMode;
+      const isTarget = panel.dataset.panel === panelId && panelMode === mode;
+      panel.classList.toggle("active", isTarget);
+    });
+    document.querySelectorAll(".sidebar-item[data-nav-mode]").forEach((item) => {
+      const match = item.dataset.navMode === mode && item.dataset.navPanel === panelId;
+      item.classList.toggle("active", match);
+    });
+    document.querySelectorAll(".mobile-nav-item[data-nav-mode]").forEach((item) => {
+      const match = item.dataset.navMode === mode && item.dataset.navPanel === panelId;
+      item.classList.toggle("active", match);
+    });
+    document.querySelectorAll(".panel.active .card").forEach((card, index) => {
+      card.animate(
+        [
+          { opacity: 0, transform: "translateY(8px)" },
+          { opacity: 1, transform: "translateY(0)" }
+        ],
+        { duration: 280, delay: index * 40, fill: "forwards", easing: "ease-out" }
+      );
+    });
+  }
+
+  function writeStorage(key, value) {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function readStorage(key, fallback) {
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch {
+      return fallback;
+    }
+  }
 
   const installButton = document.querySelector('[data-role="install-app"]');
   const capacitorApp = window.Capacitor?.Plugins?.App;
@@ -40,6 +69,17 @@ window.addEventListener("DOMContentLoaded", () => {
   const sellSearchModes = new Set(["sell_services", "sell_products", "direct_clients"]);
   const serverResultMode = sellSearchModes.has(currentQuery.get("search_mode")) ? "sell" : "job";
   const initialMode = currentQuery.get("active_mode") || serverResultMode;
+  const urlPanel = currentQuery.get("panel");
+  const isMobileApp =
+    currentQuery.get("mobile") === "1" ||
+    !!window.Capacitor ||
+    /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+  if (isMobileApp) {
+    document.documentElement.classList.add("is-mobile-app");
+  }
+  const forceMobileSell =
+    isMobileApp &&
+    (currentQuery.get("mobile") === "1" || currentQuery.get("active_mode") === "sell");
   const isResultsPage = currentPath === "/dashboard/matches";
   const modeMeta = {
     job: {
@@ -210,14 +250,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function readStorage(key, fallback) {
-    return safeJsonParse(window.localStorage.getItem(key), fallback);
-  }
-
-  function writeStorage(key, value) {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  }
-
   function getSelectText(form, selector) {
     const field = form?.querySelector(selector);
     if (!(field instanceof HTMLSelectElement)) {
@@ -231,11 +263,20 @@ window.addEventListener("DOMContentLoaded", () => {
     modeToggles.forEach((button) => {
       button.classList.toggle("active", button.dataset.mode === mode);
     });
+    document.querySelectorAll(".mobile-mode-btn[data-mode]").forEach((button) => {
+      button.classList.toggle("active", button.dataset.mode === mode);
+    });
     modeShells.forEach((shell) => {
       shell.classList.toggle("hidden", shell.dataset.modePanel !== mode);
     });
     modeSummaryCards.forEach((card) => {
       card.classList.toggle("active", card.dataset.modeCard === mode);
+    });
+    document.querySelectorAll("[data-sidebar-mode]").forEach((nav) => {
+      nav.classList.toggle("hidden", nav.dataset.sidebarMode !== mode);
+    });
+    document.querySelectorAll("[data-mobile-mode]").forEach((nav) => {
+      nav.classList.toggle("hidden", nav.dataset.mobileMode !== mode);
     });
     if (spotlightTitle) {
       spotlightTitle.textContent = modeMeta[mode].title;
@@ -250,6 +291,47 @@ window.addEventListener("DOMContentLoaded", () => {
     liveResultsContent.forEach((content) => {
       const isStale = content.dataset.mode === mode && mode !== serverResultMode;
       content.classList.toggle("hidden", isStale);
+    });
+    const defaultPanel = mode === "sell" ? "sell-hunter" : "job-search";
+    setActivePanel(defaultPanel, mode);
+  }
+
+  function wirePanelNavigation() {
+    document.querySelectorAll("[data-nav-panel]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const panelId = button.dataset.navPanel;
+        const mode = button.dataset.navMode;
+        if (panelId && mode) {
+          if (mode !== readStorage(storageKeys.uiMode, "job")) {
+            setActiveMode(mode);
+          }
+          setActivePanel(panelId, mode);
+        }
+      });
+    });
+  }
+
+  function wireHeaderControls() {
+    const profileToggle = document.querySelector("[data-role='profile-dropdown-toggle']");
+    const profileDropdown = document.querySelector("[data-role='profile-dropdown']");
+    profileToggle?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      profileDropdown?.classList.toggle("open");
+    });
+    document.addEventListener("click", () => {
+      profileDropdown?.classList.remove("open");
+    });
+
+    const settingsModal = document.querySelector("[data-role='settings-modal']");
+    document.querySelector("[data-role='settings-toggle']")?.addEventListener("click", () => {
+      settingsModal?.classList.add("open");
+      settingsModal?.classList.remove("hidden");
+    });
+    document.querySelectorAll("[data-role='settings-close']").forEach((node) => {
+      node.addEventListener("click", () => {
+        settingsModal?.classList.remove("open");
+        settingsModal?.classList.add("hidden");
+      });
     });
   }
 
@@ -947,10 +1029,28 @@ window.addEventListener("DOMContentLoaded", () => {
   wireResumeLibraryImport();
   syncServerTrackersToLocal();
   wireModeToggles();
+  wirePanelNavigation();
+  wireHeaderControls();
   clearSubmitStates();
   restoreModeState("job");
   restoreModeState("sell");
-  const preferredMode = isResultsPage ? initialMode : (readStorage(storageKeys.uiMode, initialMode) || initialMode);
+  const preferredMode = isResultsPage
+    ? initialMode
+    : forceMobileSell
+      ? "sell"
+      : (currentQuery.get("active_mode") || readStorage(storageKeys.uiMode, isMobileApp ? "sell" : initialMode) || initialMode);
   setActiveMode(preferredMode);
-  scrollToActiveResults(preferredMode);
+  const savedPanel = readStorage(panelStorageKey, null);
+  if (urlPanel && (currentQuery.get("active_mode") || forceMobileSell)) {
+    setActivePanel(urlPanel, preferredMode);
+  } else if (!forceMobileSell && savedPanel && savedPanel.mode === preferredMode && savedPanel.panelId) {
+    setActivePanel(savedPanel.panelId, preferredMode);
+  } else if (isMobileApp && preferredMode === "sell") {
+    setActivePanel("sell-hunter", "sell");
+  }
+  if (isResultsPage) {
+    const resultsPanel = preferredMode === "sell" ? "sell-search" : "job-search";
+    setActivePanel(resultsPanel, preferredMode);
+    scrollToActiveResults(preferredMode);
+  }
 });
