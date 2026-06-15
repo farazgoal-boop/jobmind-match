@@ -17,21 +17,26 @@ set "JOBMIND_KEYSTORE_FILE=keystore/jobmind-release.jks"
 set "JOBMIND_KEY_ALIAS=jobmind"
 set "JOBMIND_KEY_PASSWORD=%JOBMIND_KEYSTORE_PASSWORD%"
 
-echo [2/5] Syncing mobile assets...
+echo [2/6] Exporting hunt data for on-phone app...
+cd /d "%~dp0.."
+py -3.11 scripts\export_mobile_hunt_data.py
+if errorlevel 1 python scripts\export_mobile_hunt_data.py
+
+echo [3/6] Syncing mobile assets...
 cd /d "%~dp0..\mobile-wrapper"
 call npx cap sync android
 
-echo [3/5] Preparing JDK 17 compatibility...
+echo [4/6] Preparing JDK 17 compatibility...
 node scripts\prepare-jdk17.js
 
-echo [4/5] Building signed standalone release APK...
+echo [5/6] Building signed standalone release APK...
 cd android
 if "%ANDROID_HOME%"=="" set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
 if "%JAVA_HOME%"=="" set "JAVA_HOME=C:\Program Files\Microsoft\jdk-17.0.19.10-hotspot\"
 call gradlew.bat assembleRelease --no-daemon
 if errorlevel 1 exit /b 1
 
-echo [5/5] Copying APK to dist...
+echo [6/6] Copying APK to dist...
 cd /d "%~dp0.."
 if not exist dist mkdir dist
 copy /Y "mobile-wrapper\android\app\build\outputs\apk\release\app-release.apk" "dist\JobMind-Match-Release.apk"

@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-/** Standalone mobile client — opens JobMind cloud (no PC / no LAN pairing). */
+/** Standalone mobile app — full UI bundled in APK (no PC, no Render). */
 const config: CapacitorConfig = {
   appId: 'com.jobmind.match',
   appName: 'JobMind Match',
