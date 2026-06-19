@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=JobMind Match
+Comment=AI-powered job matching and lead hunting console
+Exec=jobmind-match
+Icon=jobmind-match
+Terminal=true
+Type=Application
+Categories=Office;Utility;

@@ -13,6 +13,19 @@ JobMind Match is a personal job-matching assistant that helps you:
 - Rank jobs using TF-IDF + cosine similarity + skill boosting
 - Send daily digest via email (optional Telegram-ready output)
 
+## Download Desktop App
+
+Pre-built installers are published on [GitHub Releases](https://github.com/farazgoal-boop/jobmind-match/releases/latest) when a version tag (`v*`) is pushed.
+
+| Platform | Download | Install |
+|----------|----------|---------|
+| **Windows** | `JobMind-Match-Setup.exe` | Run the installer (built separately via Inno Setup on Windows; attached to releases when available). |
+| **macOS** | `JobMindMatch-mac.dmg` | Open the `.dmg`, drag **JobMind Match** to **Applications**, then right-click the app → **Open** the first time to bypass Gatekeeper. |
+| **Linux (Debian/Ubuntu)** | `JobMindMatch-linux.deb` | `sudo dpkg -i JobMindMatch-linux.deb` then launch **JobMind Match** from your app menu. |
+| **Linux (any distro)** | `JobMindMatch-linux.AppImage` | `chmod +x JobMindMatch-linux.AppImage` then double-click or run from terminal. |
+
+All desktop builds bundle Python and dependencies — buyers do **not** need Python installed. User data (SQLite DB, `.env`) is stored in `~/.jobmind-match/` for PyInstaller builds.
+
 ## Live Project Showcase
 
 ### What this app solves

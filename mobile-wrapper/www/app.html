@@ -8,68 +8,76 @@
   <link rel="stylesheet" href="css/mobile-app.css" />
 </head>
 <body>
+  <div id="toast" class="toast hidden"></div>
+
   <div class="app">
     <header class="header">
+      <button type="button" class="icon-btn" id="btn-back" aria-label="Back">←</button>
       <img src="icon-192.png" alt="" onerror="this.style.display='none'" />
-      <div>
-        <span class="badge">v2.1 · On Phone Only</span>
-        <h1>JobMind Match</h1>
+      <div class="header-text">
+        <span class="badge">v2.4 · Phone App</span>
+        <h1 id="header-title">Lead Hunter</h1>
       </div>
     </header>
 
-    <!-- JOB MODE -->
     <section class="panel" data-mode-panel="job">
       <div class="subpanel active" data-panel="search">
         <div class="card">
-          <h3 style="margin:0 0 8px">🔍 Job Search</h3>
-          <p class="hint">Search remote roles — opens trusted job boards in your browser.</p>
+          <h3 class="card-title">🔍 Job Search</h3>
+          <p class="hint">Open trusted job boards — saved profile used for quick apply links.</p>
           <div class="row">
             <a class="btn" href="https://remotive.com/remote-jobs" target="_blank" rel="noopener">Remotive</a>
             <a class="btn ghost" href="https://weworkremotely.com" target="_blank" rel="noopener">WeWorkRemotely</a>
           </div>
-          <div class="row" style="margin-top:8px">
-            <a class="btn ghost" href="https://www.linkedin.com/jobs" target="_blank" rel="noopener">LinkedIn Jobs</a>
+          <div class="row">
+            <a class="btn ghost" href="https://www.linkedin.com/jobs" target="_blank" rel="noopener">LinkedIn</a>
             <a class="btn ghost" href="https://www.indeed.com" target="_blank" rel="noopener">Indeed</a>
           </div>
         </div>
       </div>
       <div class="subpanel" data-panel="profile">
         <div class="card">
-          <h3 style="margin:0 0 8px">📄 CV &amp; Profile</h3>
+          <h3 class="card-title">📄 CV &amp; Profile</h3>
           <div class="field"><label>Full name</label><input id="prof-name" placeholder="Muhammad Faraz" /></div>
-          <div class="field"><label>Email</label><input id="prof-email" placeholder="you@email.com" /></div>
+          <div class="field"><label>Email</label><input id="prof-email" type="email" placeholder="you@email.com" /></div>
           <div class="field"><label>Skills</label><input id="prof-skills" placeholder="Python, FastAPI, Flask…" /></div>
-          <div class="field"><label>Pitch</label><textarea id="prof-pitch" rows="3" placeholder="Your sales pitch…"></textarea></div>
+          <div class="field"><label>Sales pitch</label><textarea id="prof-pitch" rows="4" placeholder="Your pitch…"></textarea></div>
           <button class="btn" id="prof-save" type="button">Save on Phone</button>
-          <p id="prof-msg" class="hint" style="margin-top:8px"></p>
+          <p id="prof-msg" class="hint"></p>
         </div>
       </div>
       <div class="subpanel" data-panel="links">
         <div class="card">
-          <h3 style="margin:0 0 8px">🔗 Quick Links</h3>
-          <p class="hint"><a href="https://www.upwork.com" target="_blank" rel="noopener">Upwork</a> · <a href="https://www.fiverr.com" target="_blank" rel="noopener">Fiverr</a> · <a href="https://github.com" target="_blank" rel="noopener">GitHub</a></p>
+          <h3 class="card-title">🔗 Quick Links</h3>
+          <div class="link-grid">
+            <a href="https://www.upwork.com" target="_blank" rel="noopener">Upwork</a>
+            <a href="https://www.fiverr.com" target="_blank" rel="noopener">Fiverr</a>
+            <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.freelancer.com" target="_blank" rel="noopener">Freelancer</a>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- SELL / LEAD HUNTER MODE -->
     <section class="panel active" data-mode-panel="sell">
       <div class="subpanel active" data-panel="hunt">
         <div class="card">
-          <h3 style="margin:0 0 6px">⚡ Lead Hunter</h3>
-          <p class="hint"><span id="platform-count">212</span>+ platforms · runs on <strong>this phone</strong> · no PC · no Render</p>
+          <h3 class="card-title">⚡ Lead Hunter</h3>
+          <p class="hint"><span id="platform-count">212</span>+ platforms · on-device · no PC · no Render</p>
           <div class="stats">
             <div class="stat"><b id="stat-total">0</b><span>Leads</span></div>
             <div class="stat"><b id="stat-email">0</b><span>Emails</span></div>
             <div class="stat"><b id="stat-wa">0</b><span>WhatsApp</span></div>
           </div>
-          <div class="stats">
+          <div class="stats stats-2">
             <div class="stat"><b id="stat-known">0</b><span>Saved forever</span></div>
             <div class="stat"><b id="stat-dup">0</b><span>Skipped dupes</span></div>
           </div>
+          <div class="field"><label>Export filename</label><input id="hunt-fname" placeholder="leads-batch-01" /></div>
           <div class="field"><label>Keywords</label><input id="hunt-kw" placeholder="python, shopify, react…" /></div>
-          <p class="hint" style="margin-bottom:8px">Platforms:</p>
-          <div class="row">
+          <div class="field"><label>Country / code filter</label><input id="hunt-cc" placeholder="+92, Pakistan, USA…" /></div>
+          <p class="hint">Platforms:</p>
+          <div class="row chips">
             <span class="chip on" data-chip="github">GitHub</span>
             <span class="chip on" data-chip="reddit">Reddit</span>
             <span class="chip on" data-chip="devto">Dev.to</span>
@@ -78,33 +86,60 @@
           <div class="row">
             <button class="btn" id="hunt-start" type="button">🚀 Start Hunting</button>
             <button class="btn ghost" id="hunt-stop" type="button" style="display:none">⏹ Stop</button>
-            <button class="btn ghost" id="hunt-export" type="button">⬇ CSV</button>
+          </div>
+          <div class="row">
+            <div class="export-wrap">
+              <button class="btn ghost" id="hunt-export-btn" type="button">⬇ Export ▾</button>
+              <div class="export-menu hidden" id="export-menu">
+                <button type="button" data-fmt="csv">📄 CSV</button>
+                <button type="button" data-fmt="xls">📊 XLS</button>
+                <button type="button" data-fmt="json">🔧 JSON</button>
+                <button type="button" data-fmt="txt_email">📋 Emails.txt</button>
+                <button type="button" data-fmt="txt_wa">💬 WhatsApp.txt</button>
+                <button type="button" data-fmt="html">🌐 HTML cards</button>
+              </div>
+            </div>
+            <button class="btn ghost" id="hunt-copy-emails" type="button">📋 Emails</button>
+            <button class="btn ghost" id="hunt-copy-wa" type="button">💬 WA</button>
             <button class="btn ghost" id="hunt-clear" type="button">🗑 Clear</button>
           </div>
-          <div id="hunt-prog" style="display:none;margin-top:12px">
-            <div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:6px">
-              <span id="prog-status">Hunting…</span><span id="prog-pct">0%</span>
-            </div>
-            <div style="height:5px;background:#141428;border-radius:99px;overflow:hidden">
-              <div id="prog-fill" style="height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#06b6d4)"></div>
-            </div>
-            <div class="log" id="hunt-log" style="margin-top:8px"></div>
+          <p class="hint export-hint">📁 Files save to <b>Files app → Documents → JobMind-Match</b>. Share menu se Downloads mein bhi save kar sakte hain.</p>
+          <div id="hunt-prog" class="hidden">
+            <div class="prog-head"><span id="prog-status">Hunting…</span><span id="prog-pct">0%</span></div>
+            <div class="prog-track"><div id="prog-fill"></div></div>
+            <div class="log" id="hunt-log"></div>
           </div>
+        </div>
+        <div class="card tscroll" id="hunt-table-card">
+          <table>
+            <thead><tr><th>#</th><th>Name</th><th>Email</th><th>WA</th><th>Src</th><th></th></tr></thead>
+            <tbody id="lead-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="subpanel" data-panel="leads">
+        <div class="card">
+          <h3 class="card-title">👥 Lead Tracker</h3>
+          <div class="field"><label>Search</label><input id="lead-search" placeholder="Name, email, WhatsApp, source…" /></div>
+          <div class="field"><label>Source</label>
+            <select id="lead-filter-src"><option value="">All sources</option></select>
+          </div>
+          <p class="hint" id="lead-filter-count">0 contacts</p>
         </div>
         <div class="card tscroll">
           <table>
             <thead><tr><th>#</th><th>Name</th><th>Email</th><th>WA</th><th>Source</th></tr></thead>
-            <tbody id="lead-tbody"><tr><td colspan="5" class="hint">Tap Start Hunting.</td></tr></tbody>
+            <tbody id="leads-tbody"></tbody>
           </table>
         </div>
       </div>
-      <div class="subpanel" data-panel="leads">
-        <div class="card"><p class="hint">Leads tab shows hunt results. Start a hunt in the Hunt tab.</p></div>
-      </div>
+
       <div class="subpanel" data-panel="pitch">
         <div class="card">
-          <h3 style="margin:0 0 8px">📄 Sales Pitch</h3>
-          <p class="hint">Use Profile in Job mode to save your pitch on this phone.</p>
+          <h3 class="card-title">📄 Sales Pitch</h3>
+          <div id="pitch-preview" class="pitch-preview hint">Save your pitch in Job → CV &amp; Profile.</div>
+          <button class="btn ghost" id="pitch-copy" type="button">📋 Copy Pitch</button>
         </div>
       </div>
     </section>
@@ -116,12 +151,12 @@
   </div>
 
   <nav class="bottom-nav">
-    <div class="nav-group" data-nav-mode="job" style="display:none;width:100%;justify-content:space-around">
-      <button type="button" class="nav-btn active" data-nav-mode="job" data-panel="search">🔍<span>Search</span></button>
+    <div class="nav-group" data-nav-mode="job">
+      <button type="button" class="nav-btn" data-nav-mode="job" data-panel="search">🔍<span>Search</span></button>
       <button type="button" class="nav-btn" data-nav-mode="job" data-panel="profile">📄<span>CV</span></button>
       <button type="button" class="nav-btn" data-nav-mode="job" data-panel="links">🔗<span>Links</span></button>
     </div>
-    <div class="nav-group" data-nav-mode="sell" style="display:flex;width:100%;justify-content:space-around">
+    <div class="nav-group active" data-nav-mode="sell">
       <button type="button" class="nav-btn active" data-nav-mode="sell" data-panel="hunt">⚡<span>Hunt</span></button>
       <button type="button" class="nav-btn" data-nav-mode="sell" data-panel="leads">👥<span>Leads</span></button>
       <button type="button" class="nav-btn" data-nav-mode="sell" data-panel="pitch">📄<span>Pitch</span></button>

@@ -1,0 +1,313 @@
+name: Build Desktop Apps
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Resolve build version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="0.0.0-ci.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build desktop bundle with PyInstaller
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f docs/assets/icon.icns ]; then
+            export PYINSTALLER_ICON="docs/assets/icon.icns"
+          elif [ -f docs/assets/icon.ico ]; then
+            export PYINSTALLER_ICON="docs/assets/icon.ico"
+          elif [ -f app/static/icon.ico ]; then
+            export PYINSTALLER_ICON="app/static/icon.ico"
+          fi
+          pyinstaller jobmind.spec --noconfirm --clean
+
+      - name: Assemble macOS .app bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_NAME="JobMindMatch"
+          APP_BUNDLE="dist/${APP_NAME}.app"
+          VERSION="${{ steps.version.outputs.version }}"
+
+          rm -rf "${APP_BUNDLE}"
+          mkdir -p "${APP_BUNDLE}/Contents/MacOS"
+          mkdir -p "${APP_BUNDLE}/Contents/Resources"
+
+          cp macos/Info.plist "${APP_BUNDLE}/Contents/Info.plist"
+          sed -i '' "s/VERSION/${VERSION}/g" "${APP_BUNDLE}/Contents/Info.plist"
+
+          cp -R "dist/${APP_NAME}/"* "${APP_BUNDLE}/Contents/MacOS/"
+          chmod +x "${APP_BUNDLE}/Contents/MacOS/${APP_NAME}"
+
+          if [ -f docs/assets/icon.icns ]; then
+            cp docs/assets/icon.icns "${APP_BUNDLE}/Contents/Resources/AppIcon.icns"
+          fi
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Package JobMindMatch-mac.dmg
+        shell: bash
+        run: |
+          set -euo pipefail
+          APP_BUNDLE="dist/JobMindMatch.app"
+          DMG_PATH="dist/JobMindMatch-mac.dmg"
+          rm -f "${DMG_PATH}"
+
+          DMG_ARGS=(
+            --volname "JobMind Match"
+            --window-pos 200 120
+            --window-size 640 420
+            --icon-size 96
+            --icon "JobMindMatch.app" 160 180
+            --hide-extension "JobMindMatch.app"
+            --app-drop-link 480 180
+            --no-internet-enable
+          )
+          if [ -f docs/assets/icon.icns ]; then
+            DMG_ARGS+=(--volicon "docs/assets/icon.icns")
+          fi
+
+          if ! create-dmg "${DMG_ARGS[@]}" "${DMG_PATH}" "${APP_BUNDLE}"; then
+            if [ ! -f "${DMG_PATH}" ]; then
+              hdiutil create -volname "JobMind Match" -srcfolder "${APP_BUNDLE}" -ov -format UDZO "${DMG_PATH}"
+            fi
+          fi
+
+          ls -lh dist/
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JobMindMatch-mac
+          path: dist/JobMindMatch-mac.dmg
+          if-no-files-found: error
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libxcb-xinerama0 \
+            libxkbcommon-x11-0 \
+            libegl1 \
+            libglib2.0-0 \
+            libsm6 \
+            libxext6 \
+            libxrender1 \
+            xdg-utils \
+            binutils \
+            wget \
+            fakeroot \
+            file
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Resolve build version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="0.0.0-ci.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build desktop bundle with PyInstaller
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f docs/assets/icon.ico ]; then
+            export PYINSTALLER_ICON="docs/assets/icon.ico"
+          elif [ -f app/static/icon.ico ]; then
+            export PYINSTALLER_ICON="app/static/icon.ico"
+          fi
+          pyinstaller jobmind.spec --noconfirm --clean
+
+      - name: Build Debian package (.deb)
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          PKG_ROOT="build/deb/jobmind-match_${VERSION}_amd64"
+          INSTALL_DIR="${PKG_ROOT}/usr/lib/jobmind-match"
+
+          rm -rf "${PKG_ROOT}"
+          mkdir -p "${PKG_ROOT}/DEBIAN"
+          mkdir -p "${INSTALL_DIR}"
+          mkdir -p "${PKG_ROOT}/usr/local/bin"
+          mkdir -p "${PKG_ROOT}/usr/share/applications"
+          mkdir -p "${PKG_ROOT}/usr/share/icons/hicolor/256x256/apps"
+
+          cp -R dist/JobMindMatch/* "${INSTALL_DIR}/"
+          chmod +x "${INSTALL_DIR}/JobMindMatch"
+
+          sed "s/VERSION/${VERSION}/g" linux/control > "${PKG_ROOT}/DEBIAN/control"
+          cp linux/jobmind-match.desktop "${PKG_ROOT}/usr/share/applications/jobmind-match.desktop"
+
+          if [ -f app/static/icon-256.png ]; then
+            ICON_SRC="app/static/icon-256.png"
+          else
+            ICON_SRC="app/static/icon-512.png"
+          fi
+          cp "${ICON_SRC}" "${PKG_ROOT}/usr/share/icons/hicolor/256x256/apps/jobmind-match.png"
+
+          printf '%s\n' '#!/bin/sh' 'exec /usr/lib/jobmind-match/JobMindMatch "$@"' > "${PKG_ROOT}/usr/local/bin/jobmind-match"
+          chmod 755 "${PKG_ROOT}/usr/local/bin/jobmind-match"
+
+          mkdir -p dist
+          dpkg-deb --build --root-owner-group "${PKG_ROOT}" "dist/JobMindMatch-linux.deb"
+          ls -lh dist/JobMindMatch-linux.deb
+
+      - name: Build AppImage
+        shell: bash
+        run: |
+          set -euo pipefail
+          APPDIR="build/AppDir"
+          rm -rf "${APPDIR}"
+          mkdir -p "${APPDIR}/usr/lib/jobmind-match"
+          mkdir -p "${APPDIR}/usr/share/applications"
+
+          cp -R dist/JobMindMatch/* "${APPDIR}/usr/lib/jobmind-match/"
+          chmod +x "${APPDIR}/usr/lib/jobmind-match/JobMindMatch"
+
+          printf '%s\n' \
+            '#!/bin/bash' \
+            'HERE="$(dirname "$(readlink -f "$0")")"' \
+            'export JOBMIND_APP_ROOT="${HERE}/usr/lib/jobmind-match"' \
+            'exec "${HERE}/usr/lib/jobmind-match/JobMindMatch" "$@"' \
+            > "${APPDIR}/AppRun"
+          chmod +x "${APPDIR}/AppRun"
+
+          printf '%s\n' \
+            '[Desktop Entry]' \
+            'Name=JobMind Match' \
+            'Comment=AI-powered job matching and lead hunting console' \
+            'Exec=AppRun' \
+            'Icon=jobmind-match' \
+            'Terminal=true' \
+            'Type=Application' \
+            'Categories=Office;Utility;' \
+            > "${APPDIR}/jobmind-match.desktop"
+
+          cp "${APPDIR}/jobmind-match.desktop" "${APPDIR}/usr/share/applications/jobmind-match.desktop"
+
+          if [ -f app/static/icon-256.png ]; then
+            ICON_SRC="app/static/icon-256.png"
+          else
+            ICON_SRC="app/static/icon-512.png"
+          fi
+          cp "${ICON_SRC}" "${APPDIR}/jobmind-match.png"
+
+          wget -q -O /tmp/appimagetool.AppImage \
+            "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x /tmp/appimagetool.AppImage
+
+          mkdir -p dist
+          ARCH=x86_64 /tmp/appimagetool.AppImage "${APPDIR}" "dist/JobMindMatch-linux.AppImage"
+          chmod +x dist/JobMindMatch-linux.AppImage
+          ls -lh dist/JobMindMatch-linux.AppImage
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: JobMindMatch-linux
+          path: |
+            dist/JobMindMatch-linux.deb
+            dist/JobMindMatch-linux.AppImage
+          if-no-files-found: error
+
+  create-release:
+    needs: [build-macos, build-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: JobMindMatch-*
+          merge-multiple: true
+          path: release-files
+
+      - name: Collect release files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-upload
+          find release-files -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.AppImage' \) -exec cp {} release-upload/ \;
+          if [ -f installer/output/JobMind-Match-Setup.exe ]; then
+            cp installer/output/JobMind-Match-Setup.exe release-upload/JobMind-Match-Setup.exe
+          fi
+          ls -lh release-upload/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: JobMind Match ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          fail_on_unmatched_files: false
+          files: |
+            release-upload/JobMindMatch-mac.dmg
+            release-upload/JobMindMatch-linux.deb
+            release-upload/JobMindMatch-linux.AppImage
+            release-upload/JobMind-Match-Setup.exe

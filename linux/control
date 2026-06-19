@@ -1,0 +1,10 @@
+Package: jobmind-match
+Version: VERSION
+Section: office
+Priority: optional
+Architecture: amd64
+Maintainer: Muhammad Faraz <farazautomation@gmail.com>
+Depends: libc6, libxcb-xinerama0, xdg-utils
+Description: AI-powered job matching and lead hunting console
+ JobMind Match helps parse CVs, rank jobs, hunt leads, and track applications.
+ Self-contained desktop build — no system Python required.

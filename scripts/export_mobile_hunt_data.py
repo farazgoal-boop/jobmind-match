@@ -13,13 +13,11 @@ from app.services.lead_platforms import PLATFORMS, get_hunt_plan, platform_summa
 OUT = ROOT / "mobile-wrapper" / "www" / "data"
 OUT.mkdir(parents=True, exist_ok=True)
 
-chips = ["github", "reddit", "devto", "misc", "wahunt"]
+chips = ["github", "reddit", "devto", "misc", "wahunt", "indiehackers"]
+_fields = ("id", "name", "type", "chip", "batches", "query", "query_index", "tag", "subreddit", "feed_url", "site")
 payload = {
     "summary": platform_summary(),
-    "platforms": [
-        {"id": p["id"], "name": p["name"], "type": p["type"], "chip": p["chip"], "batches": p["batches"]}
-        for p in PLATFORMS
-    ],
+    "platforms": [{k: p[k] for k in _fields if k in p} for p in PLATFORMS],
     "hunt_plan": get_hunt_plan(chips),
 }
 

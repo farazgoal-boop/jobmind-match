@@ -1,1 +1,3076 @@
-{"summary":{"total":212,"by_type":{"github":40,"reddit":25,"devto":20,"rss":80,"site":30,"core":17},"by_chip":{"github":40,"reddit":25,"devto":20,"misc":127}},"platforms":[],"hunt_plan":[]}
+{
+"summary": {
+"total": 212,
+"by_type": {
+"github_readme": 1,
+"github_issues": 1,
+"hackernews": 1,
+"indiehackers": 1,
+"remotive": 1,
+"weworkremotely": 1,
+"arbeitnow": 1,
+"github": 40,
+"devto": 20,
+"reddit": 45,
+"rss": 70,
+"site": 30
+},
+"by_chip": {
+"github": 42,
+"misc": 104,
+"indiehackers": 1,
+"devto": 20,
+"reddit": 45
+}
+},
+"platforms": [
+{
+"id": "core_github_readme",
+"name": "\ud83d\udcc4 GitHub READMEs",
+"type": "github_readme",
+"chip": "github",
+"batches": 3
+},
+{
+"id": "core_github_issues",
+"name": "\ud83d\udc1b GitHub Issues",
+"type": "github_issues",
+"chip": "github",
+"batches": 3
+},
+{
+"id": "core_hackernews",
+"name": "\ud83d\udd36 Hacker News",
+"type": "hackernews",
+"chip": "misc",
+"batches": 3
+},
+{
+"id": "core_indiehackers",
+"name": "\ud83c\udff4 Indie Hackers",
+"type": "indiehackers",
+"chip": "indiehackers",
+"batches": 2
+},
+{
+"id": "core_remotive",
+"name": "\ud83c\udf0d Remotive Jobs",
+"type": "remotive",
+"chip": "misc",
+"batches": 2
+},
+{
+"id": "core_weworkremotely",
+"name": "\ud83c\udfe0 We Work Remotely",
+"type": "weworkremotely",
+"chip": "misc",
+"batches": 2
+},
+{
+"id": "core_arbeitnow",
+"name": "\ud83c\udde9\ud83c\uddea Arbeitnow",
+"type": "arbeitnow",
+"chip": "misc",
+"batches": 2
+},
+{
+"id": "github_q00",
+"name": "\ud83d\udcbb GitHub: freelance developer email hire",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "freelance developer email hire",
+"query_index": 0
+},
+{
+"id": "github_q01",
+"name": "\ud83d\udcbb GitHub: hire me developer email contact",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "hire me developer email contact",
+"query_index": 1
+},
+{
+"id": "github_q02",
+"name": "\ud83d\udcbb GitHub: open to work email developer",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "open to work email developer",
+"query_index": 2
+},
+{
+"id": "github_q03",
+"name": "\ud83d\udcbb GitHub: available for hire email developer",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "available for hire email developer",
+"query_index": 3
+},
+{
+"id": "github_q04",
+"name": "\ud83d\udcbb GitHub: freelance designer email hire",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "freelance designer email hire",
+"query_index": 4
+},
+{
+"id": "github_q05",
+"name": "\ud83d\udcbb GitHub: freelance marketer email contact",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "freelance marketer email contact",
+"query_index": 5
+},
+{
+"id": "github_q06",
+"name": "\ud83d\udcbb GitHub: indie maker email contact",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "indie maker email contact",
+"query_index": 6
+},
+{
+"id": "github_q07",
+"name": "\ud83d\udcbb GitHub: solopreneur email hire",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "solopreneur email hire",
+"query_index": 7
+},
+{
+"id": "github_q08",
+"name": "\ud83d\udcbb GitHub: python developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "python developer freelance email",
+"query_index": 8
+},
+{
+"id": "github_q09",
+"name": "\ud83d\udcbb GitHub: react developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "react developer freelance email",
+"query_index": 9
+},
+{
+"id": "github_q10",
+"name": "\ud83d\udcbb GitHub: fullstack developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "fullstack developer freelance email",
+"query_index": 10
+},
+{
+"id": "github_q11",
+"name": "\ud83d\udcbb GitHub: web developer hire email contact",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "web developer hire email contact",
+"query_index": 11
+},
+{
+"id": "github_q12",
+"name": "\ud83d\udcbb GitHub: mobile developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "mobile developer freelance email",
+"query_index": 12
+},
+{
+"id": "github_q13",
+"name": "\ud83d\udcbb GitHub: wordpress developer email hire",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "wordpress developer email hire",
+"query_index": 13
+},
+{
+"id": "github_q14",
+"name": "\ud83d\udcbb GitHub: shopify developer email contact",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "shopify developer email contact",
+"query_index": 14
+},
+{
+"id": "github_q15",
+"name": "\ud83d\udcbb GitHub: django developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "django developer freelance email",
+"query_index": 15
+},
+{
+"id": "github_q16",
+"name": "\ud83d\udcbb GitHub: node developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "node developer freelance email",
+"query_index": 16
+},
+{
+"id": "github_q17",
+"name": "\ud83d\udcbb GitHub: flutter developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "flutter developer freelance email",
+"query_index": 17
+},
+{
+"id": "github_q18",
+"name": "\ud83d\udcbb GitHub: data scientist freelance email",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "data scientist freelance email",
+"query_index": 18
+},
+{
+"id": "github_q19",
+"name": "\ud83d\udcbb GitHub: machine learning engineer email",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "machine learning engineer email",
+"query_index": 19
+},
+{
+"id": "github_q20",
+"name": "\ud83d\udcbb GitHub: devops engineer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "devops engineer freelance email",
+"query_index": 20
+},
+{
+"id": "github_q21",
+"name": "\ud83d\udcbb GitHub: blockchain developer email hire",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "blockchain developer email hire",
+"query_index": 21
+},
+{
+"id": "github_q22",
+"name": "\ud83d\udcbb GitHub: graphic designer email whatsapp hire",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "graphic designer email whatsapp hire",
+"query_index": 22
+},
+{
+"id": "github_q23",
+"name": "\ud83d\udcbb GitHub: UI UX designer email contact hire",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "UI UX designer email contact hire",
+"query_index": 23
+},
+{
+"id": "github_q24",
+"name": "\ud83d\udcbb GitHub: content creator email whatsapp",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "content creator email whatsapp",
+"query_index": 24
+},
+{
+"id": "github_q25",
+"name": "\ud83d\udcbb GitHub: digital marketer email whatsapp hire",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "digital marketer email whatsapp hire",
+"query_index": 25
+},
+{
+"id": "github_q26",
+"name": "\ud83d\udcbb GitHub: SEO expert email hire contact",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "SEO expert email hire contact",
+"query_index": 26
+},
+{
+"id": "github_q27",
+"name": "\ud83d\udcbb GitHub: video editor email hire whatsapp",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "video editor email hire whatsapp",
+"query_index": 27
+},
+{
+"id": "github_q28",
+"name": "\ud83d\udcbb GitHub: copywriter email whatsapp hire",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "copywriter email whatsapp hire",
+"query_index": 28
+},
+{
+"id": "github_q29",
+"name": "\ud83d\udcbb GitHub: virtual assistant email hire",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "virtual assistant email hire",
+"query_index": 29
+},
+{
+"id": "github_q30",
+"name": "\ud83d\udcbb GitHub: typescript developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "typescript developer freelance email",
+"query_index": 30
+},
+{
+"id": "github_q31",
+"name": "\ud83d\udcbb GitHub: golang developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "golang developer freelance email",
+"query_index": 31
+},
+{
+"id": "github_q32",
+"name": "\ud83d\udcbb GitHub: rust developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "rust developer freelance email",
+"query_index": 32
+},
+{
+"id": "github_q33",
+"name": "\ud83d\udcbb GitHub: laravel developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "laravel developer freelance email",
+"query_index": 33
+},
+{
+"id": "github_q34",
+"name": "\ud83d\udcbb GitHub: vue developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "vue developer freelance email",
+"query_index": 34
+},
+{
+"id": "github_q35",
+"name": "\ud83d\udcbb GitHub: angular developer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "angular developer freelance email",
+"query_index": 35
+},
+{
+"id": "github_q36",
+"name": "\ud83d\udcbb GitHub: aws engineer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "aws engineer freelance email",
+"query_index": 36
+},
+{
+"id": "github_q37",
+"name": "\ud83d\udcbb GitHub: kubernetes engineer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 2,
+"query": "kubernetes engineer freelance email",
+"query_index": 37
+},
+{
+"id": "github_q38",
+"name": "\ud83d\udcbb GitHub: product manager freelance email",
+"type": "github",
+"chip": "github",
+"batches": 3,
+"query": "product manager freelance email",
+"query_index": 38
+},
+{
+"id": "github_q39",
+"name": "\ud83d\udcbb GitHub: technical writer freelance email",
+"type": "github",
+"chip": "github",
+"batches": 1,
+"query": "technical writer freelance email",
+"query_index": 39
+},
+{
+"id": "devto_forhire",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #forhire",
+"type": "devto",
+"chip": "devto",
+"batches": 1,
+"tag": "forhire"
+},
+{
+"id": "devto_freelance",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #freelance",
+"type": "devto",
+"chip": "devto",
+"batches": 2,
+"tag": "freelance"
+},
+{
+"id": "devto_hiring",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #hiring",
+"type": "devto",
+"chip": "devto",
+"batches": 3,
+"tag": "hiring"
+},
+{
+"id": "devto_opentowork",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #opentowork",
+"type": "devto",
+"chip": "devto",
+"batches": 1,
+"tag": "opentowork"
+},
+{
+"id": "devto_career",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #career",
+"type": "devto",
+"chip": "devto",
+"batches": 2,
+"tag": "career"
+},
+{
+"id": "devto_developer",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #developer",
+"type": "devto",
+"chip": "devto",
+"batches": 3,
+"tag": "developer"
+},
+{
+"id": "devto_webdev",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #webdev",
+"type": "devto",
+"chip": "devto",
+"batches": 1,
+"tag": "webdev"
+},
+{
+"id": "devto_python",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #python",
+"type": "devto",
+"chip": "devto",
+"batches": 2,
+"tag": "python"
+},
+{
+"id": "devto_javascript",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #javascript",
+"type": "devto",
+"chip": "devto",
+"batches": 3,
+"tag": "javascript"
+},
+{
+"id": "devto_react",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #react",
+"type": "devto",
+"chip": "devto",
+"batches": 1,
+"tag": "react"
+},
+{
+"id": "devto_node",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #node",
+"type": "devto",
+"chip": "devto",
+"batches": 2,
+"tag": "node"
+},
+{
+"id": "devto_fullstack",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #fullstack",
+"type": "devto",
+"chip": "devto",
+"batches": 3,
+"tag": "fullstack"
+},
+{
+"id": "devto_backend",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #backend",
+"type": "devto",
+"chip": "devto",
+"batches": 1,
+"tag": "backend"
+},
+{
+"id": "devto_frontend",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #frontend",
+"type": "devto",
+"chip": "devto",
+"batches": 2,
+"tag": "frontend"
+},
+{
+"id": "devto_devops",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #devops",
+"type": "devto",
+"chip": "devto",
+"batches": 3,
+"tag": "devops"
+},
+{
+"id": "devto_design",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #design",
+"type": "devto",
+"chip": "devto",
+"batches": 1,
+"tag": "design"
+},
+{
+"id": "devto_ux",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #ux",
+"type": "devto",
+"chip": "devto",
+"batches": 2,
+"tag": "ux"
+},
+{
+"id": "devto_marketing",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #marketing",
+"type": "devto",
+"chip": "devto",
+"batches": 3,
+"tag": "marketing"
+},
+{
+"id": "devto_productivity",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #productivity",
+"type": "devto",
+"chip": "devto",
+"batches": 1,
+"tag": "productivity"
+},
+{
+"id": "devto_startup",
+"name": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #startup",
+"type": "devto",
+"chip": "devto",
+"batches": 2,
+"tag": "startup"
+},
+{
+"id": "reddit_forhire",
+"name": "\ud83d\udcd6 r/forhire",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "forhire",
+"feed_url": "https://www.reddit.com/r/forhire/new/.rss"
+},
+{
+"id": "reddit_freelance",
+"name": "\ud83d\udcd6 r/freelance",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "freelance",
+"feed_url": "https://www.reddit.com/r/freelance/new/.rss"
+},
+{
+"id": "reddit_slavelabour",
+"name": "\ud83d\udcd6 r/slavelabour",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "slavelabour",
+"feed_url": "https://www.reddit.com/r/slavelabour/new/.rss"
+},
+{
+"id": "reddit_hiring",
+"name": "\ud83d\udcd6 r/hiring",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "hiring",
+"feed_url": "https://www.reddit.com/r/hiring/new/.rss"
+},
+{
+"id": "reddit_workonline",
+"name": "\ud83d\udcd6 r/WorkOnline",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "WorkOnline",
+"feed_url": "https://www.reddit.com/r/WorkOnline/new/.rss"
+},
+{
+"id": "reddit_jobbit",
+"name": "\ud83d\udcd6 r/jobbit",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "jobbit",
+"feed_url": "https://www.reddit.com/r/jobbit/new/.rss"
+},
+{
+"id": "reddit_jobs4bitcoins",
+"name": "\ud83d\udcd6 r/Jobs4Bitcoins",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "Jobs4Bitcoins",
+"feed_url": "https://www.reddit.com/r/Jobs4Bitcoins/new/.rss"
+},
+{
+"id": "reddit_remotejs",
+"name": "\ud83d\udcd6 r/remotejs",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "remotejs",
+"feed_url": "https://www.reddit.com/r/remotejs/new/.rss"
+},
+{
+"id": "reddit_remotedaily",
+"name": "\ud83d\udcd6 r/remotedaily",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "remotedaily",
+"feed_url": "https://www.reddit.com/r/remotedaily/new/.rss"
+},
+{
+"id": "reddit_digitalnomad",
+"name": "\ud83d\udcd6 r/digitalnomad",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "digitalnomad",
+"feed_url": "https://www.reddit.com/r/digitalnomad/new/.rss"
+},
+{
+"id": "reddit_virtualassistant",
+"name": "\ud83d\udcd6 r/VirtualAssistant",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "VirtualAssistant",
+"feed_url": "https://www.reddit.com/r/VirtualAssistant/new/.rss"
+},
+{
+"id": "reddit_upwork",
+"name": "\ud83d\udcd6 r/Upwork",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "Upwork",
+"feed_url": "https://www.reddit.com/r/Upwork/new/.rss"
+},
+{
+"id": "reddit_freelancer",
+"name": "\ud83d\udcd6 r/freelancer",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "freelancer",
+"feed_url": "https://www.reddit.com/r/freelancer/new/.rss"
+},
+{
+"id": "reddit_designjobs",
+"name": "\ud83d\udcd6 r/designjobs",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "designjobs",
+"feed_url": "https://www.reddit.com/r/designjobs/new/.rss"
+},
+{
+"id": "reddit_webdesign",
+"name": "\ud83d\udcd6 r/webdesign",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "webdesign",
+"feed_url": "https://www.reddit.com/r/webdesign/new/.rss"
+},
+{
+"id": "reddit_webdev",
+"name": "\ud83d\udcd6 r/webdev",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "webdev",
+"feed_url": "https://www.reddit.com/r/webdev/new/.rss"
+},
+{
+"id": "reddit_programming",
+"name": "\ud83d\udcd6 r/programming",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "programming",
+"feed_url": "https://www.reddit.com/r/programming/new/.rss"
+},
+{
+"id": "reddit_learnprogramming",
+"name": "\ud83d\udcd6 r/learnprogramming",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "learnprogramming",
+"feed_url": "https://www.reddit.com/r/learnprogramming/new/.rss"
+},
+{
+"id": "reddit_cscareerquestions",
+"name": "\ud83d\udcd6 r/cscareerquestions",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "cscareerquestions",
+"feed_url": "https://www.reddit.com/r/cscareerquestions/new/.rss"
+},
+{
+"id": "reddit_itcareerquestions",
+"name": "\ud83d\udcd6 r/ITCareerQuestions",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "ITCareerQuestions",
+"feed_url": "https://www.reddit.com/r/ITCareerQuestions/new/.rss"
+},
+{
+"id": "reddit_techjobs",
+"name": "\ud83d\udcd6 r/techjobs",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "techjobs",
+"feed_url": "https://www.reddit.com/r/techjobs/new/.rss"
+},
+{
+"id": "reddit_startups",
+"name": "\ud83d\udcd6 r/startups",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "startups",
+"feed_url": "https://www.reddit.com/r/startups/new/.rss"
+},
+{
+"id": "reddit_entrepreneur",
+"name": "\ud83d\udcd6 r/Entrepreneur",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "Entrepreneur",
+"feed_url": "https://www.reddit.com/r/Entrepreneur/new/.rss"
+},
+{
+"id": "reddit_smallbusiness",
+"name": "\ud83d\udcd6 r/smallbusiness",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "smallbusiness",
+"feed_url": "https://www.reddit.com/r/smallbusiness/new/.rss"
+},
+{
+"id": "reddit_marketing",
+"name": "\ud83d\udcd6 r/marketing",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "marketing",
+"feed_url": "https://www.reddit.com/r/marketing/new/.rss"
+},
+{
+"id": "reddit_socialmedia",
+"name": "\ud83d\udcd6 r/socialmedia",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "socialmedia",
+"feed_url": "https://www.reddit.com/r/socialmedia/new/.rss"
+},
+{
+"id": "reddit_seo",
+"name": "\ud83d\udcd6 r/SEO",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "SEO",
+"feed_url": "https://www.reddit.com/r/SEO/new/.rss"
+},
+{
+"id": "reddit_content_marketing",
+"name": "\ud83d\udcd6 r/content_marketing",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "content_marketing",
+"feed_url": "https://www.reddit.com/r/content_marketing/new/.rss"
+},
+{
+"id": "reddit_copywriting",
+"name": "\ud83d\udcd6 r/copywriting",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "copywriting",
+"feed_url": "https://www.reddit.com/r/copywriting/new/.rss"
+},
+{
+"id": "reddit_videoediting",
+"name": "\ud83d\udcd6 r/VideoEditing",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "VideoEditing",
+"feed_url": "https://www.reddit.com/r/VideoEditing/new/.rss"
+},
+{
+"id": "reddit_graphic_design",
+"name": "\ud83d\udcd6 r/graphic_design",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "graphic_design",
+"feed_url": "https://www.reddit.com/r/graphic_design/new/.rss"
+},
+{
+"id": "reddit_logodesign",
+"name": "\ud83d\udcd6 r/logodesign",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "logodesign",
+"feed_url": "https://www.reddit.com/r/logodesign/new/.rss"
+},
+{
+"id": "reddit_ui_design",
+"name": "\ud83d\udcd6 r/UI_Design",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "UI_Design",
+"feed_url": "https://www.reddit.com/r/UI_Design/new/.rss"
+},
+{
+"id": "reddit_uxdesign",
+"name": "\ud83d\udcd6 r/UXDesign",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "UXDesign",
+"feed_url": "https://www.reddit.com/r/UXDesign/new/.rss"
+},
+{
+"id": "reddit_web_design",
+"name": "\ud83d\udcd6 r/web_design",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "web_design",
+"feed_url": "https://www.reddit.com/r/web_design/new/.rss"
+},
+{
+"id": "reddit_wordpress",
+"name": "\ud83d\udcd6 r/Wordpress",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "Wordpress",
+"feed_url": "https://www.reddit.com/r/Wordpress/new/.rss"
+},
+{
+"id": "reddit_shopify",
+"name": "\ud83d\udcd6 r/shopify",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "shopify",
+"feed_url": "https://www.reddit.com/r/shopify/new/.rss"
+},
+{
+"id": "reddit_python",
+"name": "\ud83d\udcd6 r/python",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "python",
+"feed_url": "https://www.reddit.com/r/python/new/.rss"
+},
+{
+"id": "reddit_javascript",
+"name": "\ud83d\udcd6 r/javascript",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "javascript",
+"feed_url": "https://www.reddit.com/r/javascript/new/.rss"
+},
+{
+"id": "reddit_reactjs",
+"name": "\ud83d\udcd6 r/reactjs",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "reactjs",
+"feed_url": "https://www.reddit.com/r/reactjs/new/.rss"
+},
+{
+"id": "reddit_node",
+"name": "\ud83d\udcd6 r/node",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "node",
+"feed_url": "https://www.reddit.com/r/node/new/.rss"
+},
+{
+"id": "reddit_django",
+"name": "\ud83d\udcd6 r/django",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "django",
+"feed_url": "https://www.reddit.com/r/django/new/.rss"
+},
+{
+"id": "reddit_flutter",
+"name": "\ud83d\udcd6 r/flutter",
+"type": "reddit",
+"chip": "reddit",
+"batches": 1,
+"subreddit": "flutter",
+"feed_url": "https://www.reddit.com/r/flutter/new/.rss"
+},
+{
+"id": "reddit_androiddev",
+"name": "\ud83d\udcd6 r/androiddev",
+"type": "reddit",
+"chip": "reddit",
+"batches": 2,
+"subreddit": "androiddev",
+"feed_url": "https://www.reddit.com/r/androiddev/new/.rss"
+},
+{
+"id": "reddit_iosprogramming",
+"name": "\ud83d\udcd6 r/iosprogramming",
+"type": "reddit",
+"chip": "reddit",
+"batches": 3,
+"subreddit": "iosprogramming",
+"feed_url": "https://www.reddit.com/r/iosprogramming/new/.rss"
+},
+{
+"id": "rss_00_remotive_jobs",
+"name": "\ud83d\udce1 Remotive Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://remotive.com/remote-jobs/feed"
+},
+{
+"id": "rss_01_weworkremotely",
+"name": "\ud83d\udce1 WeWorkRemotely",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://weworkremotely.com/remote-jobs.rss"
+},
+{
+"id": "rss_02_arbeitnow_jobs",
+"name": "\ud83d\udce1 Arbeitnow Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://arbeitnow.com/api/job-board-feed"
+},
+{
+"id": "rss_03_remote_ok",
+"name": "\ud83d\udce1 Remote OK",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://remoteok.com/remote-jobs.rss"
+},
+{
+"id": "rss_04_jobspresso",
+"name": "\ud83d\udce1 Jobspresso",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://jobspresso.co/feed/"
+},
+{
+"id": "rss_05_authentic_jobs",
+"name": "\ud83d\udce1 Authentic Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.authenticjobs.com/rss/"
+},
+{
+"id": "rss_06_dribbble_jobs",
+"name": "\ud83d\udce1 Dribbble Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://dribbble.com/jobs.rss"
+},
+{
+"id": "rss_07_startup_jobs",
+"name": "\ud83d\udce1 Startup Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://startup.jobs/feed"
+},
+{
+"id": "rss_08_himalayas_remote",
+"name": "\ud83d\udce1 Himalayas Remote",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://himalayas.app/jobs/rss"
+},
+{
+"id": "rss_09_daily_remote",
+"name": "\ud83d\udce1 Daily Remote",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://dailyremote.com/feed/"
+},
+{
+"id": "rss_10_nodesk_remote",
+"name": "\ud83d\udce1 NoDesk Remote",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://nodesk.co/remote-jobs/feed/"
+},
+{
+"id": "rss_11_hn_who_is_hiring",
+"name": "\ud83d\udce1 HN Who Is Hiring",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://hnrss.org/whoishiring"
+},
+{
+"id": "rss_12_hn_freelancer",
+"name": "\ud83d\udce1 HN Freelancer",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://hnrss.org/newest?q=freelancer"
+},
+{
+"id": "rss_13_hn_hiring",
+"name": "\ud83d\udce1 HN Hiring",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://hnrss.org/newest?q=hiring"
+},
+{
+"id": "rss_14_hn_remote",
+"name": "\ud83d\udce1 HN Remote",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://hnrss.org/newest?q=remote"
+},
+{
+"id": "rss_15_hn_contract",
+"name": "\ud83d\udce1 HN Contract",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://hnrss.org/newest?q=contract"
+},
+{
+"id": "rss_16_stack_overflow_blog",
+"name": "\ud83d\udce1 Stack Overflow Blog",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://stackoverflow.blog/feed/"
+},
+{
+"id": "rss_17_smashing_magazine",
+"name": "\ud83d\udce1 Smashing Magazine",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.smashingmagazine.com/feed/"
+},
+{
+"id": "rss_18_product_hunt",
+"name": "\ud83d\udce1 Product Hunt",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://www.producthunt.com/feed"
+},
+{
+"id": "rss_19_angellist_talent",
+"name": "\ud83d\udce1 AngelList Talent",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://angel.co/jobs/feed"
+},
+{
+"id": "rss_20_flexjobs_blog",
+"name": "\ud83d\udce1 FlexJobs Blog",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.flexjobs.com/blog/feed/"
+},
+{
+"id": "rss_21_remote_co_jobs",
+"name": "\ud83d\udce1 Remote.co Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://remote.co/remote-jobs/feed/"
+},
+{
+"id": "rss_22_working_nomads",
+"name": "\ud83d\udce1 Working Nomads",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://www.workingnomads.com/jobs.rss"
+},
+{
+"id": "rss_23_justremote",
+"name": "\ud83d\udce1 JustRemote",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://justremote.co/remote-jobs.rss"
+},
+{
+"id": "rss_24_remote_leaf",
+"name": "\ud83d\udce1 Remote Leaf",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://remoteleaf.com/feed/"
+},
+{
+"id": "rss_25_euro_remote_jobs",
+"name": "\ud83d\udce1 Euro Remote Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://euroremotejobs.com/feed/"
+},
+{
+"id": "rss_26_remote_python",
+"name": "\ud83d\udce1 Remote Python",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.remotepython.com/feed/"
+},
+{
+"id": "rss_27_we_love_product",
+"name": "\ud83d\udce1 We Love Product",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://weloveproduct.co/feed/"
+},
+{
+"id": "rss_28_landing_jobs",
+"name": "\ud83d\udce1 Landing Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://landing.jobs/feed"
+},
+{
+"id": "rss_29_cryptocurrency_jobs",
+"name": "\ud83d\udce1 Cryptocurrency Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://cryptocurrencyjobs.co/feed/"
+},
+{
+"id": "rss_30_blockchain_jobs",
+"name": "\ud83d\udce1 Blockchain Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://blockchainjoblist.com/feed/"
+},
+{
+"id": "rss_31_ai_jobs_board",
+"name": "\ud83d\udce1 AI Jobs Board",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://ai-jobs.net/feed/"
+},
+{
+"id": "rss_32_data_jobs",
+"name": "\ud83d\udce1 Data Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://datajobs.com/feed/"
+},
+{
+"id": "rss_33_devops_jobs",
+"name": "\ud83d\udce1 DevOps Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://devopsjobs.net/feed/"
+},
+{
+"id": "rss_34_react_jobs",
+"name": "\ud83d\udce1 React Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://reactjobs.io/feed/"
+},
+{
+"id": "rss_35_vue_jobs",
+"name": "\ud83d\udce1 Vue Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://vuejobs.com/feed/"
+},
+{
+"id": "rss_36_golang_jobs",
+"name": "\ud83d\udce1 Golang Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://golangjob.com/feed/"
+},
+{
+"id": "rss_37_rust_jobs",
+"name": "\ud83d\udce1 Rust Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://rustjobs.dev/feed/"
+},
+{
+"id": "rss_38_python_jobs",
+"name": "\ud83d\udce1 Python Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://pythonjob.xyz/feed/"
+},
+{
+"id": "rss_39_javascript_jobs",
+"name": "\ud83d\udce1 JavaScript Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://javascriptjob.xyz/feed/"
+},
+{
+"id": "rss_40_design_jobs_board",
+"name": "\ud83d\udce1 Design Jobs Board",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://www.designjobsboard.com/feed/"
+},
+{
+"id": "rss_41_creative_bloq_jobs",
+"name": "\ud83d\udce1 Creative Bloq Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.creativebloq.com/feeds/all"
+},
+{
+"id": "rss_42_behance_jobs_rss",
+"name": "\ud83d\udce1 Behance Jobs RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://www.behance.net/joblist/rss"
+},
+{
+"id": "rss_43_freelancer_rss",
+"name": "\ud83d\udce1 Freelancer RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://www.freelancer.com/rss.xml"
+},
+{
+"id": "rss_44_upwork_blog",
+"name": "\ud83d\udce1 Upwork Blog",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.upwork.com/blog/feed/"
+},
+{
+"id": "rss_45_fiverr_blog",
+"name": "\ud83d\udce1 Fiverr Blog",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://blog.fiverr.com/feed/"
+},
+{
+"id": "rss_46_problogger_jobs",
+"name": "\ud83d\udce1 ProBlogger Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://problogger.com/jobs/feed/"
+},
+{
+"id": "rss_47_media_bistro",
+"name": "\ud83d\udce1 Media Bistro",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.mediabistro.com/feeds/jobs/"
+},
+{
+"id": "rss_48_journalism_jobs",
+"name": "\ud83d\udce1 Journalism Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://www.journalismjobs.com/rss/"
+},
+{
+"id": "rss_49_content_writing_jobs",
+"name": "\ud83d\udce1 Content Writing Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://contentwritingjobs.com/feed/"
+},
+{
+"id": "rss_50_copywriter_jobs",
+"name": "\ud83d\udce1 Copywriter Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://copywriterjobs.com/feed/"
+},
+{
+"id": "rss_51_marketing_hire",
+"name": "\ud83d\udce1 Marketing Hire",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://marketinghire.com/feed/"
+},
+{
+"id": "rss_52_seo_jobs",
+"name": "\ud83d\udce1 SEO Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://www.seojobs.com/feed/"
+},
+{
+"id": "rss_53_growth_hackers_jobs",
+"name": "\ud83d\udce1 Growth Hackers Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://growthhackers.com/jobs/feed/"
+},
+{
+"id": "rss_54_product_hunt_makers",
+"name": "\ud83d\udce1 Product Hunt Makers",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://www.producthunt.com/feed?category=makers"
+},
+{
+"id": "rss_55_indie_hackers_rss",
+"name": "\ud83d\udce1 Indie Hackers RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://www.indiehackers.com/feed"
+},
+{
+"id": "rss_56_dev_to_rss",
+"name": "\ud83d\udce1 Dev.to RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://dev.to/feed/tag/forhire"
+},
+{
+"id": "rss_57_dev_to_freelance",
+"name": "\ud83d\udce1 Dev.to Freelance",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://dev.to/feed/tag/freelance"
+},
+{
+"id": "rss_58_dev_to_hiring",
+"name": "\ud83d\udce1 Dev.to Hiring",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://dev.to/feed/tag/hiring"
+},
+{
+"id": "rss_59_reddit_forhire_rss",
+"name": "\ud83d\udce1 Reddit forhire RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.reddit.com/r/forhire/new/.rss"
+},
+{
+"id": "rss_60_reddit_freelance_rss",
+"name": "\ud83d\udce1 Reddit freelance RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://www.reddit.com/r/freelance/new/.rss"
+},
+{
+"id": "rss_61_reddit_slavelabour_rss",
+"name": "\ud83d\udce1 Reddit slavelabour RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://www.reddit.com/r/slavelabour/new/.rss"
+},
+{
+"id": "rss_62_reddit_hiring_rss",
+"name": "\ud83d\udce1 Reddit hiring RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.reddit.com/r/hiring/new/.rss"
+},
+{
+"id": "rss_63_reddit_workonline_rss",
+"name": "\ud83d\udce1 Reddit WorkOnline RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://www.reddit.com/r/WorkOnline/new/.rss"
+},
+{
+"id": "rss_64_reddit_remotejs_rss",
+"name": "\ud83d\udce1 Reddit remotejs RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://www.reddit.com/r/remotejs/new/.rss"
+},
+{
+"id": "rss_65_reddit_designjobs_rss",
+"name": "\ud83d\udce1 Reddit designjobs RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://www.reddit.com/r/designjobs/new/.rss"
+},
+{
+"id": "rss_66_reddit_webdev_rss",
+"name": "\ud83d\udce1 Reddit webdev RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://www.reddit.com/r/webdev/new/.rss"
+},
+{
+"id": "rss_67_reddit_virtualassistant_",
+"name": "\ud83d\udce1 Reddit VirtualAssistant RSS",
+"type": "rss",
+"chip": "misc",
+"batches": 2,
+"feed_url": "https://www.reddit.com/r/VirtualAssistant/new/.rss"
+},
+{
+"id": "rss_68_remotive_dev_jobs",
+"name": "\ud83d\udce1 Remotive Dev Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 3,
+"feed_url": "https://remotive.com/remote-jobs/software-dev/feed"
+},
+{
+"id": "rss_69_remotive_design_jobs",
+"name": "\ud83d\udce1 Remotive Design Jobs",
+"type": "rss",
+"chip": "misc",
+"batches": 1,
+"feed_url": "https://remotive.com/remote-jobs/design/feed"
+},
+{
+"id": "site_upwork_com",
+"name": "\ud83c\udf10 Upwork",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "upwork.com"
+},
+{
+"id": "site_fiverr_com",
+"name": "\ud83c\udf10 Fiverr",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "fiverr.com"
+},
+{
+"id": "site_freelancer_com",
+"name": "\ud83c\udf10 Freelancer.com",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "freelancer.com"
+},
+{
+"id": "site_guru_com",
+"name": "\ud83c\udf10 Guru",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "guru.com"
+},
+{
+"id": "site_peopleperhour_com",
+"name": "\ud83c\udf10 PeoplePerHour",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "peopleperhour.com"
+},
+{
+"id": "site_toptal_com",
+"name": "\ud83c\udf10 Toptal",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "toptal.com"
+},
+{
+"id": "site_99designs_com",
+"name": "\ud83c\udf10 99designs",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "99designs.com"
+},
+{
+"id": "site_designcrowd_com",
+"name": "\ud83c\udf10 DesignCrowd",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "designcrowd.com"
+},
+{
+"id": "site_bark_com",
+"name": "\ud83c\udf10 Bark",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "bark.com"
+},
+{
+"id": "site_taskrabbit_com",
+"name": "\ud83c\udf10 TaskRabbit",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "taskrabbit.com"
+},
+{
+"id": "site_flexjobs_com",
+"name": "\ud83c\udf10 FlexJobs",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "flexjobs.com"
+},
+{
+"id": "site_remote_co",
+"name": "\ud83c\udf10 Remote.co",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "remote.co"
+},
+{
+"id": "site_weworkremotely_com",
+"name": "\ud83c\udf10 We Work Remotely",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "weworkremotely.com"
+},
+{
+"id": "site_remotive_com",
+"name": "\ud83c\udf10 Remotive",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "remotive.com"
+},
+{
+"id": "site_wellfound_com",
+"name": "\ud83c\udf10 Wellfound",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "wellfound.com"
+},
+{
+"id": "site_gun_io",
+"name": "\ud83c\udf10 Gun.io",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "gun.io"
+},
+{
+"id": "site_lemon_io",
+"name": "\ud83c\udf10 Lemon.io",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "lemon.io"
+},
+{
+"id": "site_arc_dev",
+"name": "\ud83c\udf10 Arc.dev",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "arc.dev"
+},
+{
+"id": "site_codementor_io",
+"name": "\ud83c\udf10 Codementor",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "codementor.io"
+},
+{
+"id": "site_clutch_co",
+"name": "\ud83c\udf10 Clutch",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "clutch.co"
+},
+{
+"id": "site_sortlist_com",
+"name": "\ud83c\udf10 Sortlist",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "sortlist.com"
+},
+{
+"id": "site_thumbtack_com",
+"name": "\ud83c\udf10 Thumbtack",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "thumbtack.com"
+},
+{
+"id": "site_houzz_com",
+"name": "\ud83c\udf10 Houzz",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "houzz.com"
+},
+{
+"id": "site_behance_net",
+"name": "\ud83c\udf10 Behance",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "behance.net"
+},
+{
+"id": "site_dribbble_com",
+"name": "\ud83c\udf10 Dribbble",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "dribbble.com"
+},
+{
+"id": "site_contra_com",
+"name": "\ud83c\udf10 Contra",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "contra.com"
+},
+{
+"id": "site_workingnotworking_com",
+"name": "\ud83c\udf10 Working Not Working",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "workingnotworking.com"
+},
+{
+"id": "site_usemoonlight_com",
+"name": "\ud83c\udf10 Moonlight",
+"type": "site",
+"chip": "misc",
+"batches": 1,
+"site": "usemoonlight.com"
+},
+{
+"id": "site_cloudpeeps_com",
+"name": "\ud83c\udf10 CloudPeeps",
+"type": "site",
+"chip": "misc",
+"batches": 2,
+"site": "cloudpeeps.com"
+},
+{
+"id": "site_simplyhired_com",
+"name": "\ud83c\udf10 SimplyHired",
+"type": "site",
+"chip": "misc",
+"batches": 3,
+"site": "simplyhired.com"
+}
+],
+"hunt_plan": [
+{
+"source": "core_github_readme",
+"label": "\ud83d\udcc4 GitHub READMEs",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "core_github_issues",
+"label": "\ud83d\udc1b GitHub Issues",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "core_hackernews",
+"label": "\ud83d\udd36 Hacker News",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "core_indiehackers",
+"label": "\ud83c\udff4 Indie Hackers",
+"batches": 2,
+"chip": "indiehackers"
+},
+{
+"source": "core_remotive",
+"label": "\ud83c\udf0d Remotive Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "core_weworkremotely",
+"label": "\ud83c\udfe0 We Work Remotely",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "core_arbeitnow",
+"label": "\ud83c\udde9\ud83c\uddea Arbeitnow",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "github_q00",
+"label": "\ud83d\udcbb GitHub: freelance developer email hire",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q01",
+"label": "\ud83d\udcbb GitHub: hire me developer email contact",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q02",
+"label": "\ud83d\udcbb GitHub: open to work email developer",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q03",
+"label": "\ud83d\udcbb GitHub: available for hire email developer",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q04",
+"label": "\ud83d\udcbb GitHub: freelance designer email hire",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q05",
+"label": "\ud83d\udcbb GitHub: freelance marketer email contact",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q06",
+"label": "\ud83d\udcbb GitHub: indie maker email contact",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q07",
+"label": "\ud83d\udcbb GitHub: solopreneur email hire",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q08",
+"label": "\ud83d\udcbb GitHub: python developer freelance email",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q09",
+"label": "\ud83d\udcbb GitHub: react developer freelance email",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q10",
+"label": "\ud83d\udcbb GitHub: fullstack developer freelance email",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q11",
+"label": "\ud83d\udcbb GitHub: web developer hire email contact",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q12",
+"label": "\ud83d\udcbb GitHub: mobile developer freelance email",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q13",
+"label": "\ud83d\udcbb GitHub: wordpress developer email hire",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q14",
+"label": "\ud83d\udcbb GitHub: shopify developer email contact",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q15",
+"label": "\ud83d\udcbb GitHub: django developer freelance email",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q16",
+"label": "\ud83d\udcbb GitHub: node developer freelance email",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q17",
+"label": "\ud83d\udcbb GitHub: flutter developer freelance email",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q18",
+"label": "\ud83d\udcbb GitHub: data scientist freelance email",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q19",
+"label": "\ud83d\udcbb GitHub: machine learning engineer email",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q20",
+"label": "\ud83d\udcbb GitHub: devops engineer freelance email",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q21",
+"label": "\ud83d\udcbb GitHub: blockchain developer email hire",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q22",
+"label": "\ud83d\udcbb GitHub: graphic designer email whatsapp hire",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q23",
+"label": "\ud83d\udcbb GitHub: UI UX designer email contact hire",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q24",
+"label": "\ud83d\udcbb GitHub: content creator email whatsapp",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q25",
+"label": "\ud83d\udcbb GitHub: digital marketer email whatsapp hire",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q26",
+"label": "\ud83d\udcbb GitHub: SEO expert email hire contact",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q27",
+"label": "\ud83d\udcbb GitHub: video editor email hire whatsapp",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q28",
+"label": "\ud83d\udcbb GitHub: copywriter email whatsapp hire",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q29",
+"label": "\ud83d\udcbb GitHub: virtual assistant email hire",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q30",
+"label": "\ud83d\udcbb GitHub: typescript developer freelance email",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q31",
+"label": "\ud83d\udcbb GitHub: golang developer freelance email",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q32",
+"label": "\ud83d\udcbb GitHub: rust developer freelance email",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q33",
+"label": "\ud83d\udcbb GitHub: laravel developer freelance email",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q34",
+"label": "\ud83d\udcbb GitHub: vue developer freelance email",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q35",
+"label": "\ud83d\udcbb GitHub: angular developer freelance email",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q36",
+"label": "\ud83d\udcbb GitHub: aws engineer freelance email",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "github_q37",
+"label": "\ud83d\udcbb GitHub: kubernetes engineer freelance email",
+"batches": 2,
+"chip": "github"
+},
+{
+"source": "github_q38",
+"label": "\ud83d\udcbb GitHub: product manager freelance email",
+"batches": 3,
+"chip": "github"
+},
+{
+"source": "github_q39",
+"label": "\ud83d\udcbb GitHub: technical writer freelance email",
+"batches": 1,
+"chip": "github"
+},
+{
+"source": "devto_forhire",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #forhire",
+"batches": 1,
+"chip": "devto"
+},
+{
+"source": "devto_freelance",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #freelance",
+"batches": 2,
+"chip": "devto"
+},
+{
+"source": "devto_hiring",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #hiring",
+"batches": 3,
+"chip": "devto"
+},
+{
+"source": "devto_opentowork",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #opentowork",
+"batches": 1,
+"chip": "devto"
+},
+{
+"source": "devto_career",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #career",
+"batches": 2,
+"chip": "devto"
+},
+{
+"source": "devto_developer",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #developer",
+"batches": 3,
+"chip": "devto"
+},
+{
+"source": "devto_webdev",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #webdev",
+"batches": 1,
+"chip": "devto"
+},
+{
+"source": "devto_python",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #python",
+"batches": 2,
+"chip": "devto"
+},
+{
+"source": "devto_javascript",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #javascript",
+"batches": 3,
+"chip": "devto"
+},
+{
+"source": "devto_react",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #react",
+"batches": 1,
+"chip": "devto"
+},
+{
+"source": "devto_node",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #node",
+"batches": 2,
+"chip": "devto"
+},
+{
+"source": "devto_fullstack",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #fullstack",
+"batches": 3,
+"chip": "devto"
+},
+{
+"source": "devto_backend",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #backend",
+"batches": 1,
+"chip": "devto"
+},
+{
+"source": "devto_frontend",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #frontend",
+"batches": 2,
+"chip": "devto"
+},
+{
+"source": "devto_devops",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #devops",
+"batches": 3,
+"chip": "devto"
+},
+{
+"source": "devto_design",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #design",
+"batches": 1,
+"chip": "devto"
+},
+{
+"source": "devto_ux",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #ux",
+"batches": 2,
+"chip": "devto"
+},
+{
+"source": "devto_marketing",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #marketing",
+"batches": 3,
+"chip": "devto"
+},
+{
+"source": "devto_productivity",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #productivity",
+"batches": 1,
+"chip": "devto"
+},
+{
+"source": "devto_startup",
+"label": "\ud83d\udc68\u200d\ud83d\udcbb Dev.to #startup",
+"batches": 2,
+"chip": "devto"
+},
+{
+"source": "reddit_forhire",
+"label": "\ud83d\udcd6 r/forhire",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_freelance",
+"label": "\ud83d\udcd6 r/freelance",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_slavelabour",
+"label": "\ud83d\udcd6 r/slavelabour",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_hiring",
+"label": "\ud83d\udcd6 r/hiring",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_workonline",
+"label": "\ud83d\udcd6 r/WorkOnline",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_jobbit",
+"label": "\ud83d\udcd6 r/jobbit",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_jobs4bitcoins",
+"label": "\ud83d\udcd6 r/Jobs4Bitcoins",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_remotejs",
+"label": "\ud83d\udcd6 r/remotejs",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_remotedaily",
+"label": "\ud83d\udcd6 r/remotedaily",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_digitalnomad",
+"label": "\ud83d\udcd6 r/digitalnomad",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_virtualassistant",
+"label": "\ud83d\udcd6 r/VirtualAssistant",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_upwork",
+"label": "\ud83d\udcd6 r/Upwork",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_freelancer",
+"label": "\ud83d\udcd6 r/freelancer",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_designjobs",
+"label": "\ud83d\udcd6 r/designjobs",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_webdesign",
+"label": "\ud83d\udcd6 r/webdesign",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_webdev",
+"label": "\ud83d\udcd6 r/webdev",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_programming",
+"label": "\ud83d\udcd6 r/programming",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_learnprogramming",
+"label": "\ud83d\udcd6 r/learnprogramming",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_cscareerquestions",
+"label": "\ud83d\udcd6 r/cscareerquestions",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_itcareerquestions",
+"label": "\ud83d\udcd6 r/ITCareerQuestions",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_techjobs",
+"label": "\ud83d\udcd6 r/techjobs",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_startups",
+"label": "\ud83d\udcd6 r/startups",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_entrepreneur",
+"label": "\ud83d\udcd6 r/Entrepreneur",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_smallbusiness",
+"label": "\ud83d\udcd6 r/smallbusiness",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_marketing",
+"label": "\ud83d\udcd6 r/marketing",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_socialmedia",
+"label": "\ud83d\udcd6 r/socialmedia",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_seo",
+"label": "\ud83d\udcd6 r/SEO",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_content_marketing",
+"label": "\ud83d\udcd6 r/content_marketing",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_copywriting",
+"label": "\ud83d\udcd6 r/copywriting",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_videoediting",
+"label": "\ud83d\udcd6 r/VideoEditing",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_graphic_design",
+"label": "\ud83d\udcd6 r/graphic_design",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_logodesign",
+"label": "\ud83d\udcd6 r/logodesign",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_ui_design",
+"label": "\ud83d\udcd6 r/UI_Design",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_uxdesign",
+"label": "\ud83d\udcd6 r/UXDesign",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_web_design",
+"label": "\ud83d\udcd6 r/web_design",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_wordpress",
+"label": "\ud83d\udcd6 r/Wordpress",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_shopify",
+"label": "\ud83d\udcd6 r/shopify",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_python",
+"label": "\ud83d\udcd6 r/python",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_javascript",
+"label": "\ud83d\udcd6 r/javascript",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_reactjs",
+"label": "\ud83d\udcd6 r/reactjs",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_node",
+"label": "\ud83d\udcd6 r/node",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_django",
+"label": "\ud83d\udcd6 r/django",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "reddit_flutter",
+"label": "\ud83d\udcd6 r/flutter",
+"batches": 1,
+"chip": "reddit"
+},
+{
+"source": "reddit_androiddev",
+"label": "\ud83d\udcd6 r/androiddev",
+"batches": 2,
+"chip": "reddit"
+},
+{
+"source": "reddit_iosprogramming",
+"label": "\ud83d\udcd6 r/iosprogramming",
+"batches": 3,
+"chip": "reddit"
+},
+{
+"source": "rss_00_remotive_jobs",
+"label": "\ud83d\udce1 Remotive Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_01_weworkremotely",
+"label": "\ud83d\udce1 WeWorkRemotely",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_02_arbeitnow_jobs",
+"label": "\ud83d\udce1 Arbeitnow Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_03_remote_ok",
+"label": "\ud83d\udce1 Remote OK",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_04_jobspresso",
+"label": "\ud83d\udce1 Jobspresso",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_05_authentic_jobs",
+"label": "\ud83d\udce1 Authentic Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_06_dribbble_jobs",
+"label": "\ud83d\udce1 Dribbble Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_07_startup_jobs",
+"label": "\ud83d\udce1 Startup Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_08_himalayas_remote",
+"label": "\ud83d\udce1 Himalayas Remote",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_09_daily_remote",
+"label": "\ud83d\udce1 Daily Remote",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_10_nodesk_remote",
+"label": "\ud83d\udce1 NoDesk Remote",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_11_hn_who_is_hiring",
+"label": "\ud83d\udce1 HN Who Is Hiring",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_12_hn_freelancer",
+"label": "\ud83d\udce1 HN Freelancer",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_13_hn_hiring",
+"label": "\ud83d\udce1 HN Hiring",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_14_hn_remote",
+"label": "\ud83d\udce1 HN Remote",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_15_hn_contract",
+"label": "\ud83d\udce1 HN Contract",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_16_stack_overflow_blog",
+"label": "\ud83d\udce1 Stack Overflow Blog",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_17_smashing_magazine",
+"label": "\ud83d\udce1 Smashing Magazine",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_18_product_hunt",
+"label": "\ud83d\udce1 Product Hunt",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_19_angellist_talent",
+"label": "\ud83d\udce1 AngelList Talent",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_20_flexjobs_blog",
+"label": "\ud83d\udce1 FlexJobs Blog",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_21_remote_co_jobs",
+"label": "\ud83d\udce1 Remote.co Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_22_working_nomads",
+"label": "\ud83d\udce1 Working Nomads",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_23_justremote",
+"label": "\ud83d\udce1 JustRemote",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_24_remote_leaf",
+"label": "\ud83d\udce1 Remote Leaf",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_25_euro_remote_jobs",
+"label": "\ud83d\udce1 Euro Remote Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_26_remote_python",
+"label": "\ud83d\udce1 Remote Python",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_27_we_love_product",
+"label": "\ud83d\udce1 We Love Product",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_28_landing_jobs",
+"label": "\ud83d\udce1 Landing Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_29_cryptocurrency_jobs",
+"label": "\ud83d\udce1 Cryptocurrency Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_30_blockchain_jobs",
+"label": "\ud83d\udce1 Blockchain Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_31_ai_jobs_board",
+"label": "\ud83d\udce1 AI Jobs Board",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_32_data_jobs",
+"label": "\ud83d\udce1 Data Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_33_devops_jobs",
+"label": "\ud83d\udce1 DevOps Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_34_react_jobs",
+"label": "\ud83d\udce1 React Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_35_vue_jobs",
+"label": "\ud83d\udce1 Vue Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_36_golang_jobs",
+"label": "\ud83d\udce1 Golang Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_37_rust_jobs",
+"label": "\ud83d\udce1 Rust Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_38_python_jobs",
+"label": "\ud83d\udce1 Python Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_39_javascript_jobs",
+"label": "\ud83d\udce1 JavaScript Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_40_design_jobs_board",
+"label": "\ud83d\udce1 Design Jobs Board",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_41_creative_bloq_jobs",
+"label": "\ud83d\udce1 Creative Bloq Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_42_behance_jobs_rss",
+"label": "\ud83d\udce1 Behance Jobs RSS",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_43_freelancer_rss",
+"label": "\ud83d\udce1 Freelancer RSS",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_44_upwork_blog",
+"label": "\ud83d\udce1 Upwork Blog",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_45_fiverr_blog",
+"label": "\ud83d\udce1 Fiverr Blog",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_46_problogger_jobs",
+"label": "\ud83d\udce1 ProBlogger Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_47_media_bistro",
+"label": "\ud83d\udce1 Media Bistro",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_48_journalism_jobs",
+"label": "\ud83d\udce1 Journalism Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_49_content_writing_jobs",
+"label": "\ud83d\udce1 Content Writing Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_50_copywriter_jobs",
+"label": "\ud83d\udce1 Copywriter Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_51_marketing_hire",
+"label": "\ud83d\udce1 Marketing Hire",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_52_seo_jobs",
+"label": "\ud83d\udce1 SEO Jobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_53_growth_hackers_jobs",
+"label": "\ud83d\udce1 Growth Hackers Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_54_product_hunt_makers",
+"label": "\ud83d\udce1 Product Hunt Makers",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_55_indie_hackers_rss",
+"label": "\ud83d\udce1 Indie Hackers RSS",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_56_dev_to_rss",
+"label": "\ud83d\udce1 Dev.to RSS",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_57_dev_to_freelance",
+"label": "\ud83d\udce1 Dev.to Freelance",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_58_dev_to_hiring",
+"label": "\ud83d\udce1 Dev.to Hiring",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_59_reddit_forhire_rss",
+"label": "\ud83d\udce1 Reddit forhire RSS",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_60_reddit_freelance_rss",
+"label": "\ud83d\udce1 Reddit freelance RSS",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_61_reddit_slavelabour_rss",
+"label": "\ud83d\udce1 Reddit slavelabour RSS",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_62_reddit_hiring_rss",
+"label": "\ud83d\udce1 Reddit hiring RSS",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_63_reddit_workonline_rss",
+"label": "\ud83d\udce1 Reddit WorkOnline RSS",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_64_reddit_remotejs_rss",
+"label": "\ud83d\udce1 Reddit remotejs RSS",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_65_reddit_designjobs_rss",
+"label": "\ud83d\udce1 Reddit designjobs RSS",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_66_reddit_webdev_rss",
+"label": "\ud83d\udce1 Reddit webdev RSS",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "rss_67_reddit_virtualassistant_",
+"label": "\ud83d\udce1 Reddit VirtualAssistant RSS",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "rss_68_remotive_dev_jobs",
+"label": "\ud83d\udce1 Remotive Dev Jobs",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "rss_69_remotive_design_jobs",
+"label": "\ud83d\udce1 Remotive Design Jobs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_upwork_com",
+"label": "\ud83c\udf10 Upwork",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_fiverr_com",
+"label": "\ud83c\udf10 Fiverr",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_freelancer_com",
+"label": "\ud83c\udf10 Freelancer.com",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_guru_com",
+"label": "\ud83c\udf10 Guru",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_peopleperhour_com",
+"label": "\ud83c\udf10 PeoplePerHour",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_toptal_com",
+"label": "\ud83c\udf10 Toptal",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_99designs_com",
+"label": "\ud83c\udf10 99designs",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_designcrowd_com",
+"label": "\ud83c\udf10 DesignCrowd",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_bark_com",
+"label": "\ud83c\udf10 Bark",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_taskrabbit_com",
+"label": "\ud83c\udf10 TaskRabbit",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_flexjobs_com",
+"label": "\ud83c\udf10 FlexJobs",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_remote_co",
+"label": "\ud83c\udf10 Remote.co",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_weworkremotely_com",
+"label": "\ud83c\udf10 We Work Remotely",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_remotive_com",
+"label": "\ud83c\udf10 Remotive",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_wellfound_com",
+"label": "\ud83c\udf10 Wellfound",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_gun_io",
+"label": "\ud83c\udf10 Gun.io",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_lemon_io",
+"label": "\ud83c\udf10 Lemon.io",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_arc_dev",
+"label": "\ud83c\udf10 Arc.dev",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_codementor_io",
+"label": "\ud83c\udf10 Codementor",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_clutch_co",
+"label": "\ud83c\udf10 Clutch",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_sortlist_com",
+"label": "\ud83c\udf10 Sortlist",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_thumbtack_com",
+"label": "\ud83c\udf10 Thumbtack",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_houzz_com",
+"label": "\ud83c\udf10 Houzz",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_behance_net",
+"label": "\ud83c\udf10 Behance",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_dribbble_com",
+"label": "\ud83c\udf10 Dribbble",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_contra_com",
+"label": "\ud83c\udf10 Contra",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_workingnotworking_com",
+"label": "\ud83c\udf10 Working Not Working",
+"batches": 3,
+"chip": "misc"
+},
+{
+"source": "site_usemoonlight_com",
+"label": "\ud83c\udf10 Moonlight",
+"batches": 1,
+"chip": "misc"
+},
+{
+"source": "site_cloudpeeps_com",
+"label": "\ud83c\udf10 CloudPeeps",
+"batches": 2,
+"chip": "misc"
+},
+{
+"source": "site_simplyhired_com",
+"label": "\ud83c\udf10 SimplyHired",
+"batches": 3,
+"chip": "misc"
+}
+]
+}

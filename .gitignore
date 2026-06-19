@@ -22,3 +22,10 @@ mind-manage/.env
 mind-manage/apps/api/.env
 mind-manage/apps/web/.env.local
 mind-manage/apps/web/.next/
+build/
+*.spec.bak
+AppDir/
+*.dmg
+*.AppImage
+*.deb
+build/deb/

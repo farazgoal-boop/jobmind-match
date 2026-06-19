@@ -1,0 +1,2 @@
+# Development / packaging dependencies (not required at runtime on Render)
+pyinstaller==6.11.1
