@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="JobMind Match" />
-  <title>JobMind Match — Premium Console</title>
+  <title>JobMind Match</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -112,8 +112,8 @@
     <div class="panel panel-animate" data-panel="job-profile" data-panel-mode="job">
     <section class="card grid-two profile-shell">
       <div class="profile-panel">
-        <div class="panel-label">Profile Setup</div>
-        <h2>Create or Update Your Profile</h2>
+        <div class="panel-label">Profile setup</div>
+        <h2>Create or update your profile</h2>
         <form action="/dashboard/profile" method="post" class="stack-form">
           <input type="hidden" name="profile_id" value="{{ selected.id if selected else '' }}" />
           <input type="text" name="full_name" placeholder="Full name" value="{{ selected.full_name if selected else '' }}" required />
@@ -128,13 +128,13 @@
           <input type="text" name="product_name" placeholder="Product or service name" value="{{ selected.product_name if selected else '' }}" />
           <input type="url" name="product_url" placeholder="Product URL https://..." value="{{ selected.product_url if selected else '' }}" />
           <textarea name="sales_pitch" rows="4" placeholder="Short pitch that will be reused in semi-auto outreach">{{ selected.sales_pitch if selected else '' }}</textarea>
-          <button type="submit">{{ 'Update My Profile' if selected else 'Save My Profile' }}</button>
+          <button type="submit">{{ 'Update my profile' if selected else 'Save my profile' }}</button>
         </form>
       </div>
 
       <div class="profile-panel upload-panel">
-        <div class="panel-label">Document Intake</div>
-        <h2>Upload Your CV</h2>
+        <div class="panel-label">Document intake</div>
+        <h2>Upload your CV</h2>
         <form action="/dashboard/upload-cv" method="post" enctype="multipart/form-data" class="stack-form">
           <select name="candidate_id" required>
             <option value="">Select profile</option>
@@ -145,7 +145,7 @@
             {% endfor %}
           </select>
           <input type="file" name="file" accept=".pdf,.docx" required />
-          <button type="submit">Upload My CV</button>
+          <button type="submit">Upload my CV</button>
         </form>
         {% if resume_library %}
         <div class="or-divider"><span>or</span></div>
@@ -165,7 +165,7 @@
             {% endfor %}
           </select>
           <p class="submit-feedback is-visible" data-role="resume-library-feedback">Choose a saved resume to enable import.</p>
-          <button type="submit" data-role="resume-library-submit">Use Saved Resume</button>
+          <button type="submit" data-role="resume-library-submit">Use saved resume</button>
         </form>
         {% endif %}
         {% if selected.resume_url or selected.portfolio_url or selected.linkedin_url or selected.upwork_url or selected.fiverr_url %}
@@ -1282,9 +1282,9 @@ document.addEventListener('click',e=>{
     <div class="panel" data-panel="sell-profile" data-panel-mode="sell">
     <section class="card grid-two profile-shell profile-shell-sell">
       <div class="profile-panel">
-        <div class="panel-label">Profile &amp; Pitch</div>
-        <h2>Your Selling Profile</h2>
-        <form action="/dashboard/profile" method="post" class="stack-form">
+        <div class="panel-label">Profile &amp; pitch</div>
+        <h2>Your selling profile</h2>
+        <form action="/dashboard/profile" method="post" class="stack-form" id="sell-profile-form">
           <input type="hidden" name="profile_id" value="{{ selected.id if selected else '' }}" />
           <input type="text" name="full_name" placeholder="Full name" value="{{ selected.full_name if selected else '' }}" required />
           <input type="email" name="email" placeholder="Email" value="{{ selected.email if selected else '' }}" required />
@@ -1295,20 +1295,38 @@ document.addEventListener('click',e=>{
           <input type="url" name="linkedin_url" placeholder="LinkedIn profile URL" value="{{ selected.linkedin_url if selected else '' }}" />
           <input type="url" name="upwork_url" placeholder="Upwork profile URL" value="{{ selected.upwork_url if selected else '' }}" />
           <input type="url" name="fiverr_url" placeholder="Fiverr profile URL" value="{{ selected.fiverr_url if selected else '' }}" />
-          <button type="submit">{{ 'Update Profile' if selected else 'Save Profile' }}</button>
+          <button type="submit">{{ 'Update profile' if selected else 'Save profile' }}</button>
         </form>
       </div>
       <div class="profile-panel upload-panel">
-        <div class="panel-label">Pitch Preview</div>
-        <h2>Outreach Snapshot</h2>
+        <div class="panel-label">Pitch preview</div>
+        <h2>Outreach snapshot</h2>
         {% if selected %}
-        <p class="hint"><strong>{{ selected.full_name }}</strong> — {{ selected.product_name or 'Your service' }}</p>
-        <p>{{ selected.sales_pitch or 'Add your sales pitch to reuse in client outreach.' }}</p>
+        <p class="hint"><strong id="sell-preview-name">{{ selected.full_name }}</strong> — <span id="sell-preview-product">{{ selected.product_name or 'Your service' }}</span></p>
+        <p id="sell-preview-pitch">{{ selected.sales_pitch or 'Add your sales pitch to reuse in client outreach.' }}</p>
         {% else %}
         <p class="hint">Create a profile to save your pitch and selling links.</p>
         {% endif %}
       </div>
     </section>
+    <script>
+    (function(){
+      var f=document.getElementById('sell-profile-form');
+      if(!f)return;
+      var nameIn=f.querySelector('[name="full_name"]');
+      var prodIn=f.querySelector('[name="product_name"]');
+      var pitchIn=f.querySelector('[name="sales_pitch"]');
+      var nameOut=document.getElementById('sell-preview-name');
+      var prodOut=document.getElementById('sell-preview-product');
+      var pitchOut=document.getElementById('sell-preview-pitch');
+      function upd(){
+        if(nameOut)nameOut.textContent=nameIn.value||'Your name';
+        if(prodOut)prodOut.textContent=prodIn.value||'Your service';
+        if(pitchOut)pitchOut.textContent=pitchIn.value||'Add your sales pitch to reuse in client outreach.';
+      }
+      [nameIn,prodIn,pitchIn].forEach(function(el){if(el)el.addEventListener('input',upd);});
+    })();
+    </script>
     </div>
 
     <div class="panel" data-panel="sell-search" data-panel-mode="sell">
