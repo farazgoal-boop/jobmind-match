@@ -207,9 +207,7 @@
       <section class="card mode-panel mode-panel-job">
         <div class="section-head mode-panel-head">
           <div>
-            <p class="eyebrow">Mode 1</p>
             <h2>Job Search Mode</h2>
-            <p class="hint">Only job filters, only job results, only application tracking. Small gigs are merged here as a filter, not a separate workflow.</p>
           </div>
           <div class="filter-overview" data-role="job-filter-overview">
             <span>Role: {{ (search_focus or 'python')|replace('_', ' ')|title }}</span>
@@ -235,7 +233,6 @@
           <div class="filter-panel span-all">
             <div class="filter-panel-head">
               <h3>Job Presets</h3>
-              <p>Save and apply only job-search presets here. Client-selling presets stay out of this mode.</p>
             </div>
             <div class="filter-grid filter-grid-preset">
               <label class="field-group">
@@ -265,7 +262,6 @@
             <div class="filter-panel">
               <div class="filter-panel-head">
                 <h3>Core Search</h3>
-                <p>Keep the job search focused on role, geography, trust, and job freshness.</p>
               </div>
               <div class="filter-grid">
                 <label class="field-group">
@@ -328,11 +324,14 @@
                 </label>
               </div>
             </div>
+          </div><!-- /job-mode-grid -->
 
+          <details class="job-more-filters">
+            <summary class="job-more-summary">More filters ▾</summary>
+          <div class="filter-grid job-mode-grid">
             <div class="filter-panel">
               <div class="filter-panel-head">
                 <h3>Job Filters</h3>
-                <p>Use gig and role strictness inside job mode instead of a separate mini-jobs workflow.</p>
               </div>
               <div class="filter-grid">
                 <label class="field-group">
@@ -383,12 +382,11 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div><!-- /job-mode-grid advanced -->
 
           <div class="filter-panel span-all">
             <div class="filter-panel-head">
               <h3>Job Sources</h3>
-              <p>Only job-search channels appear here. No Google client routes, no selling links, no residency hunting labels.</p>
             </div>
             <div class="filter-grid filter-grid-two">
               <div class="filter-cluster">
@@ -404,6 +402,7 @@
               </div>
             </div>
           </div>
+          </details><!-- /job-more-filters -->
 
           <div class="filter-actions span-all">
             <p class="submit-feedback" data-role="submit-feedback" data-mode="job" aria-live="polite"></p>

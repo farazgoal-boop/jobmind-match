@@ -1961,6 +1961,38 @@ button.success:hover:not(:disabled),
 }
 .tracker-modal-close:hover { color: var(--text-primary); background: rgba(255,255,255,.06); }
 
+/* Job Search — progressive disclosure + button weight */
+.job-more-filters { margin-top: 12px; }
+.job-more-summary {
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 0 4px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+.job-more-summary::-webkit-details-marker { display: none; }
+.job-more-summary::marker { display: none; }
+.job-more-filters[open] .job-more-summary { color: var(--text-secondary); }
+.job-more-filters > .filter-grid,
+.job-more-filters > .filter-panel { margin-top: 10px; }
+.filter-actions button[type=submit] {
+  background: linear-gradient(135deg, var(--accent), #5b21b6);
+  color: #fff;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+}
+.filter-actions button[type=submit]:hover { opacity: 0.88; }
+
 /* --------------------------------------------------------------------------
    Legacy / auxiliary components
    -------------------------------------------------------------------------- */
