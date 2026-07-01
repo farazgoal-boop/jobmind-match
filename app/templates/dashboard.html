@@ -21,7 +21,10 @@
     /* Critical — ensures premium dark UI + single-panel view before full CSS loads */
     :root { --bg-primary:#07070f; --bg-surface:#0e0e1c; --accent:#7c3aed; --text-primary:#eeeef8; --text-muted:#6666a0; --sidebar-width:220px; --header-height:60px; }
     html, body { margin:0; background:#07070f !important; color:#eeeef8 !important; font-family:Inter,system-ui,sans-serif; min-height:100vh; }
-    .panel:not(.active) { display:none !important; }
+    .panel { display:none !important; }
+    .panel.active { display:block !important; }
+    .job-search-layout.active { display:grid !important; grid-template-columns:minmax(280px,340px) minmax(0,1fr); gap:20px; align-items:start; }
+    .mode-shell { width:100%; min-width:0; }
     .mode-shell.hidden { display:none !important; }
     .profile-dropdown { opacity:0; visibility:hidden; pointer-events:none; position:absolute; }
     .profile-dropdown.open { opacity:1; visibility:visible; pointer-events:auto; }
