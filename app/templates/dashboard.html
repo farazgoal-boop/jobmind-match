@@ -1597,81 +1597,27 @@ document.addEventListener('click',e=>{
         <div class="section-head">
           <div>
             <h2>Lead Tracker</h2>
-            <p class="hint">This tracker is only for clients. Status path: discover → contacted → replied → negotiation → won.</p>
+            <p class="hint">Track client prospects through your pipeline.</p>
           </div>
-          <div class="status-grid compact-status-grid">
-            <div class="status-card"><p>Total</p><strong>{{ client_status_summary.total }}</strong></div>
-            <div class="status-card"><p>Discover</p><strong>{{ client_status_summary.discover }}</strong></div>
-            <div class="status-card"><p>Contacted</p><strong>{{ client_status_summary.contacted }}</strong></div>
-            <div class="status-card"><p>Replied</p><strong>{{ client_status_summary.replied }}</strong></div>
-            <div class="status-card"><p>Negotiation</p><strong>{{ client_status_summary.negotiation }}</strong></div>
-            <div class="status-card"><p>Won</p><strong>{{ client_status_summary.won }}</strong></div>
-          </div>
-        </div>
-        {% if selected %}
-        <form action="/dashboard/client-leads" method="post" class="stack-form tracker-create-form">
-          <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
-          <input type="text" name="company" placeholder="Client company or party" required />
-          <input type="text" name="lead_name" placeholder="Contact person" />
-          <input type="text" name="source" placeholder="LinkedIn, Google, Upwork, Fiverr" />
-          <input type="url" name="lead_url" placeholder="Lead URL https://..." />
-          <input type="email" name="contact_email" placeholder="Email" />
-          <input type="text" name="contact_phone" placeholder="Phone or WhatsApp" />
-          <select name="contact_channel">
-            <option value="email">Email</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="linkedin">LinkedIn</option>
-            <option value="call">Call</option>
-            <option value="website">Website form</option>
-          </select>
-          <select name="offer_type">
-            <option value="software">Software offering</option>
-            <option value="services">Dev services</option>
-            <option value="automation">Automation</option>
-          </select>
-          <select name="status">
-            <option value="discover">discover</option>
-            <option value="contacted">contacted</option>
-            <option value="replied">replied</option>
-            <option value="negotiation">negotiation</option>
-            <option value="won">won</option>
-            <option value="lost">lost</option>
-          </select>
-          <input type="date" name="follow_up_date" />
-          <textarea name="notes" rows="3" placeholder="Need, price range, interest, next step"></textarea>
-          <button type="submit">Save Lead</button>
-        </form>
-        {% else %}
-        <p class="error">Select or create profile first to save leads.</p>
-        {% endif %}
-        <div class="insights-grid">
-          <div class="insight-panel">
-            <h3>Lead Follow-ups</h3>
-            {% for item in client_follow_up_summary %}
-            <div class="insight-row">
-              <strong>{{ item.follow_up_date }}</strong>
-              <span>{{ item.company }} - {{ item.lead_name }}</span>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="tracker-stat-strip">
+              <span class="tss-pill"><strong>{{ client_status_summary.total }}</strong> total</span>
+              <span class="tss-sep">·</span>
+              <span class="tss-pill"><strong>{{ client_status_summary.discover }}</strong> discover</span>
+              <span class="tss-sep">·</span>
+              <span class="tss-pill"><strong>{{ client_status_summary.contacted }}</strong> contacted</span>
+              <span class="tss-sep">·</span>
+              <span class="tss-pill"><strong>{{ client_status_summary.replied }}</strong> replied</span>
+              <span class="tss-sep">·</span>
+              <span class="tss-pill"><strong>{{ client_status_summary.negotiation }}</strong> in talks</span>
+              {% if client_status_summary.won %}<span class="tss-sep">·</span><span class="tss-pill tss-won"><strong>{{ client_status_summary.won }}</strong> won</span>{% endif %}
             </div>
-            {% else %}
-            <p class="hint">Add follow-up dates to keep client selling disciplined.</p>
-            {% endfor %}
-          </div>
-          <div class="insight-panel">
-            <h3>Workflow</h3>
-            <div class="insight-row">
-              <strong>1. Discover</strong>
-              <span>Find buyers through Google Maps, Google Clients, LinkedIn, Upwork, and Fiverr.</span>
-            </div>
-            <div class="insight-row">
-              <strong>2. Pitch</strong>
-              <span>Use Pitch Email and WhatsApp Pitch only in this mode.</span>
-            </div>
-            <div class="insight-row">
-              <strong>3. Track</strong>
-              <span>Move each lead from discover to contacted, replied, negotiation, then won.</span>
-            </div>
+            {% if selected %}
+            <button type="button" class="btn-tracker-add" onclick="document.getElementById('tracker-add-modal').style.display='flex'">+ Add lead</button>
+            {% endif %}
           </div>
         </div>
+
         <div class="tracker">
           {% for row in client_leads %}
           <article class="tracker-row">
@@ -1704,14 +1650,73 @@ document.addEventListener('click',e=>{
               </select>
               <input type="date" name="follow_up_date" value="{{ row.follow_up_date }}" />
               <input type="text" name="notes" value="{{ row.notes }}" placeholder="Notes" />
-              <button type="submit">Update Lead</button>
+              <button type="submit">Update</button>
             </form>
           </article>
           {% else %}
-          <p class="hint">No client leads yet. Use buyer search routes and save serious prospects here.</p>
+          <p class="hint">No client leads yet — add one to start tracking.</p>
           {% endfor %}
         </div>
+
+        {% if client_follow_up_summary %}
+        <div class="insights-grid" style="margin-top:12px">
+          <div class="insight-panel">
+            <h3>Follow-ups</h3>
+            {% for item in client_follow_up_summary %}
+            <div class="insight-row">
+              <strong>{{ item.follow_up_date }}</strong>
+              <span>{{ item.company }} — {{ item.lead_name }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
       </section>
+
+      {% if selected %}
+      <div id="tracker-add-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+        <div class="tracker-modal-panel">
+          <div class="tracker-modal-head">
+            <h3>Add lead</h3>
+            <button type="button" class="tracker-modal-close" onclick="document.getElementById('tracker-add-modal').style.display='none'">✕</button>
+          </div>
+          <form action="/dashboard/client-leads" method="post" class="stack-form">
+            <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
+            <input type="text" name="company" placeholder="Client company or party" required />
+            <input type="text" name="lead_name" placeholder="Contact person" />
+            <input type="text" name="source" placeholder="LinkedIn, Google, Upwork, Fiverr" />
+            <input type="url" name="lead_url" placeholder="Lead URL https://..." />
+            <input type="email" name="contact_email" placeholder="Email" />
+            <input type="text" name="contact_phone" placeholder="Phone or WhatsApp" />
+            <select name="contact_channel">
+              <option value="email">Email</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="call">Call</option>
+              <option value="website">Website form</option>
+            </select>
+            <select name="offer_type">
+              <option value="software">Software offering</option>
+              <option value="services">Dev services</option>
+              <option value="automation">Automation</option>
+            </select>
+            <select name="status">
+              <option value="discover">Discover</option>
+              <option value="contacted">Contacted</option>
+              <option value="replied">Replied</option>
+              <option value="negotiation">Negotiation</option>
+              <option value="won">Won</option>
+              <option value="lost">Lost</option>
+            </select>
+            <input type="date" name="follow_up_date" />
+            <textarea name="notes" rows="3" placeholder="Need, price range, interest, next step"></textarea>
+            <button type="submit">Save lead</button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <p class="error" style="margin-top:12px">Select or create a profile first to add leads.</p>
+      {% endif %}
       </div>
     </section>
       </main>
