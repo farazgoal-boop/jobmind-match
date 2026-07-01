@@ -1315,9 +1315,7 @@ document.addEventListener('click',e=>{
       <section class="card mode-panel mode-panel-sell">
         <div class="section-head mode-panel-head">
           <div>
-            <p class="eyebrow">Mode 2</p>
-            <h2>Sell Services Mode</h2>
-            <p class="hint">Only client filters, only outreach actions, only lead tracking. Residency software sits here as a preset inside the selling workflow.</p>
+            <h2>Sell Services</h2>
           </div>
           <div class="filter-overview" data-role="sell-filter-overview">
             <span>Client: {{ (client_type or 'property_management')|replace('_', ' ')|title }}</span>
@@ -1349,8 +1347,7 @@ document.addEventListener('click',e=>{
 
           <div class="filter-panel span-all">
             <div class="filter-panel-head">
-              <h3>Client Presets</h3>
-              <p>Save and apply only selling presets here. Job-search presets stay isolated in the other mode.</p>
+              <h3>Client presets</h3>
             </div>
             <div class="filter-grid filter-grid-preset">
               <label class="field-group">
@@ -1384,8 +1381,7 @@ document.addEventListener('click',e=>{
           <div class="filter-grid sell-mode-grid">
             <div class="filter-panel">
               <div class="filter-panel-head">
-                <h3>Buyer Profile</h3>
-                <p>Keep this side focused on client targets and outreach goals only.</p>
+                <h3>Buyer profile</h3>
               </div>
               <div class="filter-grid">
                 <label class="field-group">
@@ -1451,8 +1447,7 @@ document.addEventListener('click',e=>{
 
             <div class="filter-panel">
               <div class="filter-panel-head">
-                <h3>Client Channels</h3>
-                <p>Only selling channels appear here. No job boards, no job cards, no application buttons.</p>
+                <h3>Client channels</h3>
               </div>
               <div class="filter-grid filter-grid-two sell-channel-grid">
                 <div class="filter-cluster">
@@ -1476,7 +1471,7 @@ document.addEventListener('click',e=>{
 
           <div class="filter-actions span-all">
             <p class="submit-feedback" data-role="submit-feedback" data-mode="sell" aria-live="polite"></p>
-            <button type="submit">Run Client Search</button>
+            <button type="submit">Run client search</button>
           </div>
         </form>
       </section>
@@ -1484,13 +1479,7 @@ document.addEventListener('click',e=>{
       <section class="card mode-result-panel" data-role="sell-results-panel">
         <div class="section-head">
           <div>
-            <h2>Client Search Results</h2>
-            <p class="hint">Direct client selling never shows internal job cards. Use buyer routes, pitch actions, and save leads.</p>
-          </div>
-          <div class="filter-overview mode-status-bar">
-            <span>Status: Client mode active</span>
-            <span>Internal jobs: Off</span>
-            <span>Action: Open buyer links</span>
+            <h2>Client search results</h2>
           </div>
         </div>
         <div class="mode-note-box results-stale-note hidden" data-role="stale-results-note" data-mode="sell">
@@ -1573,8 +1562,8 @@ document.addEventListener('click',e=>{
                 <input type="text" name="notes" value="{{ item.notes }}" placeholder="Add outreach note" />
                 <input type="date" name="follow_up_date" />
                 <div class="action-row">
-                  <button type="submit">Save Lead</button>
-                  <a href="{{ item.url }}" target="_blank" rel="noopener" class="button-link secondary-link">Open and Prospect</a>
+                  <button type="submit">Save lead</button>
+                  <a href="{{ item.url }}" target="_blank" rel="noopener" class="button-link secondary-link">Open and prospect</a>
                 </div>
               </form>
               {% endif %}
