@@ -694,7 +694,7 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
 .lh-email-a:hover{color:var(--c);text-decoration:underline}
 .lh-wa-a{color:var(--wa);font-size:11px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-weight:500}
 .lh-wa-a:hover{color:var(--g2)}
-.lh-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+.lh-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(124,58,237,.08);color:#9090b8;border:1px solid rgba(124,58,237,.12)}
 .lh-cb{background:var(--s2);border:1px solid var(--bd2);color:var(--mt);padding:3px 8px;border-radius:5px;font-size:10px;cursor:pointer;font-family:inherit;transition:all .1s}
 .lh-cb:hover{border-color:var(--p2);color:var(--p3)}
 .lh-cb.cp{border-color:var(--g);color:var(--g2)}
@@ -941,7 +941,7 @@ function updStats(){
   document.getElementById('lhs-both').textContent=LEADS.filter(l=>l.email&&l.whatsapp).length;
   document.getElementById('lhs-known').textContent=KNOWN_TOTAL;
   document.getElementById('lhs-dup').textContent=DUPS;
-  const hasData=LEADS.length||KNOWN_TOTAL||DUPS;
+  const hasData=LEADS.length||DUPS;
   const row=document.getElementById('lhp-stats-row');
   const empty=document.getElementById('lhp-stats-empty');
   if(row)row.style.display=hasData?'grid':'none';
@@ -1093,20 +1093,13 @@ async function lhpGo(){
 }
 
 function srcTag(s){
-  const m={
-    google:`<span class="lh-tag" style="background:rgba(59,130,246,.1);color:#60a5fa">🔍 Google</span>`,
-    github:`<span class="lh-tag" style="background:rgba(220,220,220,.07);color:#c0c0d0">💻 GitHub</span>`,
-    reddit:`<span class="lh-tag" style="background:rgba(255,69,0,.1);color:#ff6b35">📖 Reddit</span>`,
-    twitter:`<span class="lh-tag" style="background:rgba(29,161,242,.1);color:#1da1f2">🐦 Twitter</span>`,
-    wahunt:`<span class="lh-tag" style="background:rgba(37,211,102,.1);color:#25d366">💬 WA</span>`,
-    devto:`<span class="lh-tag" style="background:rgba(99,102,241,.1);color:#818cf8">👨‍💻 Dev.to</span>`,
-    hackernews:`<span class="lh-tag" style="background:rgba(255,102,0,.1);color:#fb923c">🔶 HN</span>`,
-    medium:`<span class="lh-tag" style="background:rgba(16,185,129,.1);color:#34d399">📝 Medium</span>`,
-    indiehackers:`<span class="lh-tag" style="background:rgba(20,184,166,.1);color:#2dd4bf">🏴 IH</span>`,
-    producthunt:`<span class="lh-tag" style="background:rgba(255,100,0,.1);color:#fb923c">🚀 PH</span>`,
-    github_code:`<span class="lh-tag" style="background:rgba(168,85,247,.1);color:#c084fc">💡 GH Code</span>`,
+  const labels={
+    google:'🔍 Google',github:'💻 GitHub',reddit:'📖 Reddit',
+    twitter:'🐦 Twitter',wahunt:'💬 WA',devto:'👨‍💻 Dev.to',
+    hackernews:'🔶 HN',medium:'📝 Medium',indiehackers:'🏴 IH',
+    producthunt:'🚀 PH',github_code:'💡 GH Code'
   };
-  return m[s]||`<span class="lh-tag" style="background:rgba(255,255,255,.05);color:#6666a0">${s||'—'}</span>`;
+  return `<span class="lh-tag">${labels[s]||(s||'—')}</span>`;
 }
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}

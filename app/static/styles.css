@@ -2669,15 +2669,7 @@ html.is-mobile-app .mode-shell[data-mode-panel="sell"] .panel.active {
   display: none;
 }
 
-@media (max-width: 768px) {
-  .mobile-nav {
-    display: flex;
-  }
-
-  .mobile-mode-bar {
-    display: flex;
-  }
-}
+/* .mobile-nav and .mobile-mode-bar are only shown in APK/WebView mode via html.is-mobile-app */
 
 /* APK / ?mobile=1 — always show mode switch + bottom nav on phone WebView */
 html.is-mobile-app .app-sidebar,
