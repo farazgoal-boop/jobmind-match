@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="JobMind Match" />
-  <title>JobMind Match — Premium Console</title>
+  <title>JobMind Match</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +21,10 @@
     /* Critical — ensures premium dark UI + single-panel view before full CSS loads */
     :root { --bg-primary:#07070f; --bg-surface:#0e0e1c; --accent:#7c3aed; --text-primary:#eeeef8; --text-muted:#6666a0; --sidebar-width:220px; --header-height:60px; }
     html, body { margin:0; background:#07070f !important; color:#eeeef8 !important; font-family:Inter,system-ui,sans-serif; min-height:100vh; }
-    .panel:not(.active) { display:none !important; }
+    .panel { display:none !important; }
+    .panel.active { display:block !important; }
+    .job-search-layout.active { display:grid !important; grid-template-columns:minmax(280px,340px) minmax(0,1fr); gap:20px; align-items:start; }
+    .mode-shell { width:100%; min-width:0; }
     .mode-shell.hidden { display:none !important; }
     .profile-dropdown { opacity:0; visibility:hidden; pointer-events:none; position:absolute; }
     .profile-dropdown.open { opacity:1; visibility:visible; pointer-events:auto; }
@@ -109,8 +112,8 @@
     <div class="panel panel-animate" data-panel="job-profile" data-panel-mode="job">
     <section class="card grid-two profile-shell">
       <div class="profile-panel">
-        <div class="panel-label">Profile Setup</div>
-        <h2>Create or Update Your Profile</h2>
+        <div class="panel-label">Profile setup</div>
+        <h2>Create or update your profile</h2>
         <form action="/dashboard/profile" method="post" class="stack-form">
           <input type="hidden" name="profile_id" value="{{ selected.id if selected else '' }}" />
           <input type="text" name="full_name" placeholder="Full name" value="{{ selected.full_name if selected else '' }}" required />
@@ -125,13 +128,13 @@
           <input type="text" name="product_name" placeholder="Product or service name" value="{{ selected.product_name if selected else '' }}" />
           <input type="url" name="product_url" placeholder="Product URL https://..." value="{{ selected.product_url if selected else '' }}" />
           <textarea name="sales_pitch" rows="4" placeholder="Short pitch that will be reused in semi-auto outreach">{{ selected.sales_pitch if selected else '' }}</textarea>
-          <button type="submit">{{ 'Update My Profile' if selected else 'Save My Profile' }}</button>
+          <button type="submit">{{ 'Update my profile' if selected else 'Save my profile' }}</button>
         </form>
       </div>
 
       <div class="profile-panel upload-panel">
-        <div class="panel-label">Document Intake</div>
-        <h2>Upload Your CV</h2>
+        <div class="panel-label">Document intake</div>
+        <h2>Upload your CV</h2>
         <form action="/dashboard/upload-cv" method="post" enctype="multipart/form-data" class="stack-form">
           <select name="candidate_id" required>
             <option value="">Select profile</option>
@@ -142,7 +145,7 @@
             {% endfor %}
           </select>
           <input type="file" name="file" accept=".pdf,.docx" required />
-          <button type="submit">Upload My CV</button>
+          <button type="submit">Upload my CV</button>
         </form>
         {% if resume_library %}
         <div class="or-divider"><span>or</span></div>
@@ -162,7 +165,7 @@
             {% endfor %}
           </select>
           <p class="submit-feedback is-visible" data-role="resume-library-feedback">Choose a saved resume to enable import.</p>
-          <button type="submit" data-role="resume-library-submit">Use Saved Resume</button>
+          <button type="submit" data-role="resume-library-submit">Use saved resume</button>
         </form>
         {% endif %}
         {% if selected.resume_url or selected.portfolio_url or selected.linkedin_url or selected.upwork_url or selected.fiverr_url %}
@@ -204,9 +207,7 @@
       <section class="card mode-panel mode-panel-job">
         <div class="section-head mode-panel-head">
           <div>
-            <p class="eyebrow">Mode 1</p>
             <h2>Job Search Mode</h2>
-            <p class="hint">Only job filters, only job results, only application tracking. Small gigs are merged here as a filter, not a separate workflow.</p>
           </div>
           <div class="filter-overview" data-role="job-filter-overview">
             <span>Role: {{ (search_focus or 'python')|replace('_', ' ')|title }}</span>
@@ -232,7 +233,6 @@
           <div class="filter-panel span-all">
             <div class="filter-panel-head">
               <h3>Job Presets</h3>
-              <p>Save and apply only job-search presets here. Client-selling presets stay out of this mode.</p>
             </div>
             <div class="filter-grid filter-grid-preset">
               <label class="field-group">
@@ -262,7 +262,6 @@
             <div class="filter-panel">
               <div class="filter-panel-head">
                 <h3>Core Search</h3>
-                <p>Keep the job search focused on role, geography, trust, and job freshness.</p>
               </div>
               <div class="filter-grid">
                 <label class="field-group">
@@ -325,11 +324,14 @@
                 </label>
               </div>
             </div>
+          </div><!-- /job-mode-grid -->
 
+          <details class="job-more-filters">
+            <summary class="job-more-summary">More filters ▾</summary>
+          <div class="filter-grid job-mode-grid">
             <div class="filter-panel">
               <div class="filter-panel-head">
                 <h3>Job Filters</h3>
-                <p>Use gig and role strictness inside job mode instead of a separate mini-jobs workflow.</p>
               </div>
               <div class="filter-grid">
                 <label class="field-group">
@@ -380,12 +382,11 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div><!-- /job-mode-grid advanced -->
 
           <div class="filter-panel span-all">
             <div class="filter-panel-head">
               <h3>Job Sources</h3>
-              <p>Only job-search channels appear here. No Google client routes, no selling links, no residency hunting labels.</p>
             </div>
             <div class="filter-grid filter-grid-two">
               <div class="filter-cluster">
@@ -401,6 +402,7 @@
               </div>
             </div>
           </div>
+          </details><!-- /job-more-filters -->
 
           <div class="filter-actions span-all">
             <p class="submit-feedback" data-role="submit-feedback" data-mode="job" aria-live="polite"></p>
@@ -611,25 +613,34 @@
 .lh-stat{padding:14px 16px;text-align:center;border-right:1px solid var(--bd)}
 .lh-stat:last-child{border-right:none}
 .lh-sn{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1}
-.lh-sl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.6px;margin-top:4px}
+.lh-sl{font-size:10px;color:var(--mt);letter-spacing:.3px;margin-top:4px}
 
 /* Controls grid */
 .lh-ctrl{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;padding:18px 28px;border-bottom:1px solid var(--bd)}
 .lh-f{display:flex;flex-direction:column;gap:6px}
-.lh-f label{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+.lh-f label{font-size:10px;color:var(--mt);letter-spacing:.3px;font-weight:600}
 .lh-f input,.lh-f select,.lh-f textarea{background:var(--s2);border:1px solid var(--bd2);border-radius:8px;color:var(--tx);font-size:12px;padding:9px 12px;outline:none;transition:border .15s;width:100%;font-family:inherit}
 .lh-f input:focus,.lh-f select:focus{border-color:var(--p2);box-shadow:0 0 0 3px rgba(168,85,247,.1)}
 .lh-f select option{background:#1a1a2e}
 .lh-f.span2{grid-column:span 2}
 .lh-f.span4{grid-column:span 4}
+/* Advanced disclosure */
+.lh-adv{grid-column:span 2}
+.lh-adv>summary{font-size:11px;color:var(--mt);cursor:pointer;padding:6px 0 2px;list-style:none;display:flex;align-items:center;gap:4px;user-select:none}
+.lh-adv>summary:hover{color:var(--p3)}
+.lh-adv>summary::-webkit-details-marker{display:none}
+.lh-adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:10px}
+.lh-adv-full{grid-column:span 2}
+/* Stats empty state */
+.lh-stats-empty{padding:12px 28px;border-bottom:1px solid var(--bd);font-size:12px;color:var(--mt)}
 
 /* Platform chips */
 .lh-chips{padding:14px 28px;border-bottom:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
-.lh-chip-lbl{font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-right:6px;white-space:nowrap}
-.lh-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all .15s;user-select:none}
+.lh-chip-lbl{font-size:10px;color:var(--mt);letter-spacing:.3px;font-weight:600;margin-right:6px;white-space:nowrap}
+.lh-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(124,58,237,.15);color:#8b8bb0;background:rgba(124,58,237,.06);transition:all .15s;user-select:none}
 .lh-chip input[type=checkbox]{display:none}
-.lh-chip.active{opacity:1}
-.lh-chip.inactive{opacity:.3}
+.lh-chip.active{opacity:1;background:rgba(124,58,237,.12);color:#c084fc;border-color:rgba(124,58,237,.25)}
+.lh-chip.inactive{opacity:.35;background:transparent;color:#6666a0;border-color:rgba(255,255,255,.06)}
 
 /* Action bar */
 .lh-actions{display:flex;gap:9px;padding:14px 28px;border-bottom:1px solid var(--bd);flex-wrap:wrap;align-items:center}
@@ -711,7 +722,8 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
 }
 @media(max-width:600px){
   .lh-ctrl{grid-template-columns:1fr}
-  .lh-f.span2,.lh-f.span4{grid-column:span 1}
+  .lh-f.span2,.lh-f.span4,.lh-adv,.lh-adv-full{grid-column:span 1}
+  .lh-adv-grid{grid-template-columns:1fr}
   .lh-stats{grid-template-columns:1fr 1fr}
   .lh-head{flex-direction:column}
   .lh-chips{padding:10px 12px}
@@ -742,19 +754,20 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
 </div>
 
 <!-- Stats -->
-<div class="lh-stats">
-  <div class="lh-stat"><div class="lh-sn" id="lhs-total" style="color:#c084fc">0</div><div class="lh-sl">Total Leads</div></div>
+<div class="lh-stats" id="lhp-stats-row" style="display:none">
+  <div class="lh-stat"><div class="lh-sn" id="lhs-total" style="color:#c084fc">0</div><div class="lh-sl">Total leads</div></div>
   <div class="lh-stat"><div class="lh-sn" id="lhs-email" style="color:#60a5fa">0</div><div class="lh-sl">Emails</div></div>
   <div class="lh-stat"><div class="lh-sn" id="lhs-wa" style="color:#25d366">0</div><div class="lh-sl">WhatsApp</div></div>
-  <div class="lh-stat"><div class="lh-sn" id="lhs-both" style="color:#34d399">0</div><div class="lh-sl">Email+WA</div></div>
-  <div class="lh-stat"><div class="lh-sn" id="lhs-known" style="color:#a78bfa">0</div><div class="lh-sl">Saved (Never Re-hunt)</div></div>
-  <div class="lh-stat"><div class="lh-sn" id="lhs-dup" style="color:#f59e0b">0</div><div class="lh-sl">Skipped This Run</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-both" style="color:#34d399">0</div><div class="lh-sl">Email + WA</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-known" style="color:#a78bfa">0</div><div class="lh-sl">Saved (never re-hunt)</div></div>
+  <div class="lh-stat"><div class="lh-sn" id="lhs-dup" style="color:#f59e0b">0</div><div class="lh-sl">Skipped this run</div></div>
 </div>
+<div class="lh-stats-empty" id="lhp-stats-empty">No hunt data yet — press <strong style="color:#c084fc">Start Hunting</strong> to begin</div>
 
 <!-- Controls -->
 <div class="lh-ctrl">
   <div class="lh-f">
-    <label>Target Audience</label>
+    <label>Target audience</label>
     <select id="lhp-tgt">
       <option value="all">🌍 All Freelancers (Global)</option>
       <option value="developer">💻 Developers / Coders</option>
@@ -768,7 +781,7 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
     </select>
   </div>
   <div class="lh-f">
-    <label>Max Contacts</label>
+    <label>Max contacts</label>
     <select id="lhp-max">
       <option value="100">100 (fast ~2min)</option>
       <option value="300">300 (~5min)</option>
@@ -777,38 +790,43 @@ table.lht tbody tr:hover td{background:rgba(124,58,237,.04)}
       <option value="2000">2000 (~45min)</option>
     </select>
   </div>
-  <div class="lh-f">
-    <label>Extra Keywords</label>
-    <input type="text" id="lhp-kw" placeholder="python, shopify, react, logo…">
-  </div>
-  <div class="lh-f">
-    <label>Country / Region</label>
-    <input type="text" id="lhp-cc" placeholder="+92, +1, Pakistan, USA…">
-  </div>
-  <div class="lh-f span4">
-    <label>File / Session Name (for tracking)</label>
-    <input type="text" id="lhp-fname" placeholder="e.g. Batch-01-June-2026 (shown in export filename)">
-  </div>
+  <details class="lh-adv">
+    <summary>More options ▾</summary>
+    <div class="lh-adv-grid">
+      <div class="lh-f">
+        <label>Extra keywords</label>
+        <input type="text" id="lhp-kw" placeholder="python, shopify, react, logo…">
+      </div>
+      <div class="lh-f">
+        <label>Country / region</label>
+        <input type="text" id="lhp-cc" placeholder="+92, +1, Pakistan, USA…">
+      </div>
+      <div class="lh-f lh-adv-full">
+        <label>File / session name</label>
+        <input type="text" id="lhp-fname" placeholder="e.g. Batch-01-June-2026 (shown in export filename)">
+      </div>
+    </div>
+  </details>
 </div>
 
 <!-- Platform chips -->
 <div class="lh-chips">
   <span class="lh-chip-lbl">Platforms:</span>
-  <label class="lh-chip active" style="background:rgba(59,130,246,.1);color:#60a5fa;border-color:rgba(59,130,246,.2)"><input type="checkbox" class="lhc" value="google" checked>🔍 Google</label>
-  <label class="lh-chip active" style="background:rgba(220,220,220,.07);color:#c0c0d0;border-color:rgba(220,220,220,.1)"><input type="checkbox" class="lhc" value="github" checked>💻 GitHub</label>
-  <label class="lh-chip active" style="background:rgba(255,69,0,.1);color:#ff6b35;border-color:rgba(255,69,0,.2)"><input type="checkbox" class="lhc" value="reddit" checked>📖 Reddit</label>
-  <label class="lh-chip active" style="background:rgba(29,161,242,.1);color:#1da1f2;border-color:rgba(29,161,242,.2)"><input type="checkbox" class="lhc" value="twitter" checked>🐦 Twitter/X</label>
-  <label class="lh-chip active" style="background:rgba(37,211,102,.1);color:#25d366;border-color:rgba(37,211,102,.2)"><input type="checkbox" class="lhc" value="wahunt" checked>💬 WA Links</label>
-  <label class="lh-chip active" style="background:rgba(99,102,241,.1);color:#818cf8;border-color:rgba(99,102,241,.2)"><input type="checkbox" class="lhc" value="devto" checked>👨‍💻 Dev.to</label>
-  <label class="lh-chip active" style="background:rgba(16,185,129,.1);color:#34d399;border-color:rgba(16,185,129,.2)"><input type="checkbox" class="lhc" value="medium" checked>📝 Medium</label>
-  <label class="lh-chip active" style="background:rgba(245,130,32,.1);color:#f59e0b;border-color:rgba(245,130,32,.2)"><input type="checkbox" class="lhc" value="stackoverflow" checked>💡 StackOverflow</label>
-  <label class="lh-chip active" style="background:rgba(255,100,0,.1);color:#fb923c;border-color:rgba(255,100,0,.2)"><input type="checkbox" class="lhc" value="producthunt" checked>🚀 ProductHunt</label>
-  <label class="lh-chip active" style="background:rgba(20,184,166,.1);color:#2dd4bf;border-color:rgba(20,184,166,.2)"><input type="checkbox" class="lhc" value="indiehackers" checked>🏴 IndieHackers</label>
-  <label class="lh-chip active" style="background:rgba(26,137,255,.1);color:#60a5fa;border-color:rgba(26,137,255,.2)"><input type="checkbox" class="lhc" value="behance" checked>🎨 Behance</label>
-  <label class="lh-chip active" style="background:rgba(0,136,204,.1);color:#38bdf8;border-color:rgba(0,136,204,.2)"><input type="checkbox" class="lhc" value="telegram" checked>✈️ Telegram</label>
-  <label class="lh-chip active" style="background:rgba(24,119,242,.1);color:#60a5fa;border-color:rgba(24,119,242,.2)"><input type="checkbox" class="lhc" value="facebook" checked>📘 FB Groups</label>
-  <label class="lh-chip active" style="background:rgba(255,0,0,.1);color:#f87171;border-color:rgba(255,0,0,.2)"><input type="checkbox" class="lhc" value="youtube" checked>▶️ YouTube</label>
-  <label class="lh-chip active" style="background:rgba(168,85,247,.1);color:#c084fc;border-color:rgba(168,85,247,.2)"><input type="checkbox" class="lhc" value="misc" checked>🌐 +200 More</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="google" checked>🔍 Google</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="github" checked>💻 GitHub</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="reddit" checked>📖 Reddit</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="twitter" checked>🐦 Twitter/X</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="wahunt" checked>💬 WA Links</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="devto" checked>👨‍💻 Dev.to</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="medium" checked>📝 Medium</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="stackoverflow" checked>💡 StackOverflow</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="producthunt" checked>🚀 ProductHunt</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="indiehackers" checked>🏴 IndieHackers</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="behance" checked>🎨 Behance</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="telegram" checked>✈️ Telegram</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="facebook" checked>📘 FB Groups</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="youtube" checked>▶️ YouTube</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="misc" checked>🌐 +200 More</label>
 </div>
 
 <!-- Action buttons -->
@@ -923,6 +941,11 @@ function updStats(){
   document.getElementById('lhs-both').textContent=LEADS.filter(l=>l.email&&l.whatsapp).length;
   document.getElementById('lhs-known').textContent=KNOWN_TOTAL;
   document.getElementById('lhs-dup').textContent=DUPS;
+  const hasData=LEADS.length||KNOWN_TOTAL||DUPS;
+  const row=document.getElementById('lhp-stats-row');
+  const empty=document.getElementById('lhp-stats-empty');
+  if(row)row.style.display=hasData?'grid':'none';
+  if(empty)empty.style.display=hasData?'none':'';
 }
 
 async function loadRegistry(){
@@ -1258,9 +1281,9 @@ document.addEventListener('click',e=>{
     <div class="panel" data-panel="sell-profile" data-panel-mode="sell">
     <section class="card grid-two profile-shell profile-shell-sell">
       <div class="profile-panel">
-        <div class="panel-label">Profile &amp; Pitch</div>
-        <h2>Your Selling Profile</h2>
-        <form action="/dashboard/profile" method="post" class="stack-form">
+        <div class="panel-label">Profile &amp; pitch</div>
+        <h2>Your selling profile</h2>
+        <form action="/dashboard/profile" method="post" class="stack-form" id="sell-profile-form">
           <input type="hidden" name="profile_id" value="{{ selected.id if selected else '' }}" />
           <input type="text" name="full_name" placeholder="Full name" value="{{ selected.full_name if selected else '' }}" required />
           <input type="email" name="email" placeholder="Email" value="{{ selected.email if selected else '' }}" required />
@@ -1271,29 +1294,45 @@ document.addEventListener('click',e=>{
           <input type="url" name="linkedin_url" placeholder="LinkedIn profile URL" value="{{ selected.linkedin_url if selected else '' }}" />
           <input type="url" name="upwork_url" placeholder="Upwork profile URL" value="{{ selected.upwork_url if selected else '' }}" />
           <input type="url" name="fiverr_url" placeholder="Fiverr profile URL" value="{{ selected.fiverr_url if selected else '' }}" />
-          <button type="submit">{{ 'Update Profile' if selected else 'Save Profile' }}</button>
+          <button type="submit">{{ 'Update profile' if selected else 'Save profile' }}</button>
         </form>
       </div>
       <div class="profile-panel upload-panel">
-        <div class="panel-label">Pitch Preview</div>
-        <h2>Outreach Snapshot</h2>
+        <div class="panel-label">Pitch preview</div>
+        <h2>Outreach snapshot</h2>
         {% if selected %}
-        <p class="hint"><strong>{{ selected.full_name }}</strong> — {{ selected.product_name or 'Your service' }}</p>
-        <p>{{ selected.sales_pitch or 'Add your sales pitch to reuse in client outreach.' }}</p>
+        <p class="hint"><strong id="sell-preview-name">{{ selected.full_name }}</strong> — <span id="sell-preview-product">{{ selected.product_name or 'Your service' }}</span></p>
+        <p id="sell-preview-pitch">{{ selected.sales_pitch or 'Add your sales pitch to reuse in client outreach.' }}</p>
         {% else %}
         <p class="hint">Create a profile to save your pitch and selling links.</p>
         {% endif %}
       </div>
     </section>
+    <script>
+    (function(){
+      var f=document.getElementById('sell-profile-form');
+      if(!f)return;
+      var nameIn=f.querySelector('[name="full_name"]');
+      var prodIn=f.querySelector('[name="product_name"]');
+      var pitchIn=f.querySelector('[name="sales_pitch"]');
+      var nameOut=document.getElementById('sell-preview-name');
+      var prodOut=document.getElementById('sell-preview-product');
+      var pitchOut=document.getElementById('sell-preview-pitch');
+      function upd(){
+        if(nameOut)nameOut.textContent=nameIn.value||'Your name';
+        if(prodOut)prodOut.textContent=prodIn.value||'Your service';
+        if(pitchOut)pitchOut.textContent=pitchIn.value||'Add your sales pitch to reuse in client outreach.';
+      }
+      [nameIn,prodIn,pitchIn].forEach(function(el){if(el)el.addEventListener('input',upd);});
+    })();
+    </script>
     </div>
 
     <div class="panel" data-panel="sell-search" data-panel-mode="sell">
       <section class="card mode-panel mode-panel-sell">
         <div class="section-head mode-panel-head">
           <div>
-            <p class="eyebrow">Mode 2</p>
-            <h2>Sell Services Mode</h2>
-            <p class="hint">Only client filters, only outreach actions, only lead tracking. Residency software sits here as a preset inside the selling workflow.</p>
+            <h2>Sell Services</h2>
           </div>
           <div class="filter-overview" data-role="sell-filter-overview">
             <span>Client: {{ (client_type or 'property_management')|replace('_', ' ')|title }}</span>
@@ -1325,8 +1364,7 @@ document.addEventListener('click',e=>{
 
           <div class="filter-panel span-all">
             <div class="filter-panel-head">
-              <h3>Client Presets</h3>
-              <p>Save and apply only selling presets here. Job-search presets stay isolated in the other mode.</p>
+              <h3>Client presets</h3>
             </div>
             <div class="filter-grid filter-grid-preset">
               <label class="field-group">
@@ -1360,8 +1398,7 @@ document.addEventListener('click',e=>{
           <div class="filter-grid sell-mode-grid">
             <div class="filter-panel">
               <div class="filter-panel-head">
-                <h3>Buyer Profile</h3>
-                <p>Keep this side focused on client targets and outreach goals only.</p>
+                <h3>Buyer profile</h3>
               </div>
               <div class="filter-grid">
                 <label class="field-group">
@@ -1427,8 +1464,7 @@ document.addEventListener('click',e=>{
 
             <div class="filter-panel">
               <div class="filter-panel-head">
-                <h3>Client Channels</h3>
-                <p>Only selling channels appear here. No job boards, no job cards, no application buttons.</p>
+                <h3>Client channels</h3>
               </div>
               <div class="filter-grid filter-grid-two sell-channel-grid">
                 <div class="filter-cluster">
@@ -1452,7 +1488,7 @@ document.addEventListener('click',e=>{
 
           <div class="filter-actions span-all">
             <p class="submit-feedback" data-role="submit-feedback" data-mode="sell" aria-live="polite"></p>
-            <button type="submit">Run Client Search</button>
+            <button type="submit">Run client search</button>
           </div>
         </form>
       </section>
@@ -1460,13 +1496,7 @@ document.addEventListener('click',e=>{
       <section class="card mode-result-panel" data-role="sell-results-panel">
         <div class="section-head">
           <div>
-            <h2>Client Search Results</h2>
-            <p class="hint">Direct client selling never shows internal job cards. Use buyer routes, pitch actions, and save leads.</p>
-          </div>
-          <div class="filter-overview mode-status-bar">
-            <span>Status: Client mode active</span>
-            <span>Internal jobs: Off</span>
-            <span>Action: Open buyer links</span>
+            <h2>Client search results</h2>
           </div>
         </div>
         <div class="mode-note-box results-stale-note hidden" data-role="stale-results-note" data-mode="sell">
@@ -1549,8 +1579,8 @@ document.addEventListener('click',e=>{
                 <input type="text" name="notes" value="{{ item.notes }}" placeholder="Add outreach note" />
                 <input type="date" name="follow_up_date" />
                 <div class="action-row">
-                  <button type="submit">Save Lead</button>
-                  <a href="{{ item.url }}" target="_blank" rel="noopener" class="button-link secondary-link">Open and Prospect</a>
+                  <button type="submit">Save lead</button>
+                  <a href="{{ item.url }}" target="_blank" rel="noopener" class="button-link secondary-link">Open and prospect</a>
                 </div>
               </form>
               {% endif %}
@@ -1573,81 +1603,27 @@ document.addEventListener('click',e=>{
         <div class="section-head">
           <div>
             <h2>Lead Tracker</h2>
-            <p class="hint">This tracker is only for clients. Status path: discover → contacted → replied → negotiation → won.</p>
+            <p class="hint">Track client prospects through your pipeline.</p>
           </div>
-          <div class="status-grid compact-status-grid">
-            <div class="status-card"><p>Total</p><strong>{{ client_status_summary.total }}</strong></div>
-            <div class="status-card"><p>Discover</p><strong>{{ client_status_summary.discover }}</strong></div>
-            <div class="status-card"><p>Contacted</p><strong>{{ client_status_summary.contacted }}</strong></div>
-            <div class="status-card"><p>Replied</p><strong>{{ client_status_summary.replied }}</strong></div>
-            <div class="status-card"><p>Negotiation</p><strong>{{ client_status_summary.negotiation }}</strong></div>
-            <div class="status-card"><p>Won</p><strong>{{ client_status_summary.won }}</strong></div>
-          </div>
-        </div>
-        {% if selected %}
-        <form action="/dashboard/client-leads" method="post" class="stack-form tracker-create-form">
-          <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
-          <input type="text" name="company" placeholder="Client company or party" required />
-          <input type="text" name="lead_name" placeholder="Contact person" />
-          <input type="text" name="source" placeholder="LinkedIn, Google, Upwork, Fiverr" />
-          <input type="url" name="lead_url" placeholder="Lead URL https://..." />
-          <input type="email" name="contact_email" placeholder="Email" />
-          <input type="text" name="contact_phone" placeholder="Phone or WhatsApp" />
-          <select name="contact_channel">
-            <option value="email">Email</option>
-            <option value="whatsapp">WhatsApp</option>
-            <option value="linkedin">LinkedIn</option>
-            <option value="call">Call</option>
-            <option value="website">Website form</option>
-          </select>
-          <select name="offer_type">
-            <option value="software">Software offering</option>
-            <option value="services">Dev services</option>
-            <option value="automation">Automation</option>
-          </select>
-          <select name="status">
-            <option value="discover">discover</option>
-            <option value="contacted">contacted</option>
-            <option value="replied">replied</option>
-            <option value="negotiation">negotiation</option>
-            <option value="won">won</option>
-            <option value="lost">lost</option>
-          </select>
-          <input type="date" name="follow_up_date" />
-          <textarea name="notes" rows="3" placeholder="Need, price range, interest, next step"></textarea>
-          <button type="submit">Save Lead</button>
-        </form>
-        {% else %}
-        <p class="error">Select or create profile first to save leads.</p>
-        {% endif %}
-        <div class="insights-grid">
-          <div class="insight-panel">
-            <h3>Lead Follow-ups</h3>
-            {% for item in client_follow_up_summary %}
-            <div class="insight-row">
-              <strong>{{ item.follow_up_date }}</strong>
-              <span>{{ item.company }} - {{ item.lead_name }}</span>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div class="tracker-stat-strip">
+              <span class="tss-pill"><strong>{{ client_status_summary.total }}</strong> total</span>
+              <span class="tss-sep">·</span>
+              <span class="tss-pill"><strong>{{ client_status_summary.discover }}</strong> discover</span>
+              <span class="tss-sep">·</span>
+              <span class="tss-pill"><strong>{{ client_status_summary.contacted }}</strong> contacted</span>
+              <span class="tss-sep">·</span>
+              <span class="tss-pill"><strong>{{ client_status_summary.replied }}</strong> replied</span>
+              <span class="tss-sep">·</span>
+              <span class="tss-pill"><strong>{{ client_status_summary.negotiation }}</strong> in talks</span>
+              {% if client_status_summary.won %}<span class="tss-sep">·</span><span class="tss-pill tss-won"><strong>{{ client_status_summary.won }}</strong> won</span>{% endif %}
             </div>
-            {% else %}
-            <p class="hint">Add follow-up dates to keep client selling disciplined.</p>
-            {% endfor %}
-          </div>
-          <div class="insight-panel">
-            <h3>Workflow</h3>
-            <div class="insight-row">
-              <strong>1. Discover</strong>
-              <span>Find buyers through Google Maps, Google Clients, LinkedIn, Upwork, and Fiverr.</span>
-            </div>
-            <div class="insight-row">
-              <strong>2. Pitch</strong>
-              <span>Use Pitch Email and WhatsApp Pitch only in this mode.</span>
-            </div>
-            <div class="insight-row">
-              <strong>3. Track</strong>
-              <span>Move each lead from discover to contacted, replied, negotiation, then won.</span>
-            </div>
+            {% if selected %}
+            <button type="button" class="btn-tracker-add" onclick="document.getElementById('tracker-add-modal').style.display='flex'">+ Add lead</button>
+            {% endif %}
           </div>
         </div>
+
         <div class="tracker">
           {% for row in client_leads %}
           <article class="tracker-row">
@@ -1680,14 +1656,73 @@ document.addEventListener('click',e=>{
               </select>
               <input type="date" name="follow_up_date" value="{{ row.follow_up_date }}" />
               <input type="text" name="notes" value="{{ row.notes }}" placeholder="Notes" />
-              <button type="submit">Update Lead</button>
+              <button type="submit">Update</button>
             </form>
           </article>
           {% else %}
-          <p class="hint">No client leads yet. Use buyer search routes and save serious prospects here.</p>
+          <p class="hint">No client leads yet — add one to start tracking.</p>
           {% endfor %}
         </div>
+
+        {% if client_follow_up_summary %}
+        <div class="insights-grid" style="margin-top:12px">
+          <div class="insight-panel">
+            <h3>Follow-ups</h3>
+            {% for item in client_follow_up_summary %}
+            <div class="insight-row">
+              <strong>{{ item.follow_up_date }}</strong>
+              <span>{{ item.company }} — {{ item.lead_name }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
       </section>
+
+      {% if selected %}
+      <div id="tracker-add-modal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+        <div class="tracker-modal-panel">
+          <div class="tracker-modal-head">
+            <h3>Add lead</h3>
+            <button type="button" class="tracker-modal-close" onclick="document.getElementById('tracker-add-modal').style.display='none'">✕</button>
+          </div>
+          <form action="/dashboard/client-leads" method="post" class="stack-form">
+            <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
+            <input type="text" name="company" placeholder="Client company or party" required />
+            <input type="text" name="lead_name" placeholder="Contact person" />
+            <input type="text" name="source" placeholder="LinkedIn, Google, Upwork, Fiverr" />
+            <input type="url" name="lead_url" placeholder="Lead URL https://..." />
+            <input type="email" name="contact_email" placeholder="Email" />
+            <input type="text" name="contact_phone" placeholder="Phone or WhatsApp" />
+            <select name="contact_channel">
+              <option value="email">Email</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="call">Call</option>
+              <option value="website">Website form</option>
+            </select>
+            <select name="offer_type">
+              <option value="software">Software offering</option>
+              <option value="services">Dev services</option>
+              <option value="automation">Automation</option>
+            </select>
+            <select name="status">
+              <option value="discover">Discover</option>
+              <option value="contacted">Contacted</option>
+              <option value="replied">Replied</option>
+              <option value="negotiation">Negotiation</option>
+              <option value="won">Won</option>
+              <option value="lost">Lost</option>
+            </select>
+            <input type="date" name="follow_up_date" />
+            <textarea name="notes" rows="3" placeholder="Need, price range, interest, next step"></textarea>
+            <button type="submit">Save lead</button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <p class="error" style="margin-top:12px">Select or create a profile first to add leads.</p>
+      {% endif %}
       </div>
     </section>
       </main>
