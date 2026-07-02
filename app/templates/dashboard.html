@@ -17,6 +17,7 @@
   <link rel="icon" href="/static/icon-192.png?v={{ static_version }}" type="image/png" sizes="192x192" />
   <link rel="apple-touch-icon" href="/static/apple-touch-icon.png?v={{ static_version }}" />
   <link rel="stylesheet" href="/static/styles.css?v={{ static_version }}" />
+  <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('jmm-theme')||'dark');</script>
   <style>
     /* Critical — ensures premium dark UI + single-panel view before full CSS loads */
     :root { --bg-primary:#07070f; --bg-surface:#0e0e1c; --accent:#7c3aed; --text-primary:#eeeef8; --text-muted:#6666a0; --sidebar-width:220px; --header-height:60px; }
@@ -45,6 +46,18 @@
     html.is-mobile-app .mobile-mode-bar, html.is-mobile-app .mobile-nav { display:flex !important; }
     html.is-mobile-app .app-sidebar, html.is-mobile-app .header-mode-toggle { display:none !important; }
     html.is-mobile-app .app-footer, html.is-mobile-app .footer-status-bar { display:none !important; }
+    /* ── Light theme critical overrides ── */
+    html[data-theme="light"], html[data-theme="light"] body { background:#f3f4f8 !important; color:#1a1d2e !important; }
+    html[data-theme="light"] .app-shell { background:#f3f4f8; }
+    html[data-theme="light"] .app-header { background:rgba(255,255,255,.96); border-bottom-color:rgba(0,0,0,.08); }
+    html[data-theme="light"] .app-sidebar { background:#ffffff; border-right-color:rgba(0,0,0,.08); }
+    html[data-theme="light"] .app-footer { background:#ffffff; border-top-color:rgba(99,102,241,.18); }
+    html[data-theme="light"] .footer-status-bar { background:rgba(255,255,255,.96); border-top-color:rgba(99,102,241,.18); color:#7e8799; }
+    html[data-theme="light"] .footer-status-bar em { color:#6366f1; }
+    html[data-theme="light"] .sidebar-item { color:#7e8799; }
+    html[data-theme="light"] .sidebar-item.active { color:#1a1d2e; background:rgba(99,102,241,.1); box-shadow:inset 3px 0 0 #6366f1; }
+    html[data-theme="light"] .card { background:#ffffff; border-color:rgba(0,0,0,.08); }
+    html[data-theme="light"] input, html[data-theme="light"] select, html[data-theme="light"] textarea { background:#eef0f5; border-color:rgba(0,0,0,.12); color:#1a1d2e; }
   </style>
   <script>
     (function () {
@@ -79,6 +92,7 @@
       </div>
       <div class="header-actions">
         <button type="button" class="ghost-action install-chip hidden" data-role="install-app">Install App</button>
+        <button type="button" class="ghost-action" data-role="theme-toggle" title="Toggle light/dark theme" aria-label="Toggle theme">🌙</button>
         <button type="button" class="ghost-action" data-role="settings-toggle" title="Settings">⚙</button>
       </div>
     </header>
@@ -1725,29 +1739,6 @@ document.addEventListener('click',e=>{
     <footer class="app-footer premium-footer" data-role="premium-footer">
       <div class="premium-footer-glow"></div>
       <div class="footer-inner">
-        <div class="footer-top">
-          <div class="footer-brand-block">
-            <div class="footer-brand">
-              <img src="/static/icon-48.png?v={{ static_version }}" alt="JobMind Owl" width="40" height="40" class="footer-logo" />
-              <div>
-                <strong>JobMind Match</strong>
-                <span class="footer-premium-badge">PREMIUM EDITION</span>
-              </div>
-            </div>
-            <p class="footer-tagline">Your private job console — matching, tracking, and lead hunting in one premium workspace.</p>
-          </div>
-          <div class="footer-stats">
-            <div class="footer-stat"><span>📋 Jobs Tracked</span><strong>{{ status_summary.total }}</strong></div>
-            <div class="footer-stat"><span>👥 Leads Saved</span><strong>{{ client_status_summary.total }}</strong></div>
-            <div class="footer-stat"><span>👤 Profile</span><strong>{% if selected %}{{ selected.full_name }}{% else %}None{% endif %}</strong></div>
-          </div>
-          <div class="footer-features">
-            <span>🔍 Job Search Mode</span>
-            <span>⚡ Lead Hunter Pro</span>
-            <span>📊 Multi-Format Export</span>
-            <span>💼 Sell Services Mode</span>
-          </div>
-        </div>
         <div class="footer-bottom">
           <span class="footer-status-dot"></span>
           <span>System Ready · Local Data Only</span>
@@ -1755,10 +1746,6 @@ document.addEventListener('click',e=>{
           <span>© 2026 JobMind Match</span>
           <span class="footer-sep">|</span>
           <span>v{{ static_version }}</span>
-          <span class="footer-sep">|</span>
-          <span>Gumroad Licensed</span>
-          <span class="footer-sep">|</span>
-          <span class="footer-made">Crafted for freelancers &amp; serious hunters</span>
         </div>
       </div>
     </footer>
@@ -1857,6 +1844,21 @@ document.addEventListener('click',e=>{
     });
     document.querySelectorAll('[data-role=license-close]').forEach(el=>el.addEventListener('click',hide));
     check();
+  })();
+  </script>
+  <script>
+  (function(){
+    var root=document.documentElement;
+    var btn=document.querySelector('[data-role="theme-toggle"]');
+    function apply(t){
+      root.setAttribute('data-theme',t);
+      if(btn)btn.textContent=t==='dark'?'🌙':'☀️';
+      localStorage.setItem('jmm-theme',t);
+    }
+    if(btn)btn.textContent=(root.getAttribute('data-theme')||'dark')==='dark'?'🌙':'☀️';
+    btn&&btn.addEventListener('click',function(){
+      apply(root.getAttribute('data-theme')==='dark'?'light':'dark');
+    });
   })();
   </script>
   <script src="/static/app.js?v={{ static_version }}"></script>

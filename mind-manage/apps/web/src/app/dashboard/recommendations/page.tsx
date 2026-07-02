@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { generateRecommendation, listBusinesses, type BusinessListItem } from '@/lib/api-client';
 
 export default function RecommendationsPage() {
   const [businesses, setBusinesses] = useState<BusinessListItem[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const lockRef = useRef(false);
 
   async function loadBusinesses() {
     setBusinesses(await listBusinesses());
@@ -16,12 +17,15 @@ export default function RecommendationsPage() {
   }, []);
 
   async function handleGenerate(businessId: string) {
+    if (lockRef.current) return;
+    lockRef.current = true;
     setBusyId(businessId);
 
     try {
       await generateRecommendation(businessId);
       await loadBusinesses();
     } finally {
+      lockRef.current = false;
       setBusyId(null);
     }
   }
@@ -42,7 +46,7 @@ export default function RecommendationsPage() {
                   <h3>{business.name}</h3>
                   <p>{business.niche} in {business.city}</p>
                 </div>
-                <button className="button secondary" disabled={busyId === business.id} onClick={() => handleGenerate(business.id)} type="button">
+                <button className="button secondary" disabled={busyId !== null} onClick={() => handleGenerate(business.id)} type="button">
                   {busyId === business.id ? 'Generating...' : 'Generate'}
                 </button>
               </div>

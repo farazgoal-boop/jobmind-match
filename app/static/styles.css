@@ -48,6 +48,50 @@
 }
 
 /* --------------------------------------------------------------------------
+   Light theme token overrides
+   -------------------------------------------------------------------------- */
+html[data-theme="light"] {
+  --bg-primary: #f3f4f8;
+  --bg-surface: #ffffff;
+  --bg-surface2: #eef0f5;
+  --bg-surface3: #e5e8f0;
+  --border: rgba(0, 0, 0, 0.08);
+  --border-active: rgba(99, 102, 241, 0.45);
+  --text-primary: #1a1d2e;
+  --text-secondary: #4a5170;
+  --text-muted: #7e8799;
+  --text-dim: #b0b8cc;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.07);
+  --shadow-glow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  --shadow-accent: 0 8px 24px rgba(99, 102, 241, 0.15);
+}
+
+/* Lead Hunter panel local variables — light theme */
+html[data-theme="light"] #lhp {
+  --bg: #f3f4f8;
+  --s1: #ffffff;
+  --s2: #eef0f5;
+  --s3: #e5e8f0;
+  --bd: rgba(0, 0, 0, 0.08);
+  --bd2: rgba(0, 0, 0, 0.14);
+  --tx: #1a1d2e;
+  --mt: #7e8799;
+}
+
+/* CV upload card — light theme (has its own hardcoded dark gradient) */
+html[data-theme="light"] .upload-panel {
+  background: linear-gradient(160deg, #eef0f5, #e5e8f0);
+}
+
+/* Mobile bottom nav + mode bar — light theme (hardcoded dark bars) */
+html[data-theme="light"] .mobile-nav {
+  background: rgba(255, 255, 255, 0.96);
+}
+html[data-theme="light"] .mobile-mode-bar {
+  background: rgba(255, 255, 255, 0.97);
+}
+
+/* --------------------------------------------------------------------------
    Reset & base
    -------------------------------------------------------------------------- */
 *,
@@ -1987,6 +2031,9 @@ button.success:hover:not(:disabled),
   font-weight: 600;
   cursor: pointer;
   letter-spacing: 0.01em;
+  min-width: auto;
+  width: auto;
+  align-self: flex-start;
 }
 .filter-actions button[type=submit]:hover { opacity: 0.88; }
 
@@ -2399,12 +2446,12 @@ button.success:hover:not(:disabled),
 
 .premium-footer-glow {
   height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), var(--cyan), var(--accent), transparent);
+  background: linear-gradient(90deg, transparent, var(--accent2), var(--accent), var(--accent2), transparent);
   box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
 }
 
 .footer-inner {
-  padding: 20px 28px 16px;
+  padding: 10px 28px;
 }
 
 .footer-top {
@@ -2557,6 +2604,7 @@ button.success:hover:not(:disabled),
 
 /* Mobile mode switch — above bottom nav (Sell / Lead Hunter) */
 .mobile-mode-bar {
+  display: none;
   position: fixed;
   bottom: var(--mobile-nav-height);
   left: 0;

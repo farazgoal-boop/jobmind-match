@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { generateOutreach, listBusinesses, sendOutreach, type BusinessListItem } from '@/lib/api-client';
+import { useEffect, useRef, useState } from 'react';
+import { listBusinesses, quickGenerateOutreach, sendOutreach, type BusinessListItem } from '@/lib/api-client';
 
 export default function OutreachPage() {
   const [businesses, setBusinesses] = useState<BusinessListItem[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const lockRef = useRef(false);
 
   async function loadBusinesses() {
     setBusinesses(await listBusinesses());
@@ -15,24 +16,30 @@ export default function OutreachPage() {
     loadBusinesses().catch(() => setBusinesses([]));
   }, []);
 
-  async function handleGenerate(businessId: string) {
+  async function handleAutoGenerate(businessId: string) {
+    if (lockRef.current) return;
+    lockRef.current = true;
     setBusyId(businessId);
 
     try {
-      await generateOutreach(businessId);
+      await quickGenerateOutreach(businessId);
       await loadBusinesses();
     } finally {
+      lockRef.current = false;
       setBusyId(null);
     }
   }
 
   async function handleSend(messageId: string) {
+    if (lockRef.current) return;
+    lockRef.current = true;
     setBusyId(messageId);
 
     try {
       await sendOutreach(messageId);
       await loadBusinesses();
     } finally {
+      lockRef.current = false;
       setBusyId(null);
     }
   }
@@ -54,12 +61,22 @@ export default function OutreachPage() {
                   <p>{business.latestOutreach?.subject || 'No outreach draft yet.'}</p>
                 </div>
                 <div className="inline-actions">
-                  <button className="button secondary" disabled={busyId === business.id} onClick={() => handleGenerate(business.id)} type="button">
-                    {busyId === business.id ? 'Generating...' : 'Generate'}
+                  <button
+                    className="button secondary"
+                    disabled={busyId !== null}
+                    onClick={() => handleAutoGenerate(business.id)}
+                    type="button"
+                  >
+                    {busyId === business.id ? 'Generating...' : 'Auto Generate'}
                   </button>
                   {business.latestOutreach && (
-                    <button className="button" disabled={busyId === business.latestOutreach.id} onClick={() => handleSend(business.latestOutreach!.id)} type="button">
-                      Send
+                    <button
+                      className="button"
+                      disabled={busyId !== null}
+                      onClick={() => handleSend(business.latestOutreach!.id)}
+                      type="button"
+                    >
+                      {busyId === business.latestOutreach.id ? 'Sending...' : 'Send'}
                     </button>
                   )}
                 </div>
@@ -68,7 +85,7 @@ export default function OutreachPage() {
                 <span className="badge">{business.latestOutreach?.channel || 'email'}</span>
                 <span className="badge">{business.latestOutreach?.status || 'draft'}</span>
               </div>
-              <p style={{ marginTop: 12 }}>{business.latestOutreach?.messageBody || 'Drafts appear here once generated from the recommendation.'}</p>
+              <p style={{ marginTop: 12 }}>{business.latestOutreach?.messageBody || 'Click Auto Generate to scan, analyse, and draft an outreach email in one step.'}</p>
             </article>
           ))}
         </div>
