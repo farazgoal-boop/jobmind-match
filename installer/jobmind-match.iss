@@ -1,7 +1,7 @@
 ; JobMind Match Premium — Windows Installer (Inno Setup)
 
 #define MyAppName "JobMind Match Premium"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.3"
 #define MyAppPublisher "JobMind"
 #define MyAppURL "https://gumroad.com"
 #define MyAppExeName "JobMindMatch.exe"
