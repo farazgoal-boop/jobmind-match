@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ErrorBanner } from '@/components/error-banner';
 import { listBusinesses, runScan, type BusinessListItem } from '@/lib/api-client';
 
 export default function ScannerPage() {
   const [businesses, setBusinesses] = useState<BusinessListItem[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const lockRef = useRef(false);
 
   async function loadBusinesses() {
@@ -20,10 +22,13 @@ export default function ScannerPage() {
     if (lockRef.current) return;
     lockRef.current = true;
     setBusyId(businessId);
+    setError(null);
 
     try {
       await runScan(businessId);
       await loadBusinesses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to run scan.');
     } finally {
       lockRef.current = false;
       setBusyId(null);
@@ -36,6 +41,7 @@ export default function ScannerPage() {
         <div className="kicker">Website Scanner</div>
         <h1>Potential revenue loss detected</h1>
         <p>Scanner output combines deterministic checks and AI summarization to explain missed lead capture and workflow gaps.</p>
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
       </section>
       <section className="panel" style={{ marginTop: 20 }}>
         <div className="stack">

@@ -119,7 +119,16 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   });
 
   if (!response.ok) {
-    throw new Error(`API request failed: ${response.status}`);
+    let message = `Request failed (${response.status})`;
+    try {
+      const body = await response.json();
+      if (typeof body?.message === 'string') {
+        message = body.message;
+      }
+    } catch {
+      // response had no JSON body; keep the default message
+    }
+    throw new Error(message);
   }
 
   return response.json() as Promise<T>;

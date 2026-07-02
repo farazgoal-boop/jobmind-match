@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ErrorBanner } from '@/components/error-banner';
 import { generateDemo, listBusinesses, type BusinessListItem } from '@/lib/api-client';
 
 export default function DemosPage() {
   const [businesses, setBusinesses] = useState<BusinessListItem[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function loadBusinesses() {
     setBusinesses(await listBusinesses());
@@ -17,10 +19,13 @@ export default function DemosPage() {
 
   async function handleGenerate(businessId: string) {
     setBusyId(businessId);
+    setError(null);
 
     try {
       await generateDemo(businessId);
       await loadBusinesses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate demo.');
     } finally {
       setBusyId(null);
     }
@@ -32,6 +37,7 @@ export default function DemosPage() {
         <div className="kicker">Instant Demo Generator</div>
         <h1>Reusable niche templates</h1>
         <p>Generate tailored demo pages that show how the client business can improve with your software.</p>
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
       </section>
       <section className="panel" style={{ marginTop: 20 }}>
         <div className="stack">

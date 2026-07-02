@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ErrorBanner } from '@/components/error-banner';
 import { listBusinesses, quickGenerateOutreach, sendOutreach, type BusinessListItem } from '@/lib/api-client';
 
 export default function OutreachPage() {
   const [businesses, setBusinesses] = useState<BusinessListItem[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const lockRef = useRef(false);
 
   async function loadBusinesses() {
@@ -20,10 +22,13 @@ export default function OutreachPage() {
     if (lockRef.current) return;
     lockRef.current = true;
     setBusyId(businessId);
+    setError(null);
 
     try {
       await quickGenerateOutreach(businessId);
       await loadBusinesses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate outreach.');
     } finally {
       lockRef.current = false;
       setBusyId(null);
@@ -34,10 +39,13 @@ export default function OutreachPage() {
     if (lockRef.current) return;
     lockRef.current = true;
     setBusyId(messageId);
+    setError(null);
 
     try {
       await sendOutreach(messageId);
       await loadBusinesses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send outreach.');
     } finally {
       lockRef.current = false;
       setBusyId(null);
@@ -50,6 +58,7 @@ export default function OutreachPage() {
         <div className="kicker">Outreach Automation</div>
         <h1>Generate personalized sales messages</h1>
         <p>Prepare channel-specific messaging, route it through n8n workflows, and keep status synced to the lead dashboard.</p>
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
       </section>
       <section className="panel" style={{ marginTop: 20 }}>
         <div className="stack">

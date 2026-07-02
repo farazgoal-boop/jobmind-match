@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { ErrorBanner } from '@/components/error-banner';
 import { listLeads, updateLeadStatus, type LeadListItem, type LeadStatus } from '@/lib/api-client';
 
 const statusOptions: LeadStatus[] = ['discovered', 'scanned', 'contacted', 'replied', 'interested', 'meeting_booked', 'proposal_sent', 'closed_won', 'closed_lost'];
@@ -8,6 +9,7 @@ const statusOptions: LeadStatus[] = ['discovered', 'scanned', 'contacted', 'repl
 export default function LeadsPage() {
   const [leads, setLeads] = useState<LeadListItem[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function loadLeads() {
     setLeads(await listLeads());
@@ -29,10 +31,13 @@ export default function LeadsPage() {
 
   async function handleStatusChange(leadId: string, status: LeadStatus) {
     setBusyId(leadId);
+    setError(null);
 
     try {
       await updateLeadStatus(leadId, status);
       await loadLeads();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update lead status.');
     } finally {
       setBusyId(null);
     }
@@ -44,6 +49,7 @@ export default function LeadsPage() {
         <div className="kicker">Lead Dashboard</div>
         <h1>Pipeline and deal tracking</h1>
         <p>Monitor every business from discovery to close, with activities, follow-ups, proposals, and revenue outcomes.</p>
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
       </section>
       <section className="panel grid metrics" style={{ marginTop: 20 }}>
         {pipeline.map((item) => (
@@ -54,6 +60,7 @@ export default function LeadsPage() {
         ))}
       </section>
       <section className="panel" style={{ marginTop: 20 }}>
+        <div className="table-wrap">
         <table className="table">
           <thead>
             <tr>
@@ -85,6 +92,7 @@ export default function LeadsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </section>
     </main>
   );

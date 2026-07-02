@@ -46,6 +46,11 @@ export async function sendOutreach(request: Request, response: Response) {
     data: { status: 'sent', sentAt: new Date() }
   });
 
+  await prisma.leadPipeline.updateMany({
+    where: { businessId: message.businessId, currentStatus: LeadStatus.scanned },
+    data: { currentStatus: LeadStatus.contacted }
+  });
+
   response.json({ ok: true, messageId, status: message.status });
 }
 
@@ -94,7 +99,10 @@ export async function quickGenerateOutreach(request: Request, response: Response
   });
 
   await prisma.leadPipeline.updateMany({
-    where: { businessId: business.id },
+    where: {
+      businessId: business.id,
+      currentStatus: { in: [LeadStatus.discovered, LeadStatus.scanned] }
+    },
     data: {
       currentStatus: LeadStatus.scanned,
       interestScore: generatedScan.opportunityScore,

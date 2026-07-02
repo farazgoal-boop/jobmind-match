@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { ErrorBanner } from '@/components/error-banner';
 import { generateRecommendation, listBusinesses, type BusinessListItem } from '@/lib/api-client';
 
 export default function RecommendationsPage() {
   const [businesses, setBusinesses] = useState<BusinessListItem[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const lockRef = useRef(false);
 
   async function loadBusinesses() {
@@ -20,10 +22,13 @@ export default function RecommendationsPage() {
     if (lockRef.current) return;
     lockRef.current = true;
     setBusyId(businessId);
+    setError(null);
 
     try {
       await generateRecommendation(businessId);
       await loadBusinesses();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate recommendation.');
     } finally {
       lockRef.current = false;
       setBusyId(null);
@@ -36,6 +41,7 @@ export default function RecommendationsPage() {
         <div className="kicker">AI Recommendations</div>
         <h1>Translate findings into productized offers</h1>
         <p>Package scan output into solution recommendations, pricing direction, and implementation angle for each lead.</p>
+        <ErrorBanner message={error} onDismiss={() => setError(null)} />
       </section>
       <section className="panel" style={{ marginTop: 20 }}>
         <div className="nav-grid">
