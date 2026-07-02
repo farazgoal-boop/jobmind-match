@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { createBusiness, listBusinesses, runScan, type BusinessListItem, type CreateBusinessPayload } from '@/lib/api-client';
 
 export default function DiscoveryPage() {
@@ -16,6 +16,7 @@ export default function DiscoveryPage() {
   });
   const [busyId, setBusyId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const lockRef = useRef(false);
 
   async function loadBusinesses() {
     setBusinesses(await listBusinesses());
@@ -27,6 +28,7 @@ export default function DiscoveryPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
 
     try {
@@ -39,12 +41,15 @@ export default function DiscoveryPage() {
   }
 
   async function handleScan(businessId: string) {
+    if (lockRef.current) return;
+    lockRef.current = true;
     setBusyId(businessId);
 
     try {
       await runScan(businessId);
       await loadBusinesses();
     } finally {
+      lockRef.current = false;
       setBusyId(null);
     }
   }
@@ -91,7 +96,7 @@ export default function DiscoveryPage() {
                 <td>{business.latestScan?.opportunityScore ?? 'Not scanned'}</td>
                 <td>{business.lead?.currentStatus ?? 'discovered'}</td>
                 <td>
-                  <button className="button secondary" disabled={busyId === business.id} onClick={() => handleScan(business.id)} type="button">
+                  <button className="button secondary" disabled={busyId !== null} onClick={() => handleScan(business.id)} type="button">
                     {busyId === business.id ? 'Scanning...' : 'Run scan'}
                   </button>
                 </td>

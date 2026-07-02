@@ -165,6 +165,12 @@ export function generateOutreach(businessId: string) {
   });
 }
 
+export function quickGenerateOutreach(businessId: string) {
+  return apiRequest(`/outreach/quick-generate/${businessId}`, {
+    method: 'POST'
+  });
+}
+
 export function sendOutreach(messageId: string) {
   return apiRequest(`/outreach/send/${messageId}`, {
     method: 'POST'
