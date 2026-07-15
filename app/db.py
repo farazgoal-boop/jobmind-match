@@ -67,12 +67,23 @@ def _ensure_candidate_profile_columns() -> None:
             )
 
 
+def _ensure_lead_hunter_location_columns() -> None:
+    for table_name in ("huntedcontact", "clientlead"):
+        column_names = {column["name"] for column in inspect(engine).get_columns(table_name)}
+        if "location" not in column_names:
+            with engine.begin() as connection:
+                connection.exec_driver_sql(
+                    f"ALTER TABLE {table_name} ADD COLUMN location VARCHAR NOT NULL DEFAULT ''"
+                )
+
+
 engine = _build_engine()
 
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
     _ensure_candidate_profile_columns()
+    _ensure_lead_hunter_location_columns()
 
 
 def get_session():

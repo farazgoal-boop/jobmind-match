@@ -11,7 +11,9 @@
   <title>JobMind Match</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="manifest" href="/static/manifest.webmanifest?v={{ static_version }}" />
   <link rel="icon" href="/static/icon-32.png?v={{ static_version }}" type="image/png" sizes="32x32" />
   <link rel="icon" href="/static/icon-192.png?v={{ static_version }}" type="image/png" sizes="192x192" />
@@ -20,7 +22,7 @@
   <script>document.documentElement.setAttribute('data-theme',localStorage.getItem('jmm-theme')||'dark');</script>
   <style>
     /* Critical — ensures premium dark UI + single-panel view before full CSS loads */
-    :root { --bg-primary:#07070f; --bg-surface:#0e0e1c; --accent:#7c3aed; --text-primary:#eeeef8; --text-muted:#6666a0; --sidebar-width:220px; --header-height:60px; }
+    :root { --bg-primary:#07070f; --bg-surface:#0e0e1c; --accent:#4f46e5; --accent-strong:#3525cd; --text-primary:#eeeef8; --text-muted:#6666a0; --sidebar-width:220px; --header-height:60px; }
     html, body { margin:0; background:#07070f !important; color:#eeeef8 !important; font-family:Inter,system-ui,sans-serif; min-height:100vh; }
     .panel { display:none !important; }
     .panel.active { display:block !important; }
@@ -39,9 +41,9 @@
     .footer-status-bar em { font-style:normal; color:#c084fc; }
     .header-logo, .footer-logo { border-radius:8px; }
     .sidebar-item { display:flex; align-items:center; gap:10px; width:100%; padding:10px 12px; border:none; background:transparent; color:#6666a0; cursor:pointer; text-align:left; border-radius:8px; font-family:inherit; }
-    .sidebar-item.active { color:#eeeef8; background:rgba(99,102,241,.15); box-shadow:inset 3px 0 0 #7c3aed; }
+    .sidebar-item.active { color:#eeeef8; background:rgba(99,102,241,.15); box-shadow:inset 3px 0 0 #4f46e5; }
     .card { background:#0e0e1c; border:1px solid rgba(255,255,255,.06); border-radius:14px; padding:22px; }
-    button[type=submit], .mode-switch-button.active { background:linear-gradient(135deg,#7c3aed,#4338ca); color:#fff; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; }
+    button[type=submit], .mode-switch-button.active { background:linear-gradient(135deg,#4f46e5,#3525cd); color:#fff; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; }
     input, select, textarea { background:#141428; border:1px solid rgba(255,255,255,.08); color:#eeeef8; border-radius:8px; padding:10px 12px; }
     html.is-mobile-app .mobile-mode-bar, html.is-mobile-app .mobile-nav { display:flex !important; }
     html.is-mobile-app .app-sidebar, html.is-mobile-app .header-mode-toggle { display:none !important; }
@@ -53,9 +55,20 @@
     html[data-theme="light"] .app-sidebar { background:#ffffff; border-right-color:rgba(0,0,0,.08); }
     html[data-theme="light"] .app-footer { background:#ffffff; border-top-color:rgba(99,102,241,.18); }
     html[data-theme="light"] .footer-status-bar { background:rgba(255,255,255,.96); border-top-color:rgba(99,102,241,.18); color:#7e8799; }
-    html[data-theme="light"] .footer-status-bar em { color:#6366f1; }
+    html[data-theme="light"] .footer-status-bar em { color:#4f46e5; }
     html[data-theme="light"] .sidebar-item { color:#7e8799; }
-    html[data-theme="light"] .sidebar-item.active { color:#1a1d2e; background:rgba(99,102,241,.1); box-shadow:inset 3px 0 0 #6366f1; }
+    html[data-theme="light"] .sidebar-item.active { color:#1a1d2e; background:rgba(99,102,241,.1); box-shadow:inset 3px 0 0 #4f46e5; }
+    html[data-theme="contrast"], html[data-theme="contrast"] body { background:#ffffff !important; color:#000000 !important; }
+    html[data-theme="contrast"] .app-shell { background:#ffffff; }
+    html[data-theme="contrast"] .app-header { background:#ffffff; border-bottom-color:#000000; }
+    html[data-theme="contrast"] .app-sidebar { background:#ffffff; border-right-color:#000000; }
+    html[data-theme="contrast"] .app-footer { background:#ffffff; border-top-color:#000000; }
+    html[data-theme="contrast"] .footer-status-bar { background:#ffffff; border-top-color:#000000; color:#000000; }
+    html[data-theme="contrast"] .footer-status-bar em { color:#3525cd; }
+    html[data-theme="contrast"] .sidebar-item { color:#000000; }
+    html[data-theme="contrast"] .sidebar-item.active { color:#000000; background:#e5e5e5; box-shadow:inset 3px 0 0 #000000; }
+    html[data-theme="contrast"] .card { background:#ffffff; border-color:#000000; border-width:2px; }
+    html[data-theme="contrast"] input, html[data-theme="contrast"] select, html[data-theme="contrast"] textarea { background:#ffffff; border-color:#000000; border-width:2px; color:#000000; }
     html[data-theme="light"] .card { background:#ffffff; border-color:rgba(0,0,0,.08); }
     html[data-theme="light"] input, html[data-theme="light"] select, html[data-theme="light"] textarea { background:#eef0f5; border-color:rgba(0,0,0,.12); color:#1a1d2e; }
   </style>
@@ -92,7 +105,11 @@
       </div>
       <div class="header-actions">
         <button type="button" class="ghost-action install-chip hidden" data-role="install-app">Install App</button>
-        <button type="button" class="ghost-action" data-role="theme-toggle" title="Toggle light/dark theme" aria-label="Toggle theme">🌙</button>
+        <div class="theme-segmented" data-role="theme-segmented" role="group" aria-label="Theme mode">
+          <button type="button" class="theme-segmented-btn" data-theme-value="light" title="Light theme" aria-label="Light theme">☀️</button>
+          <button type="button" class="theme-segmented-btn" data-theme-value="dark" title="Dark theme" aria-label="Dark theme">🌙</button>
+          <button type="button" class="theme-segmented-btn" data-theme-value="contrast" title="High-contrast theme" aria-label="High-contrast theme">◐</button>
+        </div>
         <button type="button" class="ghost-action" data-role="settings-toggle" title="Settings">⚙</button>
       </div>
     </header>
@@ -111,6 +128,10 @@
           <button type="button" class="sidebar-item" data-nav-panel="sell-search" data-nav-mode="sell"><span class="sidebar-icon">🎯</span><span class="sidebar-label">Client Search</span></button>
           <button type="button" class="sidebar-item" data-nav-panel="sell-profile" data-nav-mode="sell"><span class="sidebar-icon">📄</span><span class="sidebar-label">Profile &amp; Pitch</span></button>
         </nav>
+        <button type="button" class="sidebar-update-pill hidden" data-role="sidebar-update-pill" title="A new version is available">
+          <span class="sidebar-update-dot"></span>
+          <span class="sidebar-update-label">Update available</span>
+        </button>
       </aside>
 
       <main class="app-main layout">
@@ -609,8 +630,8 @@
 <!-- ║        LEAD HUNTER PRO v3 — 500+ Queries, Multi-Export     ║ -->
 <!-- ╚══════════════════════════════════════════════════════════════╝ -->
 <style>
-#lhp{--p:#6366f1;--p2:#818cf8;--p3:#a5b4fc;--g:#22c55e;--g2:#4ade80;--a:#f59e0b;--r:#ef4444;--b:#818cf8;--wa:#25d366;--bg:#0b0d11;--s1:#111318;--s2:#171a22;--s3:#1d2130;--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);--tx:#e8eaf2;--mt:#5a6175}
-#lhp,#lhp *{box-sizing:border-box;font-family:'Space Grotesk',system-ui,sans-serif}
+#lhp{--p:#4f46e5;--p2:#6366f1;--p3:#a5b4fc;--pstrong:#3525cd;--g:#22c55e;--g2:#4ade80;--a:#f59e0b;--r:#ef4444;--b:#818cf8;--wa:#25d366;--bg:#0b0d11;--s1:#111318;--s2:#171a22;--s3:#1d2130;--bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.12);--tx:#e8eaf2;--mt:#5a6175}
+#lhp,#lhp *{box-sizing:border-box;font-family:'Hanken Grotesk',system-ui,sans-serif}
 #lhp{background:var(--s1);border:1px solid rgba(99,102,241,.2);border-radius:18px;margin-bottom:28px;overflow:hidden}
 
 /* Head */
@@ -646,6 +667,26 @@
 .lh-adv>summary::-webkit-details-marker{display:none}
 .lh-adv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:10px}
 .lh-adv-full{grid-column:span 2}
+/* Hunt location picker */
+.lh-loc-block{margin-top:4px}
+.lh-loc-row{display:flex;gap:8px;flex-wrap:wrap;align-items:stretch}
+.lh-loc-row select{flex:1;min-width:150px}
+.lh-loc-city-wrap{position:relative;flex:1;min-width:160px}
+.lh-loc-city-wrap input{width:100%}
+.lh-loc-suggest{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--s2);border:1px solid var(--bd2);border-radius:8px;z-index:30;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.lh-loc-suggest-item{padding:8px 12px;font-size:12px;cursor:pointer;color:var(--tx)}
+.lh-loc-suggest-item:hover{background:var(--s3)}
+.lh-loc-chip{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 12px;border-radius:999px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.3);font-size:12px;color:var(--tx)}
+.lh-loc-chip button{background:transparent;border:none;color:var(--mt);cursor:pointer;font-size:13px;padding:0 2px;line-height:1}
+.lh-loc-chip button:hover{color:var(--tx)}
+.lhp-map{margin-top:10px;height:240px;border-radius:12px;overflow:hidden;border:1px solid var(--bd2)}
+.lh-loc-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--mt);margin-top:2px}
+.lh-loc-places{margin-top:8px}
+.lh-loc-places>summary{font-size:11px;color:var(--mt);cursor:pointer;list-style:none;user-select:none}
+.lh-loc-places>summary:hover{color:var(--p3)}
+.lh-loc-places>summary::-webkit-details-marker{display:none}
+.lh-loc-places-list{display:flex;flex-wrap:wrap;gap:6px;padding-top:8px}
+.lh-loc-place-chip{font-size:11px;padding:4px 9px;border-radius:999px;background:var(--s2);border:1px solid var(--bd2);color:var(--mt)}
 /* Stats empty state */
 .lh-stats-empty{padding:12px 28px;border-bottom:1px solid var(--bd);font-size:12px;color:var(--mt)}
 
@@ -660,7 +701,7 @@
 /* Action bar */
 .lh-actions{display:flex;gap:9px;padding:14px 28px;border-bottom:1px solid var(--bd);flex-wrap:wrap;align-items:center}
 .lhb{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
-.lhb-primary{background:linear-gradient(135deg,var(--p),#4338ca);color:#fff;box-shadow:0 4px 16px rgba(99,102,241,.35)}
+.lhb-primary{background:linear-gradient(135deg,var(--p),var(--pstrong));color:#fff;box-shadow:0 4px 16px rgba(99,102,241,.35)}
 .lhb-primary:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(99,102,241,.5)}
 .lhb-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 .lhb-stop{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#f87171}
@@ -812,16 +853,42 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
         <label>Extra keywords</label>
         <input type="text" id="lhp-kw" placeholder="python, shopify, react, logo…">
       </div>
-      <div class="lh-f">
-        <label>Country / region</label>
-        <input type="text" id="lhp-cc" placeholder="+92, +1, Pakistan, USA…">
-      </div>
       <div class="lh-f lh-adv-full">
         <label>File / session name</label>
         <input type="text" id="lhp-fname" placeholder="e.g. Batch-01-June-2026 (shown in export filename)">
       </div>
     </div>
   </details>
+  <div class="lh-f span4 lh-loc-block">
+    <label>🗺️ Hunt location <span style="color:var(--mt);font-weight:400">— narrows results to a region (optional)</span></label>
+    <div class="lh-loc-row">
+      <select id="lhp-country">
+        <option value="">Any country</option>
+        {% for c in country_list %}
+        <option value="{{ c }}">{{ c }}</option>
+        {% endfor %}
+      </select>
+      <div class="lh-loc-city-wrap">
+        <input type="text" id="lhp-city" placeholder="City (optional)" autocomplete="off">
+        <div class="lh-loc-suggest hidden" id="lhp-city-suggest"></div>
+      </div>
+      <select id="lhp-radius" title="Target a radius around the pin, like Facebook Ads location targeting">
+        <option value="0">No radius (this place only)</option>
+        <option value="10">10 km radius</option>
+        <option value="25">25 km radius</option>
+        <option value="50">50 km radius</option>
+        <option value="100">100 km radius</option>
+        <option value="200">200 km radius</option>
+      </select>
+      <button type="button" class="lhb" id="lhp-map-toggle">🗺️ Pick on map</button>
+    </div>
+    <div class="lh-loc-chip hidden" id="lhp-loc-chip">📍 <span id="lhp-loc-chip-text"></span><button type="button" id="lhp-loc-clear" title="Clear location">✕</button></div>
+    <details class="lh-loc-places hidden" id="lhp-places-details">
+      <summary id="lhp-places-summary">0 places in range ▾</summary>
+      <div class="lh-loc-places-list" id="lhp-places-list"></div>
+    </details>
+    <div id="lhp-map" class="lhp-map hidden"></div>
+  </div>
 </div>
 
 <!-- Platform chips -->
@@ -1019,12 +1086,225 @@ function setProg(pct,status){
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
 
 // Scrape from backend API (server filters permanent registry)
+// ---- Hunt location picker (map + country/city + Facebook-Ads-style radius) ----
+let HUNT_LOCATION={country:'',city:'',lat:null,lon:null,display_name:'',radiusKm:0,places:[]};
+let LHP_MAP=null,LHP_MARKER=null,LHP_CIRCLE=null;
+
+function huntLocationString(){
+  return HUNT_LOCATION.display_name || [HUNT_LOCATION.city,HUNT_LOCATION.country].filter(Boolean).join(', ');
+}
+
+function updateLocChip(){
+  const chip=document.getElementById('lhp-loc-chip');
+  const text=document.getElementById('lhp-loc-chip-text');
+  const label=huntLocationString();
+  if(label){
+    text.textContent=HUNT_LOCATION.radiusKm>0?`${label} (+${HUNT_LOCATION.radiusKm}km radius)`:label;
+    chip.classList.remove('hidden');
+  }else{
+    chip.classList.add('hidden');
+  }
+}
+
+function renderPlacesList(errorMsg){
+  const details=document.getElementById('lhp-places-details');
+  const summary=document.getElementById('lhp-places-summary');
+  const list=document.getElementById('lhp-places-list');
+  const places=HUNT_LOCATION.places;
+  if(errorMsg){
+    summary.textContent=`⚠️ ${errorMsg}`;
+    list.innerHTML='';
+    details.classList.remove('hidden');
+    return;
+  }
+  if(!places.length){
+    if(HUNT_LOCATION.radiusKm>0){
+      summary.textContent='No named places found in this radius — try a larger radius.';
+      details.classList.remove('hidden');
+    }else{
+      details.classList.add('hidden');
+    }
+    list.innerHTML='';
+    return;
+  }
+  summary.textContent=`${places.length} places in range ▾`;
+  list.innerHTML=places.map(p=>`<span class="lh-loc-place-chip">${esc(p)}</span>`).join('');
+  details.classList.remove('hidden');
+}
+
+function drawLhpCircle(lat,lon,radiusKm){
+  if(!LHP_MAP)return;
+  if(LHP_CIRCLE){LHP_MAP.removeLayer(LHP_CIRCLE);LHP_CIRCLE=null;}
+  if(radiusKm>0){
+    LHP_CIRCLE=L.circle([lat,lon],{radius:radiusKm*1000,color:'#4f46e5',weight:2,fillColor:'#4f46e5',fillOpacity:.08}).addTo(LHP_MAP);
+    LHP_MAP.fitBounds(LHP_CIRCLE.getBounds());
+  }
+}
+
+async function resolveRadiusPlaces(){
+  if(HUNT_LOCATION.lat==null||HUNT_LOCATION.lon==null||HUNT_LOCATION.radiusKm<=0){
+    HUNT_LOCATION.places=[];
+    renderPlacesList();
+    return;
+  }
+  const summary=document.getElementById('lhp-places-summary');
+  const details=document.getElementById('lhp-places-details');
+  summary.textContent='Resolving places in range…';
+  details.classList.remove('hidden');
+  let errorMsg='';
+  try{
+    const params=new URLSearchParams({lat:HUNT_LOCATION.lat,lon:HUNT_LOCATION.lon,radius_km:HUNT_LOCATION.radiusKm});
+    const res=await fetch(`/api/geo/radius?${params}`);
+    const data=await res.json();
+    HUNT_LOCATION.places=(data.places||[]).map(p=>p.name);
+    errorMsg=data.error||'';
+  }catch(e){
+    HUNT_LOCATION.places=[];
+    errorMsg='Location service unreachable — try again.';
+  }
+  renderPlacesList(errorMsg);
+}
+
+function clearHuntLocation(){
+  HUNT_LOCATION={country:'',city:'',lat:null,lon:null,display_name:'',radiusKm:0,places:[]};
+  document.getElementById('lhp-country').value='';
+  document.getElementById('lhp-city').value='';
+  document.getElementById('lhp-radius').value='0';
+  if(LHP_MARKER&&LHP_MAP){LHP_MAP.removeLayer(LHP_MARKER);LHP_MARKER=null;}
+  if(LHP_CIRCLE&&LHP_MAP){LHP_MAP.removeLayer(LHP_CIRCLE);LHP_CIRCLE=null;}
+  updateLocChip();
+  renderPlacesList();
+}
+
+function placeLhpMarker(lat,lon){
+  if(!LHP_MAP)return;
+  if(LHP_MARKER)LHP_MAP.removeLayer(LHP_MARKER);
+  LHP_MARKER=L.marker([lat,lon]).addTo(LHP_MAP);
+}
+
+function onLhpPinSelected(lat,lon){
+  drawLhpCircle(lat,lon,HUNT_LOCATION.radiusKm);
+  if(HUNT_LOCATION.radiusKm>0)resolveRadiusPlaces();
+  else{HUNT_LOCATION.places=[];renderPlacesList();}
+}
+
+function initLhpMap(){
+  if(LHP_MAP||typeof L==='undefined')return;
+  LHP_MAP=L.map('lhp-map').setView([20,0],2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'&copy; OpenStreetMap contributors',
+    maxZoom:18
+  }).addTo(LHP_MAP);
+  LHP_MAP.on('click',async(e)=>{
+    const{lat,lng}=e.latlng;
+    placeLhpMarker(lat,lng);
+    try{
+      const res=await fetch(`/api/geo/reverse?lat=${lat}&lon=${lng}`);
+      const data=await res.json();
+      HUNT_LOCATION.country=data.country||'';
+      HUNT_LOCATION.city=data.city||'';
+      HUNT_LOCATION.lat=lat;
+      HUNT_LOCATION.lon=lng;
+      HUNT_LOCATION.display_name=data.display_name||'';
+      document.getElementById('lhp-city').value=data.city||'';
+      const countrySelect=document.getElementById('lhp-country');
+      if(data.country&&[...countrySelect.options].some(o=>o.value===data.country))countrySelect.value=data.country;
+      updateLocChip();
+      onLhpPinSelected(lat,lng);
+    }catch(err){/* geocoding is best-effort */}
+  });
+}
+
+document.getElementById('lhp-loc-clear')?.addEventListener('click',clearHuntLocation);
+
+document.getElementById('lhp-country')?.addEventListener('change',(e)=>{
+  HUNT_LOCATION.country=e.target.value;
+  HUNT_LOCATION.display_name='';
+  updateLocChip();
+});
+
+document.getElementById('lhp-radius')?.addEventListener('change',(e)=>{
+  HUNT_LOCATION.radiusKm=parseInt(e.target.value)||0;
+  updateLocChip();
+  if(HUNT_LOCATION.lat!=null){
+    document.getElementById('lhp-map').classList.remove('hidden');
+    initLhpMap();
+    setTimeout(()=>{
+      if(LHP_MAP){
+        LHP_MAP.invalidateSize();
+        onLhpPinSelected(HUNT_LOCATION.lat,HUNT_LOCATION.lon);
+      }
+    },150);
+  }
+});
+
+document.getElementById('lhp-map-toggle')?.addEventListener('click',()=>{
+  const mapEl=document.getElementById('lhp-map');
+  mapEl.classList.toggle('hidden');
+  if(!mapEl.classList.contains('hidden')){
+    initLhpMap();
+    setTimeout(()=>{if(LHP_MAP)LHP_MAP.invalidateSize();},150);
+  }
+});
+
+let LHP_CITY_DEBOUNCE=null;
+document.getElementById('lhp-city')?.addEventListener('input',(e)=>{
+  const q=e.target.value.trim();
+  HUNT_LOCATION.city=q;
+  HUNT_LOCATION.display_name='';
+  updateLocChip();
+  clearTimeout(LHP_CITY_DEBOUNCE);
+  const suggestBox=document.getElementById('lhp-city-suggest');
+  if(q.length<2){suggestBox.classList.add('hidden');suggestBox.innerHTML='';return;}
+  LHP_CITY_DEBOUNCE=setTimeout(async()=>{
+    try{
+      const query=HUNT_LOCATION.country?`${q}, ${HUNT_LOCATION.country}`:q;
+      const params=new URLSearchParams({q:query});
+      const res=await fetch(`/api/geo/search?${params}`);
+      const data=await res.json();
+      const results=data.results||[];
+      if(!results.length){suggestBox.classList.add('hidden');suggestBox.innerHTML='';return;}
+      suggestBox.innerHTML=results.map((r,i)=>`<div class="lh-loc-suggest-item" data-idx="${i}">${esc(r.display_name)}</div>`).join('');
+      suggestBox.classList.remove('hidden');
+      suggestBox.querySelectorAll('.lh-loc-suggest-item').forEach((el,i)=>{
+        el.addEventListener('click',()=>{
+          const r=results[i];
+          HUNT_LOCATION.country=r.country||HUNT_LOCATION.country;
+          HUNT_LOCATION.city=r.city||q;
+          HUNT_LOCATION.lat=parseFloat(r.lat)||null;
+          HUNT_LOCATION.lon=parseFloat(r.lon)||null;
+          HUNT_LOCATION.display_name=r.display_name;
+          document.getElementById('lhp-city').value=r.city||q;
+          const countrySelect=document.getElementById('lhp-country');
+          if(r.country&&[...countrySelect.options].some(o=>o.value===r.country))countrySelect.value=r.country;
+          suggestBox.classList.add('hidden');
+          suggestBox.innerHTML='';
+          updateLocChip();
+          if(HUNT_LOCATION.lat!=null){
+            document.getElementById('lhp-map').classList.remove('hidden');
+            initLhpMap();
+            setTimeout(()=>{
+              if(LHP_MAP){
+                LHP_MAP.invalidateSize();
+                LHP_MAP.setView([HUNT_LOCATION.lat,HUNT_LOCATION.lon],10);
+                placeLhpMarker(HUNT_LOCATION.lat,HUNT_LOCATION.lon);
+                onLhpPinSelected(HUNT_LOCATION.lat,HUNT_LOCATION.lon);
+              }
+            },150);
+          }
+        });
+      });
+    }catch(e){/* geocoding is best-effort */}
+  },600);
+});
+
 async function fetchFromAPI(source, offset=0){
   const tgt=document.getElementById('lhp-tgt').value;
   const kw=document.getElementById('lhp-kw').value.trim();
-  const cc=document.getElementById('lhp-cc').value.trim();
+  const loc=huntLocationString();
+  const locs=HUNT_LOCATION.places.join(',');
   try{
-    const params=new URLSearchParams({source,offset,target:tgt,keywords:kw,country:cc,batch_size:30});
+    const params=new URLSearchParams({source,offset,target:tgt,keywords:kw,location:loc,locations:locs,batch_size:30});
     const res=await fetch(`/api/scrape/leads?${params}`);
     if(!res.ok)return{leads:[],skipped:0};
     const data=await res.json();
@@ -1034,6 +1314,29 @@ async function fetchFromAPI(source, offset=0){
   }catch(e){
     lhLog(`${source} error: ${e.message}`,'warn');
     return{leads:[],skipped:0};
+  }
+}
+
+// Do-not-contact opt-out — used by the Lead Tracker panel's per-row button
+async function dncAdd(btn){
+  const email=btn.dataset.email||'';
+  const whatsapp=btn.dataset.whatsapp||'';
+  if(!email&&!whatsapp)return;
+  btn.disabled=true;
+  const original=btn.textContent;
+  btn.textContent='…';
+  try{
+    const body=new URLSearchParams({email,whatsapp,reason:'Marked from Lead Tracker'});
+    const res=await fetch('/api/dnc/add',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+    if(res.ok){
+      btn.textContent='🚫 Suppressed ✓';
+    }else{
+      btn.textContent=original;
+      btn.disabled=false;
+    }
+  }catch(e){
+    btn.textContent=original;
+    btn.disabled=false;
   }
 }
 
@@ -1140,7 +1443,7 @@ function render(leads){
       <td>${l.whatsapp?`<a class="lh-wa-a" href="https://wa.me/${l.whatsapp.replace(/\D/g,'')}" target="_blank" rel="noopener">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
         ${esc(l.whatsapp)}</a>`:'<span style="color:#6666a0;font-size:11px">—</span>'}</td>
-      <td>${srcTag(l.source)}</td>
+      <td>${srcTag(l.source)}${l.location?`<div class="lh-loc-badge">📍 ${esc(l.location)}</div>`:''}</td>
       <td style="white-space:nowrap">
         ${l.email?`<button class="lh-cb" onclick="lhCopy('${esc(l.email)}',this,'✉')" title="Copy email">✉</button> `:''}
         ${l.whatsapp?`<button class="lh-cb" onclick="lhCopy('${esc(l.whatsapp)}',this,'💬')" title="Copy WA">💬</button> `:''}
@@ -1157,8 +1460,8 @@ function lhpExport(fmt){
   const fname=(document.getElementById('lhp-fname').value.trim()||'leads').replace(/[^\w\-]/g,'_');
   const ts=new Date().toISOString().slice(0,19).replace(/[-:T]/g,'');
   const base=`${fname}_${ts}`;
-  const rows=LEADS.map((l,i)=>[i+1,l.name||'',l.designation||'',l.email||'',l.whatsapp||'',l.source||'',l.url||'',l.notes||'']);
-  const hdr=['#','Name','Designation','Email','WhatsApp','Source','Profile URL','Notes'];
+  const rows=LEADS.map((l,i)=>[i+1,l.name||'',l.designation||'',l.email||'',l.whatsapp||'',l.source||'',l.location||'',l.url||'',l.notes||'']);
+  const hdr=['#','Name','Designation','Email','WhatsApp','Source','Location','Profile URL','Notes'];
   let blob,mt,ext;
   if(fmt==='csv'){
     const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
@@ -1175,7 +1478,7 @@ function lhpExport(fmt){
     blob=new Blob([LEADS.filter(l=>l.whatsapp).map(l=>l.whatsapp).join('\n')],{type:'text/plain'});
     ext='whatsapp.txt';
   }else if(fmt==='xls'){
-    const th=hdr.map(h=>`<th style="background:#7c3aed;color:white;padding:8px">${h}</th>`).join('');
+    const th=hdr.map(h=>`<th style="background:#4f46e5;color:white;padding:8px">${h}</th>`).join('');
     const tr=rows.map(r=>`<tr>${r.map(c=>`<td>${String(c).replace(/</g,'&lt;')}</td>`).join('')}</tr>`).join('');
     const xls=`<html><head><meta charset="UTF-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial;font-size:12px"><tr>${th}</tr>${tr}</table></body></html>`;
     blob=new Blob([xls],{type:'application/vnd.ms-excel'});
@@ -1184,7 +1487,7 @@ function lhpExport(fmt){
     const cards=LEADS.map((l,i)=>{
       const em=l.email?`<a href="mailto:${l.email}" style="color:#60a5fa">✉ ${l.email}</a><br>`:'';
       const wa=l.whatsapp?`<a href="https://wa.me/${l.whatsapp.replace(/\D/g,'')}" style="color:#25d366">💬 ${l.whatsapp}</a><br>`:'';
-      return `<div style="border:1px solid #7c3aed;border-radius:10px;padding:16px;margin:8px;display:inline-block;min-width:240px;background:#0e0e1c;color:#eeeef8;vertical-align:top"><div style="font-weight:700">#${i+1} ${l.name||'Unknown'}</div><div style="font-size:11px;color:#a07cfc;margin:8px 0">${l.designation||''}</div>${em}${wa}<div style="font-size:10px;color:#666;margin-top:6px">${l.source||''}</div></div>`;
+      return `<div style="border:1px solid #4f46e5;border-radius:10px;padding:16px;margin:8px;display:inline-block;min-width:240px;background:#0e0e1c;color:#eeeef8;vertical-align:top"><div style="font-weight:700">#${i+1} ${l.name||'Unknown'}</div><div style="font-size:11px;color:#a5b4fc;margin:8px 0">${l.designation||''}</div>${em}${wa}<div style="font-size:10px;color:#666;margin-top:6px">${l.source||''}</div></div>`;
     }).join('');
     const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lead Hunter — ${LEADS.length} Contacts</title></head><body style="background:#080812;padding:24px;font-family:sans-serif"><h2 style="color:#c084fc">Lead Hunter Pro — ${LEADS.length} Contacts</h2>${cards}</body></html>`;
     blob=new Blob([html],{type:'text/html'});
@@ -1259,7 +1562,7 @@ function toast(msg,cls='ok'){
   el.textContent=msg;
   Object.assign(el.style,{
     opacity:1,transform:'translateY(0)',
-    background:cls==='ok'?'#10b981':cls==='er'?'#ef4444':'#7c3aed',
+    background:cls==='ok'?'#10b981':cls==='er'?'#ef4444':'#4f46e5',
     color:cls==='ok'?'#062919':'#fff'
   });
   el.classList.add('s');
@@ -1640,8 +1943,12 @@ document.addEventListener('click',e=>{
               <p>{{ row.lead_name or 'Decision maker' }} · {{ row.source }} · {{ row.contact_channel }}</p>
               {% if row.contact_email %}<p class="source">Email: {{ row.contact_email }}</p>{% endif %}
               {% if row.contact_phone %}<p class="source">Phone: {{ row.contact_phone }}</p>{% endif %}
+              {% if row.location %}<p class="source">📍 {{ row.location }}</p>{% endif %}
               {% if row.follow_up_date %}<p class="source">Follow-up: {{ row.follow_up_date }}</p>{% endif %}
               {% if row.lead_url %}<a href="{{ row.lead_url }}" target="_blank" rel="noopener">Open Lead URL</a>{% endif %}
+              {% if row.contact_email or row.contact_phone %}
+              <button type="button" class="btn-dnc" data-email="{{ row.contact_email }}" data-whatsapp="{{ row.contact_phone }}" onclick="dncAdd(this)">🚫 Do not contact</button>
+              {% endif %}
             </div>
             <form action="/dashboard/client-leads/{{ row.id }}" method="post" class="tracker-form">
               <input type="hidden" name="candidate_id" value="{{ row.candidate_id }}" />
@@ -1794,7 +2101,7 @@ document.addEventListener('click',e=>{
         <p class="hint">Enter your Gumroad lifetime license key (1 PC). Find it in your Gumroad purchase email.</p>
         <input type="text" id="license-key-input" placeholder="XXXX-XXXX-XXXX-XXXX" style="width:100%;margin:12px 0;font-family:JetBrains Mono,monospace" />
         <p id="license-msg" class="hint" style="color:#f59e0b"></p>
-        <button type="button" id="license-activate-btn" class="ghost-action" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4338ca);color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer">Activate License</button>
+        <button type="button" id="license-activate-btn" class="ghost-action" style="width:100%;background:linear-gradient(135deg,#4f46e5,#3525cd);color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer">Activate License</button>
       </div>
     </div>
   </div>
@@ -1849,15 +2156,16 @@ document.addEventListener('click',e=>{
   <script>
   (function(){
     var root=document.documentElement;
-    var btn=document.querySelector('[data-role="theme-toggle"]');
+    var group=document.querySelector('[data-role="theme-segmented"]');
+    var buttons=group?Array.prototype.slice.call(group.querySelectorAll('[data-theme-value]')):[];
     function apply(t){
       root.setAttribute('data-theme',t);
-      if(btn)btn.textContent=t==='dark'?'🌙':'☀️';
+      buttons.forEach(function(b){b.classList.toggle('active',b.dataset.themeValue===t);});
       localStorage.setItem('jmm-theme',t);
     }
-    if(btn)btn.textContent=(root.getAttribute('data-theme')||'dark')==='dark'?'🌙':'☀️';
-    btn&&btn.addEventListener('click',function(){
-      apply(root.getAttribute('data-theme')==='dark'?'light':'dark');
+    apply(root.getAttribute('data-theme')||'dark');
+    buttons.forEach(function(b){
+      b.addEventListener('click',function(){apply(b.dataset.themeValue);});
     });
   })();
   </script>

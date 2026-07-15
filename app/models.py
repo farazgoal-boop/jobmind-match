@@ -72,6 +72,7 @@ class ClientLead(SQLModel, table=True):
     status: str = "new"
     notes: str = ""
     follow_up_date: str = ""
+    location: str = ""
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -93,7 +94,18 @@ class HuntedContact(SQLModel, table=True):
     source: str = ""
     url: str = ""
     notes: str = ""
+    location: str = ""
     hunted_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class DoNotContactEntry(SQLModel, table=True):
+    """Opt-out / suppression list — hunts and exports must never surface these."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    email: str = Field(default="", index=True)
+    whatsapp: str = Field(default="", index=True)
+    domain: str = ""
+    reason: str = ""
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class AppSetting(SQLModel, table=True):

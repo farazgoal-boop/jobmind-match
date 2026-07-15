@@ -6,11 +6,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   const panelStorageKey = "jobmind.activePanel.v2";
 
-  function setActivePanel(panelId, mode) {
-    if (!panelId || !mode) {
-      return;
-    }
-    writeStorage(panelStorageKey, { mode, panelId });
+  function applyActivePanelState(panelId, mode) {
     document.querySelectorAll(".panel[data-panel-mode]").forEach((panel) => {
       const panelMode = panel.dataset.panelMode;
       const isTarget = panel.dataset.panel === panelId && panelMode === mode;
@@ -33,6 +29,94 @@ window.addEventListener("DOMContentLoaded", () => {
         { duration: 280, delay: index * 40, fill: "forwards", easing: "ease-out" }
       );
     });
+  }
+
+  function buildPanelShatterOverlay(rect) {
+    const overlay = document.createElement("div");
+    overlay.className = "panel-shatter-overlay";
+    overlay.style.left = rect.left + "px";
+    overlay.style.top = rect.top + "px";
+    overlay.style.width = rect.width + "px";
+    overlay.style.height = rect.height + "px";
+    const quadrants = [
+      { x: -1, y: -1 },
+      { x: 1, y: -1 },
+      { x: -1, y: 1 },
+      { x: 1, y: 1 }
+    ];
+    quadrants.forEach((dir, index) => {
+      const piece = document.createElement("div");
+      piece.className = "panel-shatter-piece";
+      piece.style.left = dir.x < 0 ? "0" : "50%";
+      piece.style.top = dir.y < 0 ? "0" : "50%";
+      overlay.appendChild(piece);
+      piece.animate(
+        [
+          { transform: "translate(0, 0) rotate(0deg)", opacity: 1 },
+          {
+            transform: `translate(${dir.x * 30}px, ${dir.y * 30}px) rotate(${dir.x * dir.y * 7}deg)`,
+            opacity: 0
+          }
+        ],
+        { duration: 260, delay: index * 12, easing: "cubic-bezier(.3,0,.6,1)", fill: "forwards" }
+      );
+    });
+    return overlay;
+  }
+
+  function playPanelTransition(oldPanel, sourceButton, swapPanels) {
+    const rect = oldPanel.getBoundingClientRect();
+    const shatter = buildPanelShatterOverlay(rect);
+    const spinner = document.createElement("div");
+    spinner.className = "panel-transition-spinner";
+    spinner.style.left = rect.left + rect.width / 2 - 16 + "px";
+    spinner.style.top = rect.top + rect.height / 2 - 16 + "px";
+    spinner.innerHTML = '<span class="panel-transition-spinner-ring"></span>';
+    document.body.appendChild(shatter);
+    document.body.appendChild(spinner);
+    oldPanel.style.visibility = "hidden";
+
+    window.setTimeout(() => {
+      shatter.remove();
+      spinner.remove();
+      oldPanel.style.visibility = "";
+      swapPanels();
+      const newPanel = document.querySelector(".panel.active[data-panel-mode]");
+      if (newPanel) {
+        const buttonRect = sourceButton.getBoundingClientRect();
+        const panelRect = newPanel.getBoundingClientRect();
+        const fromY = (buttonRect.top - panelRect.top) * 0.08;
+        newPanel.animate(
+          [
+            { opacity: 0, transform: `translate(-28px, ${fromY}px) scale(0.98)` },
+            { opacity: 1, transform: "translate(0, 0) scale(1)" }
+          ],
+          { duration: 260, easing: "ease-out", fill: "forwards" }
+        );
+      }
+    }, 260);
+  }
+
+  function setActivePanel(panelId, mode, sourceButton) {
+    if (!panelId || !mode) {
+      return;
+    }
+    writeStorage(panelStorageKey, { mode, panelId });
+
+    const previousPanel = document.querySelector(".panel.active[data-panel-mode]");
+    const nextPanel = document.querySelector(
+      `.panel[data-panel-mode="${mode}"][data-panel="${panelId}"]`
+    );
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const shouldAnimateSwitch =
+      sourceButton && previousPanel && nextPanel && previousPanel !== nextPanel && !reducedMotion;
+
+    if (!shouldAnimateSwitch) {
+      applyActivePanelState(panelId, mode);
+      return;
+    }
+
+    playPanelTransition(previousPanel, sourceButton, () => applyActivePanelState(panelId, mode));
   }
 
   function writeStorage(key, value) {
@@ -305,7 +389,7 @@ window.addEventListener("DOMContentLoaded", () => {
           if (mode !== readStorage(storageKeys.uiMode, "job")) {
             setActiveMode(mode);
           }
-          setActivePanel(panelId, mode);
+          setActivePanel(panelId, mode, button);
         }
       });
     });
@@ -332,6 +416,45 @@ window.addEventListener("DOMContentLoaded", () => {
         settingsModal?.classList.remove("open");
         settingsModal?.classList.add("hidden");
       });
+    });
+  }
+
+  function wireUpdateCheck() {
+    const pill = document.querySelector('[data-role="sidebar-update-pill"]');
+    if (!pill) {
+      return;
+    }
+    const cacheKey = "jobmind.updateCheck.v1";
+    const cacheTtlMs = 6 * 60 * 60 * 1000;
+    let releaseUrl = "";
+
+    function showUpdate(data) {
+      if (!data.update_available) {
+        pill.classList.add("hidden");
+        return;
+      }
+      releaseUrl = data.release_url || "";
+      pill.querySelector(".sidebar-update-label").textContent = `Update available v${data.latest}`;
+      pill.classList.remove("hidden");
+    }
+
+    const cached = readStorage(cacheKey, null);
+    if (cached && Date.now() - cached.checkedAt < cacheTtlMs) {
+      showUpdate(cached);
+    } else {
+      fetch("/api/app/update-check")
+        .then((res) => res.json())
+        .then((data) => {
+          writeStorage(cacheKey, { ...data, checkedAt: Date.now() });
+          showUpdate(data);
+        })
+        .catch(() => {});
+    }
+
+    pill.addEventListener("click", () => {
+      if (releaseUrl) {
+        window.open(releaseUrl, "_blank", "noopener");
+      }
     });
   }
 
@@ -1031,6 +1154,7 @@ window.addEventListener("DOMContentLoaded", () => {
   wireModeToggles();
   wirePanelNavigation();
   wireHeaderControls();
+  wireUpdateCheck();
   clearSubmitStates();
   restoreModeState("job");
   restoreModeState("sell");

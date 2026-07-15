@@ -2,12 +2,26 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 
+from app.paths import app_root
+
 load_dotenv()
+
+
+def _read_app_version() -> str:
+    override = os.getenv("APP_VERSION", "").strip()
+    if override:
+        return override
+    try:
+        return (app_root() / "VERSION").read_text(encoding="utf-8").strip() or "0.0.0"
+    except OSError:
+        return "0.0.0"
 
 
 class Settings(BaseModel):
     app_name: str = os.getenv("APP_NAME", "JobMind Match")
     app_env: str = os.getenv("APP_ENV", "dev")
+    app_version: str = _read_app_version()
+    update_repo: str = os.getenv("UPDATE_REPO", "farazgoal-boop/jobmind-match")
     asset_version: str = (
         os.getenv("RENDER_GIT_COMMIT")
         or os.getenv("RAILWAY_GIT_COMMIT_SHA")

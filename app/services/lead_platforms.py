@@ -46,6 +46,21 @@ _GITHUB_QUERIES: list[str] = [
     "kubernetes engineer freelance email",
     "product manager freelance email",
     "technical writer freelance email",
+    "translator freelance email contact",
+    "data entry freelance email whatsapp",
+    "bookkeeper accountant freelance email",
+    "voice over artist email whatsapp hire",
+    "3d animator freelance email contact",
+    "game developer freelance email hire",
+    "QA tester freelance email contact",
+    "social media manager email whatsapp",
+    "ecommerce consultant email hire",
+    "cybersecurity consultant freelance email",
+    "no code developer bubble webflow email",
+    "photographer videographer freelance email",
+    "legal consultant freelance email contact",
+    "recruiter hr consultant freelance email",
+    "business analyst freelance email hire",
 ]
 
 _DEVTO_TAGS: list[str] = [
@@ -294,14 +309,14 @@ def _slug(value: str) -> str:
 
 def _build_github_platforms() -> list[dict[str, Any]]:
     platforms: list[dict[str, Any]] = []
-    for idx, query in enumerate(_GITHUB_QUERIES[:40]):
+    for idx, query in enumerate(_GITHUB_QUERIES):
         platforms.append(
             {
                 "id": f"github_q{idx:02d}",
                 "name": f"💻 GitHub: {query[:48]}",
                 "type": "github",
                 "chip": "github",
-                "batches": _batches_for(idx, 1),
+                "batches": _batches_for(idx, 2),
                 "query_index": idx,
                 "query": query,
             }
@@ -318,7 +333,7 @@ def _build_devto_platforms() -> list[dict[str, Any]]:
                 "name": f"👨‍💻 Dev.to #{tag}",
                 "type": "devto",
                 "chip": "devto",
-                "batches": _batches_for(idx, 1),
+                "batches": _batches_for(idx, 2),
                 "tag": tag,
             }
         )
@@ -334,7 +349,7 @@ def _build_reddit_platforms() -> list[dict[str, Any]]:
                 "name": f"📖 r/{sub}",
                 "type": "reddit",
                 "chip": "reddit",
-                "batches": _batches_for(idx, 1),
+                "batches": _batches_for(idx, 2),
                 "subreddit": sub,
                 "feed_url": f"https://www.reddit.com/r/{sub}/new/.rss",
             }

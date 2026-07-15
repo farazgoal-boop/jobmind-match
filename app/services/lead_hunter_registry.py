@@ -7,7 +7,7 @@ from typing import Iterable
 
 from sqlmodel import Session, select
 
-from app.models import HuntedContact
+from app.models import DoNotContactEntry, HuntedContact
 
 
 def _norm_email(value: str) -> str:
@@ -25,6 +25,20 @@ def load_known_keys(session: Session) -> tuple[set[str], set[str]]:
     emails: set[str] = set()
     whatsapps: set[str] = set()
     for row in session.exec(select(HuntedContact)).all():
+        email = _norm_email(row.email)
+        wa = _norm_whatsapp(row.whatsapp)
+        if email:
+            emails.add(email)
+        if wa:
+            whatsapps.add(wa)
+    return emails, whatsapps
+
+
+def load_dnc_keys(session: Session) -> tuple[set[str], set[str]]:
+    """Emails/WhatsApp numbers the user has opted out of contacting again."""
+    emails: set[str] = set()
+    whatsapps: set[str] = set()
+    for row in session.exec(select(DoNotContactEntry)).all():
         email = _norm_email(row.email)
         wa = _norm_whatsapp(row.whatsapp)
         if email:
@@ -91,6 +105,7 @@ def register_leads(session: Session, leads: Iterable[dict]) -> int:
                 source=(lead.get("source") or "")[:80],
                 url=(lead.get("url") or "")[:500],
                 notes=(lead.get("notes") or "")[:300],
+                location=(lead.get("location") or "")[:120],
                 hunted_at=datetime.utcnow(),
             )
         )

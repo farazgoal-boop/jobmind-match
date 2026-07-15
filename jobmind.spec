@@ -14,6 +14,7 @@ datas = [
     (str(ROOT / "app" / "templates"), "app/templates"),
     (str(ROOT / "app" / "static"), "app/static"),
     (str(ROOT / ".env.example"), "."),
+    (str(ROOT / "VERSION"), "."),
 ]
 
 hiddenimports = [

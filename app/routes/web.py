@@ -34,6 +34,28 @@ from app.paths import templates_dir
 templates = Jinja2Templates(directory=str(templates_dir()))
 templates.env.globals["static_version"] = settings.asset_version
 
+COUNTRY_LIST = [
+    "Afghanistan", "Albania", "Algeria", "Argentina", "Armenia", "Australia", "Austria",
+    "Azerbaijan", "Bahrain", "Bangladesh", "Belarus", "Belgium", "Bolivia",
+    "Bosnia and Herzegovina", "Brazil", "Bulgaria", "Cambodia", "Cameroon", "Canada", "Chile",
+    "China", "Colombia", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Denmark",
+    "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Estonia", "Ethiopia", "Finland",
+    "France", "Georgia", "Germany", "Ghana", "Greece", "Guatemala", "Honduras", "Hong Kong",
+    "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+    "Ivory Coast", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kuwait", "Kyrgyzstan",
+    "Laos", "Latvia", "Lebanon", "Libya", "Lithuania", "Luxembourg", "Malaysia", "Maldives",
+    "Malta", "Mexico", "Moldova", "Mongolia", "Montenegro", "Morocco", "Myanmar", "Nepal",
+    "Netherlands", "New Zealand", "Nicaragua", "Nigeria", "North Macedonia", "Norway", "Oman",
+    "Pakistan", "Panama", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar",
+    "Romania", "Russia", "Rwanda", "Saudi Arabia", "Senegal", "Serbia", "Singapore",
+    "Slovakia", "Slovenia", "South Africa", "South Korea", "Spain", "Sri Lanka", "Sudan",
+    "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand",
+    "Tunisia", "Turkey", "Turkmenistan", "Uganda", "Ukraine", "United Arab Emirates",
+    "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Vietnam",
+    "Yemen", "Zambia", "Zimbabwe",
+]
+templates.env.globals["country_list"] = COUNTRY_LIST
+
 FOLLOW_UP_PATTERN = re.compile(r"\[follow-up:(\d{4}-\d{2}-\d{2})\]")
 BUILTIN_RESUME_SOURCES = {
     "final-cv": {
@@ -250,6 +272,7 @@ def build_client_lead_entries(leads: list[ClientLead]) -> list[dict]:
             "status": normalize_client_status(row.status),
             "notes": row.notes,
             "follow_up_date": row.follow_up_date,
+            "location": row.location,
             "updated_at": row.updated_at.isoformat(),
         }
         for row in leads
@@ -1564,6 +1587,24 @@ GH_SEARCH_QUERIES = [
     'video editor email hire whatsapp',
     'copywriter email whatsapp hire',
     'virtual assistant email hire',
+    'translator freelance email contact',
+    'data entry freelance email whatsapp',
+    'bookkeeper accountant freelance email',
+    'voice over artist email whatsapp hire',
+    '3d animator freelance email contact',
+    'game developer freelance email hire',
+    'QA tester freelance email contact',
+    'technical writer freelance email',
+    'social media manager email whatsapp',
+    'ecommerce consultant email hire',
+    'cybersecurity consultant freelance email',
+    'aws cloud consultant email hire',
+    'no code developer bubble webflow email',
+    'photographer videographer freelance email',
+    'legal consultant freelance email contact',
+    'recruiter hr consultant freelance email',
+    'business analyst freelance email hire',
+    'product manager freelance email contact',
 ]
 
 def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
@@ -1614,6 +1655,7 @@ def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
                         'source': 'github',
                         'url': p.get('html_url', ''),
                         'notes': (p.get('bio') or '')[:100],
+                        'location': p.get('location') or '',
                     })
                 time.sleep(0.2)
             except Exception:
@@ -2032,12 +2074,210 @@ async def scrape_registry(session: Annotated[Session, Depends(get_session)]):
     )
 
 
+@router.get("/api/geo/search")
+async def geo_search_api(q: str = Query(default="")):
+    """Forward-geocode a place name (city/country) via Nominatim, for the location autocomplete."""
+    query = q.strip()
+    if not query:
+        return JSONResponse({"results": []})
+
+    import requests as _requests
+
+    try:
+        resp = _requests.get(
+            "https://nominatim.openstreetmap.org/search",
+            params={
+                "q": query,
+                "format": "jsonv2",
+                "limit": 6,
+                "addressdetails": 1,
+                "accept-language": "en",
+            },
+            headers={"User-Agent": "JobMindMatch/1.0 (lead-hunter location picker)"},
+            timeout=6,
+        )
+        resp.raise_for_status()
+        items = resp.json()
+    except Exception:
+        return JSONResponse({"results": []})
+
+    def _pick_city(address: dict) -> str:
+        return address.get("city") or address.get("town") or address.get("village") or ""
+
+    results = [
+        {
+            "display_name": item.get("display_name", ""),
+            "lat": item.get("lat", ""),
+            "lon": item.get("lon", ""),
+            "country": (item.get("address") or {}).get("country", ""),
+            "city": _pick_city(item.get("address") or {}),
+        }
+        for item in items
+    ]
+    return JSONResponse({"results": results})
+
+
+@router.get("/api/geo/reverse")
+async def geo_reverse_api(lat: float = Query(...), lon: float = Query(...)):
+    """Reverse-geocode a map pin drop via Nominatim, for the location picker."""
+    import requests as _requests
+
+    try:
+        resp = _requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={
+                "lat": lat,
+                "lon": lon,
+                "format": "jsonv2",
+                "addressdetails": 1,
+                "accept-language": "en",
+            },
+            headers={"User-Agent": "JobMindMatch/1.0 (lead-hunter location picker)"},
+            timeout=6,
+        )
+        resp.raise_for_status()
+        item = resp.json()
+    except Exception:
+        return JSONResponse({"display_name": "", "country": "", "city": ""})
+
+    address = item.get("address") or {}
+    return JSONResponse(
+        {
+            "display_name": item.get("display_name", ""),
+            "country": address.get("country", ""),
+            "city": address.get("city") or address.get("town") or address.get("village") or "",
+        }
+    )
+
+
+@router.get("/api/geo/radius")
+async def geo_radius_api(
+    lat: float = Query(...),
+    lon: float = Query(...),
+    radius_km: float = Query(default=25, ge=1, le=300),
+):
+    """Real places (cities/towns/villages) inside a radius via Overpass — powers the
+    Facebook-Ads-style radius picker. Distinct from Google Maps scraping: this reads
+    OpenStreetMap's own public place index, not business listings."""
+    import math
+    import time
+
+    import requests as _requests
+
+    radius_m = int(radius_km * 1000)
+    query = (
+        "[out:json][timeout:9];"
+        f'(node["place"~"^(city|town|village)$"](around:{radius_m},{lat},{lon}););'
+        "out body 60;"
+    )
+    # Overpass is a free, shared community server — it can transiently rate-limit or
+    # time out under load, so retry once before telling the user nothing was found.
+    elements: list = []
+    last_error = ""
+    for attempt in range(2):
+        try:
+            resp = _requests.get(
+                "https://overpass-api.de/api/interpreter",
+                params={"data": query},
+                headers={"User-Agent": "JobMindMatch/1.0 (lead-hunter radius picker)"},
+                timeout=10,
+            )
+            resp.raise_for_status()
+            elements = resp.json().get("elements", [])
+            last_error = ""
+            break
+        except Exception as exc:
+            last_error = str(exc)
+            if attempt == 0:
+                time.sleep(1)
+
+    if last_error:
+        return JSONResponse({"places": [], "error": "Location service is busy right now — try again in a moment."})
+
+    def _distance_km(lat2: float, lon2: float) -> float:
+        r = 6371.0
+        dlat = math.radians(lat2 - lat)
+        dlon = math.radians(lon2 - lon)
+        a = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(math.radians(lat)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+        )
+        return r * 2 * math.asin(math.sqrt(a))
+
+    places = []
+    seen_names = set()
+    for el in elements:
+        tags = el.get("tags", {})
+        name = tags.get("name:en") or tags.get("name") or ""
+        if not name or name in seen_names:
+            continue
+        seen_names.add(name)
+        places.append(
+            {
+                "name": name,
+                "lat": el.get("lat"),
+                "lon": el.get("lon"),
+                "distance_km": round(_distance_km(el.get("lat", lat), el.get("lon", lon)), 1),
+            }
+        )
+
+    places.sort(key=lambda p: p["distance_km"])
+    return JSONResponse({"places": places})
+
+
+@router.post("/api/dnc/add")
+async def dnc_add_api(
+    session: Annotated[Session, Depends(get_session)],
+    email: str = Form(default=""),
+    whatsapp: str = Form(default=""),
+    reason: str = Form(default=""),
+):
+    """Add an email/WhatsApp to the do-not-contact suppression list."""
+    from app.models import DoNotContactEntry
+
+    email_norm = email.strip().lower()
+    whatsapp_norm = whatsapp.strip()
+    if not email_norm and not whatsapp_norm:
+        raise HTTPException(status_code=400, detail="email or whatsapp required")
+
+    entry = DoNotContactEntry(email=email_norm, whatsapp=whatsapp_norm, reason=reason.strip())
+    session.add(entry)
+    session.commit()
+    return JSONResponse({"ok": True})
+
+
+@router.get("/api/dnc/list")
+async def dnc_list_api(session: Annotated[Session, Depends(get_session)]):
+    """List suppressed emails/WhatsApp numbers."""
+    from app.models import DoNotContactEntry
+
+    entries = session.exec(
+        select(DoNotContactEntry).order_by(DoNotContactEntry.created_at.desc())
+    ).all()
+    return JSONResponse(
+        {
+            "entries": [
+                {
+                    "id": e.id,
+                    "email": e.email,
+                    "whatsapp": e.whatsapp,
+                    "reason": e.reason,
+                    "created_at": e.created_at.isoformat(),
+                }
+                for e in entries
+            ]
+        }
+    )
+
+
 @router.get("/api/scrape/leads")
 async def scrape_leads(
     session: Annotated[Session, Depends(get_session)],
     target: str = Query(default="all"),
     keywords: str = Query(default=""),
     country: str = Query(default=""),
+    location: str = Query(default=""),
+    locations: str = Query(default=""),
     batch_size: int = Query(default=50),
     source: str = Query(default="github"),
     offset: int = Query(default=0),
@@ -2046,11 +2286,11 @@ async def scrape_leads(
     from app.services.lead_hunter_engine import run_scrape_batch
 
     kw = keywords.strip()
-    if country.strip():
-        kw = f"{kw} {country.strip()}".strip()
+    loc = location.strip() or country.strip()
+    loc_list = [p.strip() for p in locations.split(",") if p.strip()]
 
     try:
-        result = run_scrape_batch(session, source, offset, kw)
+        result = run_scrape_batch(session, source, offset, kw, loc, loc_list)
         return JSONResponse(result)
     except Exception as e:
         return JSONResponse(
@@ -2081,6 +2321,52 @@ async def license_activate_api(
     from app.services.license_service import activate_license
 
     return JSONResponse(activate_license(session, key))
+
+
+@router.get("/api/app/update-check")
+async def update_check_api():
+    """Check GitHub releases for a newer version than the running app."""
+    import requests as _requests
+
+    current = settings.app_version
+    headers = {"Accept": "application/vnd.github+json"}
+    if settings.github_token:
+        headers["Authorization"] = f"Bearer {settings.github_token}"
+
+    try:
+        resp = _requests.get(
+            f"https://api.github.com/repos/{settings.update_repo}/releases/latest",
+            headers=headers,
+            timeout=5,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        latest = str(payload.get("tag_name", "")).lstrip("v") or current
+        release_url = payload.get(
+            "html_url", f"https://github.com/{settings.update_repo}/releases/latest"
+        )
+    except Exception:
+        return JSONResponse(
+            {"current": current, "latest": current, "update_available": False, "release_url": ""}
+        )
+
+    def _version_tuple(value: str):
+        parts = []
+        for chunk in value.split("."):
+            digits = "".join(ch for ch in chunk if ch.isdigit())
+            parts.append(int(digits) if digits else 0)
+        return tuple(parts)
+
+    update_available = _version_tuple(latest) > _version_tuple(current)
+
+    return JSONResponse(
+        {
+            "current": current,
+            "latest": latest,
+            "update_available": update_available,
+            "release_url": release_url,
+        }
+    )
 
 
 @router.get("/api/scrape/export")

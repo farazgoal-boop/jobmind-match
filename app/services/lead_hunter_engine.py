@@ -5,7 +5,14 @@ from typing import Any
 
 from sqlmodel import Session
 
-from app.services.lead_hunter_registry import filter_new_leads, load_known_keys, register_leads
+from app.services.lead_hunter_registry import (
+    filter_new_leads,
+    load_dnc_keys,
+    load_known_keys,
+    register_leads,
+    _norm_email,
+    _norm_whatsapp,
+)
 from app.services.lead_platforms import PLATFORM_MAP, PLATFORMS, get_hunt_plan, platform_summary
 
 
@@ -26,12 +33,34 @@ def build_hunt_plan(enabled_chips: list[str]) -> list[dict[str, Any]]:
     return get_hunt_plan(enabled_chips)
 
 
-def fetch_for_source(source: str, offset: int, keywords: str = "") -> list[dict]:
+def _uses_native_location_qualifier(source: str) -> bool:
+    """True for platform types where GitHub's own `location:` search qualifier applies —
+    real profile metadata, not a text scrape, so no soft-filter is needed afterward."""
+    platform = PLATFORM_MAP.get(source)
+    ptype = platform["type"] if platform else source
+    return ptype == "github"
+
+
+def _matches_location(lead: dict, locations: list[str]) -> bool:
+    """True if the lead's text mentions any of the candidate place names — used to
+    broaden a single pin/city into a whole resolved radius of real places."""
+    needles = [loc.strip().lower() for loc in locations if loc.strip()]
+    if not needles:
+        return True
+    haystack = " ".join(
+        str(lead.get(field, ""))
+        for field in ("name", "designation", "notes", "location")
+    ).lower()
+    return any(needle in haystack for needle in needles)
+
+
+def fetch_for_source(source: str, offset: int, keywords: str = "", location: str = "") -> list[dict]:
     """Dispatch a platform id (or legacy source key) to the scraper layer."""
     from app.routes import web as scrapers
 
     platform = PLATFORM_MAP.get(source)
     kw = keywords.strip()
+    loc = location.strip()
 
     if platform:
         ptype = platform["type"]
@@ -39,6 +68,8 @@ def fetch_for_source(source: str, offset: int, keywords: str = "") -> list[dict]
             query = scrapers.GH_SEARCH_QUERIES[platform.get("query_index", 0) % len(scrapers.GH_SEARCH_QUERIES)]
             if kw:
                 query = f"{query} {kw}"
+            if loc:
+                query = f'{query} location:"{loc}"'
             page = offset + 1
             return scrapers._fetch_github_profiles(query, page=page)
         if ptype == "github_readme":
@@ -74,6 +105,8 @@ def fetch_for_source(source: str, offset: int, keywords: str = "") -> list[dict]
     if source == "github":
         kw_idx = offset % len(scrapers.GH_SEARCH_QUERIES)
         kw_to_use = scrapers.GH_SEARCH_QUERIES[kw_idx] + (f" {kw}" if kw else "")
+        if loc:
+            kw_to_use = f'{kw_to_use} location:"{loc}"'
         return scrapers._fetch_github_profiles(kw_to_use, page=(offset // len(scrapers.GH_SEARCH_QUERIES)) + 1)
     if source == "github_readme":
         query = f"freelance developer email {kw}" if kw else scrapers.GH_SEARCH_QUERIES[offset % len(scrapers.GH_SEARCH_QUERIES)]
@@ -103,8 +136,35 @@ def run_scrape_batch(
     source: str,
     offset: int,
     keywords: str = "",
+    location: str = "",
+    locations: list[str] | None = None,
 ) -> dict[str, Any]:
-    raw_leads = fetch_for_source(source, offset, keywords)
+    loc = location.strip()
+    # `locations` is the full radius-resolved place list (Phase 2b); `loc` (the
+    # originally-picked pin/city) is always included so single-place hunts still work.
+    candidate_places = [p for p in [loc, *(locations or [])] if p.strip()]
+    raw_leads = fetch_for_source(source, offset, keywords, loc)
+
+    if candidate_places:
+        native = _uses_native_location_qualifier(source)
+        kept = []
+        for lead in raw_leads:
+            if native or _matches_location(lead, candidate_places):
+                if not lead.get("location"):
+                    lead["location"] = loc or candidate_places[0]
+                kept.append(lead)
+        raw_leads = kept
+
+    if raw_leads:
+        dnc_emails, dnc_whatsapp = load_dnc_keys(session)
+        if dnc_emails or dnc_whatsapp:
+            raw_leads = [
+                lead
+                for lead in raw_leads
+                if _norm_email(lead.get("email", "")) not in dnc_emails
+                and _norm_whatsapp(lead.get("whatsapp", "")) not in dnc_whatsapp
+            ]
+
     known_emails, known_whatsapp = load_known_keys(session)
     fresh, skipped = filter_new_leads(raw_leads, known_emails, known_whatsapp)
     if fresh:
