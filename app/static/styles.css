@@ -518,6 +518,13 @@ pre,
   min-width: 0;
 }
 
+/* The filters column is capped at 280-340px, too narrow for the preset
+   grid's 3-column layout at any viewport — stack it here regardless of
+   the max-width breakpoints below. */
+.job-search-layout.active .filter-grid-preset {
+  grid-template-columns: 1fr;
+}
+
 @keyframes panelIn {
   from {
     opacity: 0;
