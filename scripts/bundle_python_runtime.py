@@ -90,7 +90,7 @@ def main() -> int:
     )
 
     run([str(python_exe), "-c", "import uvicorn, sklearn, fastapi"])
-    cleanup_runtime(runtime_dir)
+    cleanup_runtime(RUNTIME_DIR)
     MARKER.write_text(f"python={PYTHON_VERSION}\n", encoding="utf-8")
     print(f"Bundled runtime ready: {RUNTIME_DIR}")
     return 0
