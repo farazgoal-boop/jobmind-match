@@ -10,6 +10,55 @@ permissions:
   contents: read
 
 jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Create .venv and install dependencies
+        shell: cmd
+        run: |
+          python -m venv .venv
+          .venv\Scripts\python.exe -m pip install --upgrade pip
+          .venv\Scripts\python.exe -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Install Inno Setup
+        shell: cmd
+        run: choco install innosetup --no-progress -y
+
+      - name: Build JobMindMatch.exe with PyInstaller
+        shell: cmd
+        run: call scripts\build_desktop_exe.bat
+
+      - name: Bundle embedded Python runtime for installer
+        shell: cmd
+        run: call scripts\bundle_python_runtime.bat
+
+      - name: Prepare installer staging folder
+        shell: cmd
+        run: call installer\prepare-staging.bat silent
+
+      - name: Compile Setup.exe with Inno Setup
+        shell: cmd
+        run: '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\jobmind-match.iss'
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: JobMindMatch-windows
+          path: installer/output/JobMind-Match-Setup.exe
+          if-no-files-found: error
+
   build-macos:
     runs-on: macos-latest
     steps:
@@ -275,7 +324,7 @@ jobs:
           if-no-files-found: error
 
   create-release:
-    needs: [build-macos, build-linux]
+    needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
@@ -296,10 +345,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release-upload
-          find release-files -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.AppImage' \) -exec cp {} release-upload/ \;
-          if [ -f installer/output/JobMind-Match-Setup.exe ]; then
-            cp installer/output/JobMind-Match-Setup.exe release-upload/JobMind-Match-Setup.exe
-          fi
+          find release-files -type f \( -name '*.dmg' -o -name '*.deb' -o -name '*.AppImage' -o -name '*.exe' \) -exec cp {} release-upload/ \;
           ls -lh release-upload/
 
       - name: Create GitHub Release
