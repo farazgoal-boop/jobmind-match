@@ -125,6 +125,18 @@ html[data-theme="light"] #lhp {
   --mt: #7e8799;
 }
 
+/* Lead Hunter panel local variables — high-contrast theme */
+html[data-theme="contrast"] #lhp {
+  --bg: #ffffff;
+  --s1: #ffffff;
+  --s2: #ffffff;
+  --s3: #f0f0f0;
+  --bd: #000000;
+  --bd2: #000000;
+  --tx: #000000;
+  --mt: #333333;
+}
+
 /* CV upload card — light theme (has its own hardcoded dark gradient) */
 html[data-theme="light"] .upload-panel {
   background: linear-gradient(160deg, #eef0f5, #e5e8f0);

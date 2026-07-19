@@ -33,6 +33,7 @@ from app.paths import templates_dir
 
 templates = Jinja2Templates(directory=str(templates_dir()))
 templates.env.globals["static_version"] = settings.asset_version
+templates.env.globals["app_version"] = settings.app_version
 
 COUNTRY_LIST = [
     "Afghanistan", "Albania", "Algeria", "Argentina", "Armenia", "Australia", "Austria",
@@ -1483,7 +1484,13 @@ _SKIP_DOMAINS = {
     'heroku.com','railway.app','render.com','squarespace.com',
     'noreply.com','no-reply.com','notifications.com','support.com',
     'mailer.com','sendgrid.net','mailchimp.com','mailgun.org',
+    'yourdomain.com','yoursite.com','mydomain.com','mycompany.com',
+    'yourcompany.com','acme.com','foo.com','bar.com','company.com',
 }
+
+# RFC 2606 reserved TLDs — always example/placeholder, never real registrable mail.
+# Catches tutorial/doc addresses like "alice@a.test" regardless of the domain name.
+_RESERVED_TLDS = {'test', 'example', 'invalid', 'localhost'}
 
 _HDRS = [
     {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},
@@ -1495,8 +1502,10 @@ def _hdr(): return random.choice(_HDRS)
 
 def _valid_email(e: str) -> bool:
     d = e.split('@')[-1].lower()
+    tld = d.rsplit('.', 1)[-1]
     return (
         d not in _SKIP_DOMAINS
+        and tld not in _RESERVED_TLDS
         and '..' not in e
         and len(e) < 80
         and '.' in d
