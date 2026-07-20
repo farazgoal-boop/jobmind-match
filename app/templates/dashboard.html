@@ -1033,23 +1033,24 @@ function updStats(){
 async function loadRegistry(){
   try{
     const res=await fetch('/api/scrape/registry');
-    if(!res.ok)return;
+    if(!res.ok){lhLog(`Could not load saved contacts (HTTP ${res.status}) — continuing anyway`,'warn');return;}
     const data=await res.json();
     (data.emails||[]).forEach(e=>EMAILS.add(e.toLowerCase().trim()));
     (data.whatsapp||[]).forEach(w=>WAS.add(w.replace(/[\s\-]/g,'')));
     KNOWN_TOTAL=data.total||EMAILS.size;
     updStats();
-  }catch(e){/* silent */}
+  }catch(e){lhLog(`Could not reach server to load saved contacts: ${e.message}`,'warn');}
 }
 
 async function loadHuntPlan(chips){
   try{
     const res=await fetch(`/api/scrape/hunt-plan?chips=${encodeURIComponent(chips.join(','))}`);
-    if(!res.ok)return[];
+    if(!res.ok){lhLog(`Server error building hunt plan (HTTP ${res.status})`,'warn');return[];}
     const data=await res.json();
     HUNT_PLAN=data.plan||[];
     return HUNT_PLAN;
   }catch(e){
+    lhLog(`Could not reach server to build hunt plan: ${e.message}`,'warn');
     return[];
   }
 }
@@ -1306,7 +1307,7 @@ async function fetchFromAPI(source, offset=0){
   try{
     const params=new URLSearchParams({source,offset,target:tgt,keywords:kw,location:loc,locations:locs,batch_size:30});
     const res=await fetch(`/api/scrape/leads?${params}`);
-    if(!res.ok)return{leads:[],skipped:0};
+    if(!res.ok){lhLog(`${source}: server error (HTTP ${res.status})`,'warn');return{leads:[],skipped:0};}
     const data=await res.json();
     if(data.error)lhLog(`${source}: ${data.error}`,'warn');
     if(data.registry_total!=null)KNOWN_TOTAL=Math.max(KNOWN_TOTAL,data.registry_total);
@@ -1362,7 +1363,7 @@ async function lhpGo(){
 
   const activePlan=await loadHuntPlan(chips);
   if(!activePlan.length){
-    lhLog('No platforms selected — enable at least one chip','warn');
+    lhLog(chips.length?'No platforms available — see error above and try again':'No platforms selected — enable at least one chip','warn');
     RUNNING=false;
     document.getElementById('lhp-start').disabled=false;
     document.getElementById('lhp-start').textContent='🚀 Start Hunting';

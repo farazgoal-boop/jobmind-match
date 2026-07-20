@@ -3,6 +3,7 @@ from email.utils import parsedate_to_datetime
 import csv
 import io
 import json
+import logging
 import re
 import random
 import time
@@ -27,6 +28,8 @@ from app.services.cv_parser import extract_text_from_docx, extract_text_from_pdf
 from app.services.matcher import rank_jobs
 from app.services.quota import consume_matches, ensure_can_consume_matches
 from app.services.source_registry import fetch_jobs_from_sources, free_sources_list
+
+logger = logging.getLogger("jobmind.leadhunter")
 
 router = APIRouter(tags=["web"])
 from app.paths import templates_dir
@@ -1500,6 +1503,15 @@ _HDRS = [
 
 def _hdr(): return random.choice(_HDRS)
 
+def _gh_headers() -> dict:
+    """GitHub API headers — adds auth when GITHUB_TOKEN is configured, which
+    lifts the unauthenticated rate limit (10/min search, 60/hr core) to
+    30/min and 5000/hr and avoids silent 403s during a hunt."""
+    headers = {'Accept': 'application/vnd.github.v3+json'}
+    if settings.github_token:
+        headers['Authorization'] = f'Bearer {settings.github_token}'
+    return headers
+
 def _valid_email(e: str) -> bool:
     d = e.split('@')[-1].lower()
     tld = d.rsplit('.', 1)[-1]
@@ -1621,19 +1633,22 @@ def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
     leads = []
     try:
         url = f"https://api.github.com/search/users?q={_req.utils.quote(keyword)}&per_page=30&page={page}"
-        r = _req.get(url, headers={'Accept': 'application/vnd.github.v3+json'}, timeout=15)
+        r = _req.get(url, headers=_gh_headers(), timeout=15)
         if r.status_code == 422: return leads  # Bad query
-        if r.status_code == 403: 
+        if r.status_code == 403:
+            logger.warning("github: rate-limited (403) on search %r — configure GITHUB_TOKEN to raise the limit", keyword)
             time.sleep(10)
             return leads
-        if r.status_code != 200: return leads
+        if r.status_code != 200:
+            logger.warning("github: search %r returned %s", keyword, r.status_code)
+            return leads
 
         users = r.json().get('items', [])
         for u in users[:20]:
             try:
                 pr = _req.get(
                     f"https://api.github.com/users/{u['login']}",
-                    headers={'Accept': 'application/vnd.github.v3+json'},
+                    headers=_gh_headers(),
                     timeout=10
                 )
                 if pr.status_code != 200: continue
@@ -1670,7 +1685,7 @@ def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
             except Exception:
                 continue
     except Exception:
-        pass
+        logger.exception("github profiles: fetch failed for %r", keyword)
     return leads
 
 
@@ -1680,8 +1695,10 @@ def _fetch_github_readme(keyword: str, page: int = 1) -> list[dict]:
     try:
         q = f"{keyword} email in:readme"
         url = f"https://api.github.com/search/repositories?q={_req.utils.quote(q)}&per_page=20&sort=updated&page={page}"
-        r = _req.get(url, headers={'Accept': 'application/vnd.github.v3+json'}, timeout=15)
-        if r.status_code != 200: return leads
+        r = _req.get(url, headers=_gh_headers(), timeout=15)
+        if r.status_code != 200:
+            logger.warning("github readme: search %r returned %s", keyword, r.status_code)
+            return leads
 
         for repo in r.json().get('items', [])[:12]:
             try:
@@ -1710,7 +1727,7 @@ def _fetch_github_readme(keyword: str, page: int = 1) -> list[dict]:
             except Exception:
                 continue
     except Exception:
-        pass
+        logger.exception("github readme: fetch failed for %r", keyword)
     return leads
 
 
@@ -1763,7 +1780,7 @@ def _fetch_devto_articles(tag: str, page: int = 1) -> list[dict]:
             except Exception:
                 continue
     except Exception:
-        pass
+        logger.exception("devto: fetch failed for tag %r", tag)
     return leads
 
 
@@ -1772,15 +1789,24 @@ def _fetch_devto_articles(tag: str, page: int = 1) -> list[dict]:
 def _fetch_hackernews() -> list[dict]:
     """HackerNews Who Is Hiring + Freelancer threads"""
     leads = []
+    # Fetching comments is one sequential HTTP call per comment — cap both the
+    # per-story comment count and total wall-clock time so a busy/slow thread
+    # (which can have hundreds of kids) can never turn one batch into minutes
+    # of blocking requests.
+    deadline = time.time() + 18
     try:
         # Search for hiring/freelance posts via Algolia
         for query in ['Ask HN Who is hiring', 'Ask HN Freelancer']:
+            if time.time() > deadline: break
             r = _req.get(
                 f'https://hn.algolia.com/api/v1/search?query={_req.utils.quote(query)}&tags=story&hitsPerPage=3',
                 timeout=12
             )
-            if r.status_code != 200: continue
+            if r.status_code != 200:
+                logger.warning("hackernews: search for %r returned %s", query, r.status_code)
+                continue
             for hit in r.json().get('hits', [])[:2]:
+                if time.time() > deadline: break
                 story_id = hit.get('objectID', '')
                 if not story_id: continue
                 # Get comments
@@ -1789,12 +1815,13 @@ def _fetch_hackernews() -> list[dict]:
                     timeout=10
                 )
                 if sr.status_code != 200: continue
-                kids = (sr.json().get('kids') or [])[:100]
+                kids = (sr.json().get('kids') or [])[:15]
                 for kid_id in kids:
+                    if time.time() > deadline: break
                     try:
                         kr = _req.get(
                             f'https://hacker-news.firebaseio.com/v0/item/{kid_id}.json',
-                            timeout=8
+                            timeout=6
                         )
                         if kr.status_code != 200: continue
                         k = kr.json()
@@ -1810,11 +1837,11 @@ def _fetch_hackernews() -> list[dict]:
                                 'url': f"https://news.ycombinator.com/item?id={k.get('id','')}",
                                 'notes': txt[:100],
                             })
-                        time.sleep(0.1)
+                        time.sleep(0.05)
                     except Exception:
                         continue
     except Exception:
-        pass
+        logger.exception("hackernews: fetch failed")
     return leads
 
 
@@ -1839,7 +1866,7 @@ def _fetch_indiehackers() -> list[dict]:
                     'notes': p.get('title', '')[:100],
                 })
     except Exception:
-        pass
+        logger.exception("indiehackers: fetch failed")
     return leads
 
 
@@ -1874,7 +1901,7 @@ def _fetch_remotive_rss() -> list[dict]:
                     'notes': title[:100],
                 })
     except Exception:
-        pass
+        logger.exception("remotive: fetch failed")
     return leads
 
 
@@ -1908,6 +1935,7 @@ def _fetch_weworkremotely_rss() -> list[dict]:
                         'notes': title[:100],
                     })
         except Exception:
+            logger.exception("weworkremotely: fetch failed for %s", feed_url)
             continue
     return leads
 
@@ -1919,10 +1947,12 @@ def _fetch_github_jobs_rss() -> list[dict]:
         # GitHub explore feed
         r = _req.get(
             'https://api.github.com/search/issues?q=freelance+email+hire+label:hiring&sort=created&order=desc&per_page=30',
-            headers={'Accept': 'application/vnd.github.v3+json'},
+            headers=_gh_headers(),
             timeout=12
         )
-        if r.status_code != 200: return leads
+        if r.status_code != 200:
+            logger.warning("github issues: search returned %s", r.status_code)
+            return leads
         for issue in r.json().get('items', [])[:20]:
             txt = f"{issue.get('title','')} {issue.get('body','') or ''}"
             txt_clean = re.sub(r'<[^>]+>', ' ', txt)
@@ -1938,7 +1968,7 @@ def _fetch_github_jobs_rss() -> list[dict]:
                     'notes': issue.get('title','')[:100],
                 })
     except Exception:
-        pass
+        logger.exception("github issues: fetch failed")
     return leads
 
 
@@ -1952,7 +1982,9 @@ def _fetch_reddit_rss(subreddit: str) -> list[dict]:
             'Accept': 'application/rss+xml, application/xml, text/xml',
         }
         r = _req.get(url, headers=hdrs, timeout=15)
-        if r.status_code != 200: return leads
+        if r.status_code != 200:
+            logger.warning("reddit: r/%s returned %s", subreddit, r.status_code)
+            return leads
         root = ET.fromstring(r.content)
         ns = {
             'atom': 'http://www.w3.org/2005/Atom',
@@ -1987,7 +2019,7 @@ def _fetch_reddit_rss(subreddit: str) -> list[dict]:
                     'notes': title_txt[:100],
                 })
     except Exception:
-        pass
+        logger.exception("reddit: fetch failed for r/%s", subreddit)
     return leads
 
 
@@ -2302,6 +2334,7 @@ async def scrape_leads(
         result = run_scrape_batch(session, source, offset, kw, loc, loc_list)
         return JSONResponse(result)
     except Exception as e:
+        logger.exception("lead hunt: /api/scrape/leads failed for source=%s offset=%s", source, offset)
         return JSONResponse(
             {
                 "leads": [],
