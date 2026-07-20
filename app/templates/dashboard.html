@@ -134,6 +134,60 @@
         </button>
       </aside>
 
+      <nav class="section-thumbnails {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-thumb-mode="job" aria-label="Job Search sections">
+        <button type="button" class="section-thumb active" data-nav-panel="job-search" data-nav-mode="job">
+          <div class="section-thumb-head"><span class="section-thumb-icon">🔍</span><span class="section-thumb-heading">Search &amp; Match</span></div>
+          <div class="section-thumb-line"></div>
+          <div class="section-thumb-line short"></div>
+          <div class="section-thumb-label">Search &amp; Match</div>
+        </button>
+        <button type="button" class="section-thumb" data-nav-panel="job-applications" data-nav-mode="job">
+          <div class="section-thumb-head"><span class="section-thumb-icon">📋</span><span class="section-thumb-heading">Applications</span></div>
+          <div class="section-thumb-line"></div>
+          <div class="section-thumb-line short"></div>
+          <div class="section-thumb-label">Applications</div>
+        </button>
+        <button type="button" class="section-thumb" data-nav-panel="job-profile" data-nav-mode="job">
+          <div class="section-thumb-head"><span class="section-thumb-icon">📄</span><span class="section-thumb-heading">CV &amp; Profile</span></div>
+          <div class="section-thumb-line"></div>
+          <div class="section-thumb-line short"></div>
+          <div class="section-thumb-label">CV &amp; Profile</div>
+        </button>
+        <button type="button" class="section-thumb" data-nav-panel="job-links" data-nav-mode="job">
+          <div class="section-thumb-head"><span class="section-thumb-icon">🔗</span><span class="section-thumb-heading">Quick Links</span></div>
+          <div class="section-thumb-line"></div>
+          <div class="section-thumb-line short"></div>
+          <div class="section-thumb-label">Quick Links</div>
+        </button>
+      </nav>
+
+      <nav class="section-thumbnails {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-thumb-mode="sell" aria-label="Sell Services sections">
+        <button type="button" class="section-thumb active" data-nav-panel="sell-hunter" data-nav-mode="sell">
+          <div class="section-thumb-head"><span class="section-thumb-icon">⚡</span><span class="section-thumb-heading">Lead Hunter</span></div>
+          <div class="section-thumb-line"></div>
+          <div class="section-thumb-line short"></div>
+          <div class="section-thumb-label">Lead Hunter</div>
+        </button>
+        <button type="button" class="section-thumb" data-nav-panel="sell-tracker" data-nav-mode="sell">
+          <div class="section-thumb-head"><span class="section-thumb-icon">👥</span><span class="section-thumb-heading">Lead Tracker</span></div>
+          <div class="section-thumb-line"></div>
+          <div class="section-thumb-line short"></div>
+          <div class="section-thumb-label">Lead Tracker</div>
+        </button>
+        <button type="button" class="section-thumb" data-nav-panel="sell-search" data-nav-mode="sell">
+          <div class="section-thumb-head"><span class="section-thumb-icon">🎯</span><span class="section-thumb-heading">Client Search</span></div>
+          <div class="section-thumb-line"></div>
+          <div class="section-thumb-line short"></div>
+          <div class="section-thumb-label">Client Search</div>
+        </button>
+        <button type="button" class="section-thumb" data-nav-panel="sell-profile" data-nav-mode="sell">
+          <div class="section-thumb-head"><span class="section-thumb-icon">📄</span><span class="section-thumb-heading">Profile &amp; Pitch</span></div>
+          <div class="section-thumb-line"></div>
+          <div class="section-thumb-line short"></div>
+          <div class="section-thumb-label">Profile &amp; Pitch</div>
+        </button>
+      </nav>
+
       <main class="app-main layout">
         <div class="mode-spotlight hidden" aria-hidden="true">
           <h3 data-role="mode-spotlight-title">{% if active_ui_mode == 'sell' %}Sell Services Mode{% else %}Job Search Mode{% endif %}</h3>

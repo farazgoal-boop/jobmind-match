@@ -301,6 +301,85 @@ pre,
   width: var(--sidebar-width);
 }
 
+/* Sections thumbnail navigator — small preview cards next to the sidebar,
+   one per sidebar item, offering the same navigation as a visual picker. */
+.section-thumbnails {
+  flex-shrink: 0;
+  width: 166px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 10px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+
+.section-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  background: var(--bg-surface2);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.section-thumb:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-active);
+}
+
+.section-thumb.active {
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-glow);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.section-thumb-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.section-thumb-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.section-thumb-heading {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.section-thumb-line {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bg-surface3);
+}
+
+.section-thumb-line.short {
+  width: 65%;
+}
+
+.section-thumb-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.section-thumb.active .section-thumb-label {
+  color: var(--accent3);
+}
+
 .app-main {
   flex: 1;
   min-width: 0;
@@ -2479,6 +2558,12 @@ button.success:hover:not(:disabled),
   .app-sidebar:hover,
   .app-sidebar:focus-within {
     width: var(--sidebar-width-collapsed);
+  }
+
+  /* No room for a 166px thumbnail rail once the sidebar itself is
+     icon-only; tapping a sidebar icon already reaches every section. */
+  .section-thumbnails {
+    display: none;
   }
 
   .sidebar-item,
