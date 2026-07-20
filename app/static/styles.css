@@ -276,9 +276,14 @@ pre,
   min-width: 0;
 }
 
+/* Foldable sidebar — collapsed to icon rail (~68px) at rest, expands to full
+   width (~220px) on hover/focus so labels have room to render. The label
+   itself (not just this parent's overflow:hidden) must collapse to
+   zero-width and zero-opacity, or its text peeks out past the icon rail
+   during the width transition. */
 .app-sidebar {
   flex-shrink: 0;
-  width: var(--sidebar-width);
+  width: var(--sidebar-width-collapsed);
   position: sticky;
   top: var(--header-height);
   height: calc(100vh - var(--header-height));
@@ -288,6 +293,12 @@ pre,
   border-right: 1px solid var(--border);
   overflow: hidden;
   z-index: 50;
+  transition: width var(--transition-fast);
+}
+
+.app-sidebar:hover,
+.app-sidebar:focus-within {
+  width: var(--sidebar-width);
 }
 
 .app-main {
@@ -405,6 +416,8 @@ pre,
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
+  justify-content: center;
+  position: relative;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   text-decoration: none;
@@ -412,14 +425,21 @@ pre,
   font-size: 0.88rem;
   font-weight: 500;
   border: 1px solid transparent;
+  overflow: hidden;
   transition:
     background var(--transition-fast),
     color var(--transition-fast),
-    border-color var(--transition-fast);
+    border-color var(--transition-fast),
+    justify-content var(--transition-fast);
   cursor: pointer;
   background: transparent;
   width: 100%;
   text-align: left;
+}
+
+.app-sidebar:hover .sidebar-item,
+.app-sidebar:focus-within .sidebar-item {
+  justify-content: flex-start;
 }
 
 .sidebar-item:hover {
@@ -434,17 +454,52 @@ pre,
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
+.sidebar-icon {
+  width: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-label {
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  max-width: 0;
+  transition: opacity var(--transition-fast), max-width var(--transition-base);
+}
+
+.app-sidebar:hover .sidebar-label,
+.app-sidebar:focus-within .sidebar-label {
+  opacity: 1;
+  max-width: 160px;
+}
+
 .sidebar-badge {
-  margin-left: auto;
-  min-width: 20px;
-  padding: 2px 7px;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 16px;
+  padding: 1px 5px;
+  font-size: 0.6rem;
   border-radius: var(--radius-pill);
-  font-size: 0.68rem;
   font-weight: 700;
   font-family: var(--font-mono);
   background: rgba(99, 102, 241, 0.2);
   color: var(--accent3);
   border: 1px solid rgba(99, 102, 241, 0.25);
+  transition: margin-left var(--transition-fast), min-width var(--transition-fast),
+    padding var(--transition-fast), font-size var(--transition-fast);
+}
+
+.app-sidebar:hover .sidebar-badge,
+.app-sidebar:focus-within .sidebar-badge {
+  position: static;
+  margin-left: auto;
+  min-width: 20px;
+  padding: 2px 7px;
+  font-size: 0.68rem;
 }
 
 /* Content panels (SPA-style views) */
@@ -1080,9 +1135,10 @@ pre,
 .sidebar-update-pill {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   margin: 12px;
-  padding: 10px 12px;
+  padding: 10px;
   border-radius: var(--radius-card);
   border: 1px solid var(--border-active);
   background: linear-gradient(135deg, rgba(79, 70, 229, 0.16), rgba(53, 37, 205, 0.1));
@@ -1093,7 +1149,27 @@ pre,
   cursor: pointer;
   text-align: left;
   box-shadow: var(--shadow-glow);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), justify-content var(--transition-fast), padding var(--transition-fast);
+}
+
+.app-sidebar:hover .sidebar-update-pill,
+.app-sidebar:focus-within .sidebar-update-pill {
+  justify-content: flex-start;
+  padding: 10px 12px;
+}
+
+.sidebar-update-label {
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 0;
+  max-width: 0;
+  transition: opacity var(--transition-fast), max-width var(--transition-base);
+}
+
+.app-sidebar:hover .sidebar-update-label,
+.app-sidebar:focus-within .sidebar-update-label {
+  opacity: 1;
+  max-width: 160px;
 }
 
 .sidebar-update-pill:hover {
@@ -2396,21 +2472,33 @@ button.success:hover:not(:disabled),
     grid-template-columns: var(--sidebar-width-collapsed) 1fr;
   }
 
-  .app-sidebar {
+  /* Touch devices have no real hover — a tap can leave a synthetic :hover
+     stuck, so force the icon rail regardless of :hover/:focus-within here.
+     Navigation still works: tapping an icon goes straight to its panel. */
+  .app-sidebar,
+  .app-sidebar:hover,
+  .app-sidebar:focus-within {
     width: var(--sidebar-width-collapsed);
   }
 
-  .sidebar-item {
+  .sidebar-item,
+  .app-sidebar:hover .sidebar-item,
+  .app-sidebar:focus-within .sidebar-item {
     justify-content: center;
     padding: 12px;
+    position: relative;
   }
 
-  .sidebar-item span:not(.sidebar-badge),
-  .sidebar-item .label {
-    display: none;
+  .sidebar-item .sidebar-label,
+  .app-sidebar:hover .sidebar-label,
+  .app-sidebar:focus-within .sidebar-label {
+    opacity: 0;
+    max-width: 0;
   }
 
-  .sidebar-badge {
+  .sidebar-badge,
+  .app-sidebar:hover .sidebar-badge,
+  .app-sidebar:focus-within .sidebar-badge {
     position: absolute;
     top: 6px;
     right: 6px;
@@ -2420,8 +2508,18 @@ button.success:hover:not(:disabled),
     font-size: 0.6rem;
   }
 
-  .sidebar-item {
-    position: relative;
+  .sidebar-update-label,
+  .app-sidebar:hover .sidebar-update-label,
+  .app-sidebar:focus-within .sidebar-update-label {
+    opacity: 0;
+    max-width: 0;
+  }
+
+  .sidebar-update-pill,
+  .app-sidebar:hover .sidebar-update-pill,
+  .app-sidebar:focus-within .sidebar-update-pill {
+    justify-content: center;
+    padding: 10px;
   }
 
   .app-main {
