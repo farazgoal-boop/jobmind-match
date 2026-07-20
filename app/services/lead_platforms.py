@@ -390,13 +390,18 @@ def _build_site_platforms() -> list[dict[str, Any]]:
 
 
 def _build_all_platforms() -> list[dict[str, Any]]:
+    # `site` (freelance marketplace contact/about pages) runs right after core,
+    # ahead of github/devto/reddit/rss — those developer-community sources are
+    # email-heavy and voluminous enough that a hunt's max-leads cap is usually
+    # hit before the plan ever reaches marketplace domains, which is where
+    # WhatsApp numbers actually show up. Front-loading them fixes that.
     return [
         *_CORE_PLATFORMS,
+        *_build_site_platforms(),
         *_build_github_platforms(),
         *_build_devto_platforms(),
         *_build_reddit_platforms(),
         *_build_rss_platforms(),
-        *_build_site_platforms(),
     ]
 
 

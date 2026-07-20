@@ -2432,15 +2432,18 @@ async def update_check_api():
     )
 
 
-@router.get("/api/scrape/export")
+@router.post("/api/scrape/export")
 async def export_scraped_leads(
+    request: Request,
     fmt: str = Query(default="csv"),
-    data: str = Query(default="[]"),
     filename: str = Query(default="leads"),
 ):
-    """Export scraped leads in multiple formats"""
+    """Export scraped leads in multiple formats. Leads are posted as a JSON body
+    rather than a query string — a hunt session can hold thousands of rows, well
+    past what a URL can carry."""
     try:
-        leads = json.loads(data)
+        payload = await request.json()
+        leads = payload if isinstance(payload, list) else payload.get("leads", [])
     except Exception:
         leads = []
 
@@ -2488,18 +2491,46 @@ async def export_scraped_leads(
         )
 
     elif fmt in ("xls", "xlsx"):
-        hdr = '<tr>' + ''.join(f'<th style="background:#7c3aed;color:white;padding:8px">{h}</th>' for h in ['#','Name','Designation','Email','WhatsApp','Source','Profile URL','Notes']) + '</tr>'
-        rows = ''.join(
-            f'<tr><td>{i}</td><td>{l.get("name","")}</td><td>{l.get("designation","")}</td>'
-            f'<td>{l.get("email","")}</td><td>{l.get("whatsapp","")}</td>'
-            f'<td>{l.get("source","")}</td><td>{l.get("url","")}</td><td>{l.get("notes","")}</td></tr>'
-            for i, l in enumerate(leads, 1)
-        )
-        xls = f'<html><head><meta charset="UTF-8"></head><body><table border="1" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:12px">{hdr}{rows}</table></body></html>'
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Leads"
+
+        headers = ['#', 'Name', 'Designation', 'Email', 'WhatsApp', 'Source', 'Profile URL', 'Notes']
+        ws.append(headers)
+        header_fill = PatternFill(start_color="7C3AED", end_color="7C3AED", fill_type="solid")
+        for cell in ws[1]:
+            cell.font = Font(color="FFFFFF", bold=True)
+            cell.fill = header_fill
+            cell.alignment = Alignment(vertical="center")
+
+        for i, l in enumerate(leads, 1):
+            ws.append([
+                i,
+                l.get('name', ''),
+                l.get('designation', ''),
+                l.get('email', ''),
+                l.get('whatsapp', ''),
+                l.get('source', ''),
+                l.get('url', ''),
+                l.get('notes', ''),
+            ])
+
+        widths = [4, 22, 26, 28, 18, 16, 40, 40]
+        for idx, width in enumerate(widths, 1):
+            ws.column_dimensions[get_column_letter(idx)].width = width
+        ws.freeze_panes = "A2"
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
         return StreamingResponse(
-            iter([xls]),
-            media_type='application/vnd.ms-excel',
-            headers={'Content-Disposition': f'attachment; filename="{fname}.xls"'}
+            iter([buf.getvalue()]),
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers={'Content-Disposition': f'attachment; filename="{fname}.xlsx"'}
         )
 
     elif fmt == "html":
