@@ -4,9 +4,11 @@ Opens the app in a clean window (Edge/Chrome app mode). No CMD.
 """
 from __future__ import annotations
 
+import ctypes
 import os
 import subprocess
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -134,17 +136,46 @@ def stop_server() -> None:
 
 def show_info(message: str) -> None:
     try:
-        import ctypes
-
         ctypes.windll.user32.MessageBoxW(0, message, "JobMind Match", 0x40)
+    except Exception:
+        pass
+
+
+def show_info_async(message: str) -> None:
+    """Win32 MessageBox blocks the calling thread until dismissed. Showing
+    the 'please wait' hint this way used to stall the whole launcher —
+    server polling and opening the app window — on whether a user noticed
+    and clicked OK on a small dialog that can appear behind other windows.
+    Run it on its own thread so it's purely informational and never blocks
+    startup; close_starting_dialog() dismisses it once the app is ready."""
+    threading.Thread(target=show_info, args=(message,), daemon=True).start()
+
+
+def close_starting_dialog() -> None:
+    try:
+        WM_CLOSE = 0x0010
+        user32 = ctypes.windll.user32
+
+        @ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+        def _enum_cb(hwnd, _lparam):
+            length = user32.GetWindowTextLengthW(hwnd)
+            if length:
+                buf = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(hwnd, buf, length + 1)
+                if buf.value == "JobMind Match":
+                    pid = ctypes.c_ulong()
+                    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+                    if pid.value == os.getpid():
+                        user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+            return True
+
+        user32.EnumWindows(_enum_cb, 0)
     except Exception:
         pass
 
 
 def show_error(message: str) -> None:
     try:
-        import ctypes
-
         ctypes.windll.user32.MessageBoxW(0, message, "JobMind Match", 0x10)
     except Exception:
         pass
@@ -241,12 +272,14 @@ def main() -> int:
         return 1
 
     if not server_up():
-        show_info(
+        show_info_async(
             "JobMind Match is starting.\n\n"
             "First launch may take 1–2 minutes. Please wait…"
         )
 
-    if not wait_server(timeout=240):
+    ready = wait_server(timeout=240)
+    close_starting_dialog()
+    if not ready:
         log(root, "Server did not become ready")
         show_error(
             "JobMind Match could not start.\n\n"
