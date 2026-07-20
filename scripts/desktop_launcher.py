@@ -150,6 +150,20 @@ def show_error(message: str) -> None:
         pass
 
 
+def browser_profile_dir() -> Path:
+    # Chromium is single-instance per user-data-dir: if the user's regular
+    # Edge/Chrome is already running (very common — "continue running
+    # background apps" is on by default), a second `--app=` launch just
+    # forwards the request via IPC to that existing instance and silently
+    # DROPS every command-line flag we passed, including the occlusion-
+    # tracking fix below. A dedicated profile dir forces a genuinely
+    # separate instance so our flags are always honored.
+    base = Path(os.environ.get("LOCALAPPDATA") or (Path.home() / "AppData" / "Local"))
+    profile = base / "JobMindMatch" / "AppWindowProfile"
+    profile.mkdir(parents=True, exist_ok=True)
+    return profile
+
+
 def browser_app_paths() -> list[Path]:
     program_files = os.environ.get("PROGRAMFILES", r"C:\Program Files")
     program_files_x86 = os.environ.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)")
@@ -172,6 +186,14 @@ def open_app_window(root: Path) -> bool:
                     f"--app={DASHBOARD_URL}",
                     "--window-size=1440,900",
                     "--start-maximized",
+                    f"--user-data-dir={browser_profile_dir()}",
+                    # Chromium's Native Window Occlusion Tracking throttles/
+                    # repaints windows it thinks are covered, and has a known
+                    # bug where an --app= window comes back solid black after
+                    # being minimized and restored instead of repainting.
+                    # These flags turn that tracking off for this window.
+                    "--disable-features=CalculateNativeWinOcclusion",
+                    "--disable-backgrounding-occluded-windows",
                 ],
                 cwd=str(root),
                 creationflags=CREATE_NO_WINDOW,

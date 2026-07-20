@@ -23,6 +23,37 @@ def is_frozen() -> bool:
     return getattr(sys, "frozen", False)
 
 
+def disable_windows_quickedit() -> None:
+    """Windows enables QuickEdit Mode by default on any freshly-spawned
+    console window. The moment a user clicks/selects text in it — including
+    the click that can happen while restoring a minimized window — QuickEdit
+    pauses the console buffer, which blocks any thread mid-write to stdout.
+    Since the server thread logs through that same console, one accidental
+    click freezes the entire app (server included) until the selection is
+    cancelled. Dev runs happen inside an already-running terminal (VS Code,
+    Windows Terminal) where this is usually off already, which is why this
+    only shows up in the packaged .exe's own console window.
+    """
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        kernel32 = ctypes.windll.kernel32
+        STD_INPUT_HANDLE = -10
+        ENABLE_EXTENDED_FLAGS = 0x0080
+        ENABLE_QUICK_EDIT_MODE = 0x0040
+
+        handle = kernel32.GetStdHandle(STD_INPUT_HANDLE)
+        mode = ctypes.c_uint32()
+        if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+            return
+        new_mode = (mode.value & ~ENABLE_QUICK_EDIT_MODE) | ENABLE_EXTENDED_FLAGS
+        kernel32.SetConsoleMode(handle, new_mode)
+    except Exception:
+        pass
+
+
 def bundle_root() -> Path:
     if is_frozen():
         return Path(sys._MEIPASS)
@@ -88,10 +119,17 @@ def run_uvicorn(port: int) -> None:
         host="127.0.0.1",
         port=port,
         log_level="info",
+        # Per-request access lines flood the console during a busy session
+        # (e.g. lead hunting), growing the scrollback fast enough that a
+        # restore-from-minimize redraw can itself stall for a noticeable
+        # moment. Real errors still surface via the "warning"+ app loggers.
+        access_log=False,
     )
 
 
 def main() -> int:
+    disable_windows_quickedit()
+
     parser = argparse.ArgumentParser(description="JobMind Match desktop launcher")
     parser.add_argument("--port", type=int, default=8000, help="HTTP port (default: 8000)")
     args = parser.parse_args()
