@@ -314,14 +314,21 @@ pre,
   border-right: 1px solid var(--border);
 }
 
+/* Thumbnail cards deliberately render in the OPPOSITE of the app's current
+   data-theme, so a card reads as a small preview rather than a flat copy of
+   the surrounding UI. Colors below are this app's own light/dark token
+   values, just hardcoded instead of var()'d, since the whole point is for
+   the card not to follow the shell's live theme. Default app theme is dark,
+   so the base rule uses the light palette; the override block below (for
+   when the shell itself is light/contrast) swaps in the dark palette. */
 .section-thumb {
   display: flex;
   flex-direction: column;
   gap: 7px;
   padding: 10px;
   border-radius: var(--radius-card);
-  border: 1px solid var(--border);
-  background: var(--bg-surface2);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f2f4f6;
   cursor: pointer;
   text-align: left;
   font-family: var(--font-body);
@@ -330,13 +337,16 @@ pre,
 
 .section-thumb:hover {
   transform: translateY(-1px);
-  border-color: var(--border-active);
+  border-color: rgba(79, 70, 229, 0.45);
 }
 
 .section-thumb.active {
-  border-color: var(--border-active);
+  border-color: rgba(79, 70, 229, 0.45);
   box-shadow: var(--shadow-glow);
-  background: rgba(99, 102, 241, 0.08);
+  /* Opaque tint, not a low-alpha overlay — this card sits on the app's dark
+     page background, and a translucent purple would just read as "dark"
+     again instead of a clearly lighter active card. */
+  background: #eceafd;
 }
 
 .section-thumb-head {
@@ -345,7 +355,7 @@ pre,
   gap: 6px;
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #464555;
 }
 
 .section-thumb-icon {
@@ -362,7 +372,7 @@ pre,
 .section-thumb-line {
   height: 6px;
   border-radius: 3px;
-  background: var(--bg-surface3);
+  background: #eceef0;
 }
 
 .section-thumb-line.short {
@@ -372,12 +382,53 @@ pre,
 .section-thumb-label {
   font-size: 0.68rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #777587;
   text-align: center;
 }
 
 .section-thumb.active .section-thumb-label {
-  color: var(--accent3);
+  color: #4f46e5;
+}
+
+/* Shell is light or high-contrast → thumbnail cards flip to the dark
+   palette instead. */
+html[data-theme="light"] .section-thumb,
+html[data-theme="contrast"] .section-thumb {
+  border-color: rgba(255, 255, 255, 0.07);
+  background: #171a22;
+}
+
+html[data-theme="light"] .section-thumb:hover,
+html[data-theme="contrast"] .section-thumb:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+html[data-theme="light"] .section-thumb.active,
+html[data-theme="contrast"] .section-thumb.active {
+  border-color: rgba(99, 102, 241, 0.4);
+  /* Opaque tint for the same reason as the base rule above, mirrored: this
+     card sits on the app's light page background here. */
+  background: #1c2038;
+}
+
+html[data-theme="light"] .section-thumb-head,
+html[data-theme="contrast"] .section-thumb-head {
+  color: #9aa0b8;
+}
+
+html[data-theme="light"] .section-thumb-line,
+html[data-theme="contrast"] .section-thumb-line {
+  background: #1d2130;
+}
+
+html[data-theme="light"] .section-thumb-label,
+html[data-theme="contrast"] .section-thumb-label {
+  color: #5a6175;
+}
+
+html[data-theme="light"] .section-thumb.active .section-thumb-label,
+html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
+  color: #a5b4fc;
 }
 
 .app-main {
