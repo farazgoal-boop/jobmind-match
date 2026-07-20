@@ -2387,9 +2387,29 @@ async def update_check_api():
         release_url = payload.get(
             "html_url", f"https://github.com/{settings.update_repo}/releases/latest"
         )
+        # Prefer a direct asset link over the release page so the update
+        # button can start the download itself instead of sending the user
+        # to GitHub to find and click the right file by hand.
+        download_url = ""
+        for asset in payload.get("assets", []) or []:
+            name = str(asset.get("name", "")).lower()
+            if name.endswith(".exe") and "setup" in name:
+                download_url = asset.get("browser_download_url", "")
+                break
+        if not download_url:
+            for asset in payload.get("assets", []) or []:
+                if str(asset.get("name", "")).lower().endswith(".exe"):
+                    download_url = asset.get("browser_download_url", "")
+                    break
     except Exception:
         return JSONResponse(
-            {"current": current, "latest": current, "update_available": False, "release_url": ""}
+            {
+                "current": current,
+                "latest": current,
+                "update_available": False,
+                "release_url": "",
+                "download_url": "",
+            }
         )
 
     def _version_tuple(value: str):
@@ -2407,6 +2427,7 @@ async def update_check_api():
             "latest": latest,
             "update_available": update_available,
             "release_url": release_url,
+            "download_url": download_url,
         }
     )
 

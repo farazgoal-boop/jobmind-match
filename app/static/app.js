@@ -427,6 +427,9 @@ window.addEventListener("DOMContentLoaded", () => {
     const cacheKey = "jobmind.updateCheck.v1";
     const cacheTtlMs = 6 * 60 * 60 * 1000;
     let releaseUrl = "";
+    let downloadUrl = "";
+    const label = pill.querySelector(".sidebar-update-label");
+    const defaultLabelPrefix = "Update available";
 
     function showUpdate(data) {
       if (!data.update_available) {
@@ -434,7 +437,8 @@ window.addEventListener("DOMContentLoaded", () => {
         return;
       }
       releaseUrl = data.release_url || "";
-      pill.querySelector(".sidebar-update-label").textContent = `Update available v${data.latest}`;
+      downloadUrl = data.download_url || "";
+      label.textContent = `${defaultLabelPrefix} v${data.latest}`;
       pill.classList.remove("hidden");
     }
 
@@ -452,7 +456,21 @@ window.addEventListener("DOMContentLoaded", () => {
     }
 
     pill.addEventListener("click", () => {
-      if (releaseUrl) {
+      if (downloadUrl) {
+        // A real download link (from a GitHub release asset) triggers the
+        // browser's normal file download instead of sending the user to
+        // GitHub's website to find and click the right file themselves.
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = "";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        label.textContent = "Downloading update…";
+        setTimeout(() => {
+          label.textContent = `${defaultLabelPrefix} — click again to re-download`;
+        }, 4000);
+      } else if (releaseUrl) {
         window.open(releaseUrl, "_blank", "noopener");
       }
     });
