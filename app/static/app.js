@@ -16,6 +16,10 @@ window.addEventListener("DOMContentLoaded", () => {
       const match = item.dataset.navMode === mode && item.dataset.navPanel === panelId;
       item.classList.toggle("active", match);
     });
+    document.querySelectorAll(".section-thumb[data-nav-mode]").forEach((thumb) => {
+      const match = thumb.dataset.navMode === mode && thumb.dataset.navPanel === panelId;
+      thumb.classList.toggle("active", match);
+    });
     document.querySelectorAll(".mobile-nav-item[data-nav-mode]").forEach((item) => {
       const match = item.dataset.navMode === mode && item.dataset.navPanel === panelId;
       item.classList.toggle("active", match);
@@ -358,6 +362,9 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     document.querySelectorAll("[data-sidebar-mode]").forEach((nav) => {
       nav.classList.toggle("hidden", nav.dataset.sidebarMode !== mode);
+    });
+    document.querySelectorAll("[data-thumb-mode]").forEach((nav) => {
+      nav.classList.toggle("hidden", nav.dataset.thumbMode !== mode);
     });
     document.querySelectorAll("[data-mobile-mode]").forEach((nav) => {
       nav.classList.toggle("hidden", nav.dataset.mobileMode !== mode);
