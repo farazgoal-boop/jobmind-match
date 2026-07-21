@@ -565,6 +565,13 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   background: transparent;
   width: 100%;
   text-align: left;
+  /* VS Code Activity Bar rows: each icon is its own tight, self-contained
+     button. Explicit here (not just "no flex-grow set") so a future flex
+     change on .sidebar-nav can't stretch the active/hover highlight box
+     into a tall shared block again — height always hugs this row's own
+     content, never the sidebar's remaining space. */
+  height: auto;
+  flex-shrink: 0;
 }
 
 .sidebar-item:hover {
