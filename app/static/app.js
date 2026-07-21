@@ -387,19 +387,56 @@ window.addEventListener("DOMContentLoaded", () => {
     setActivePanel(defaultPanel, mode);
   }
 
+  // One .section-thumbnails element exists per mode (job/sell), each shown
+  // or hidden by setActiveMode()'s own "hidden" class — independent of fold
+  // state. Fold is a single shared preference, so it's applied to all of
+  // them together rather than just whichever one querySelector finds first.
+  const sectionsPanels = document.querySelectorAll(".section-thumbnails");
+  const sectionsFoldKey = "jmm-sections-folded";
+
+  function isSectionsFolded() {
+    return sectionsPanels.length > 0 && sectionsPanels[0].classList.contains("is-closed");
+  }
+
+  function setSectionsFolded(folded) {
+    sectionsPanels.forEach((panel) => panel.classList.toggle("is-closed", folded));
+    writeStorage(sectionsFoldKey, folded);
+  }
+
   function wirePanelNavigation() {
     document.querySelectorAll("[data-nav-panel]").forEach((button) => {
       button.addEventListener("click", () => {
         const panelId = button.dataset.navPanel;
         const mode = button.dataset.navMode;
-        if (panelId && mode) {
-          if (mode !== readStorage(storageKeys.uiMode, "job")) {
-            setActiveMode(mode);
-          }
-          setActivePanel(panelId, mode, button);
+        if (!panelId || !mode) {
+          return;
+        }
+
+        // Icon-rail items double as a VS-Code-Activity-Bar-style fold
+        // toggle: clicking the already-active icon again folds the
+        // Sections panel shut instead of re-navigating to the same panel.
+        // Clicking any other icon navigates and makes sure the panel is
+        // open — the Sections cards themselves don't affect fold state.
+        const isSidebarIcon = button.classList.contains("sidebar-item");
+        const alreadyActive = isSidebarIcon && button.classList.contains("active");
+        const panelOpen = !isSectionsFolded();
+
+        if (isSidebarIcon && alreadyActive && panelOpen) {
+          setSectionsFolded(true);
+          return;
+        }
+
+        if (mode !== readStorage(storageKeys.uiMode, "job")) {
+          setActiveMode(mode);
+        }
+        setActivePanel(panelId, mode, button);
+        if (isSidebarIcon) {
+          setSectionsFolded(false);
         }
       });
     });
+
+    setSectionsFolded(readStorage(sectionsFoldKey, false));
   }
 
   function wireHeaderControls() {
@@ -462,24 +499,38 @@ window.addEventListener("DOMContentLoaded", () => {
         .catch(() => {});
     }
 
+    let starting = false;
     pill.addEventListener("click", () => {
-      if (downloadUrl) {
-        // A real download link (from a GitHub release asset) triggers the
-        // browser's normal file download instead of sending the user to
-        // GitHub's website to find and click the right file themselves.
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        link.download = "";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        label.textContent = "Downloading update…";
-        setTimeout(() => {
-          label.textContent = `${defaultLabelPrefix} — click again to re-download`;
-        }, 4000);
-      } else if (releaseUrl) {
-        window.open(releaseUrl, "_blank", "noopener");
+      if (starting) {
+        return;
       }
+      if (!downloadUrl) {
+        if (releaseUrl) {
+          window.open(releaseUrl, "_blank", "noopener");
+        }
+        return;
+      }
+      // Download the installer server-side and launch its setup wizard
+      // directly — matches how Chrome/Discord/Slack "restart to update"
+      // works, instead of dropping Setup.exe in Downloads for the user to
+      // find and double-click themselves.
+      starting = true;
+      label.textContent = "Downloading update…";
+      fetch("/api/app/start-update", { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.ok) {
+            label.textContent = "Installer launched — follow the setup wizard";
+          } else {
+            label.textContent = data.error || "Update failed — click to retry";
+          }
+        })
+        .catch(() => {
+          label.textContent = "Update failed — click to retry";
+        })
+        .finally(() => {
+          starting = false;
+        });
     });
   }
 
@@ -1127,10 +1178,26 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  const appEnv = document
+    .querySelector('meta[name="jobmind-app-env"]')
+    ?.getAttribute("content") || "dev";
+
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register(`/static/sw.js?v=${encodeURIComponent(staticVersion)}`).catch(() => {
-      // Ignore registration failures.
-    });
+    if (appEnv === "dev") {
+      // A stale-while-revalidate service worker actively fights local
+      // development: it can keep serving an old cached CSS/JS bundle even
+      // through a hard refresh, since it intercepts fetches below the
+      // browser's normal cache-control layer. Unregister any worker a
+      // previous (non-dev) run of this page may have installed, so dev
+      // always sees whatever's actually on disk.
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.unregister());
+      }).catch(() => {});
+    } else {
+      navigator.serviceWorker.register(`/static/sw.js?v=${encodeURIComponent(staticVersion)}`).catch(() => {
+        // Ignore registration failures.
+      });
+    }
   }
 
   window.addEventListener("beforeinstallprompt", (event) => {

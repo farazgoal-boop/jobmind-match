@@ -93,7 +93,6 @@ html[data-theme="contrast"] {
 html[data-theme="contrast"] .card,
 html[data-theme="contrast"] .app-sidebar,
 html[data-theme="contrast"] .app-header,
-html[data-theme="contrast"] .app-footer,
 html[data-theme="contrast"] input,
 html[data-theme="contrast"] select,
 html[data-theme="contrast"] textarea {
@@ -272,46 +271,62 @@ pre,
   display: flex;
   flex: 1;
   flex-direction: row;
+  align-items: flex-start;
   min-height: 0;
   min-width: 0;
 }
 
-/* Foldable sidebar — collapsed to icon rail (~68px) at rest, expands to full
-   width (~220px) on hover/focus so labels have room to render. The label
-   itself (not just this parent's overflow:hidden) must collapse to
-   zero-width and zero-opacity, or its text peeks out past the icon rail
-   during the width transition. */
+/* Icon rail — VS Code Activity Bar style: permanently narrow, icons only,
+   never expands. Each item's `title` attribute gives a native tooltip since
+   labels never render here. What folds is the Sections panel next to it
+   (below), toggled by clicking the already-active icon again. */
 .app-sidebar {
   flex-shrink: 0;
   width: var(--sidebar-width-collapsed);
   position: sticky;
   top: var(--header-height);
-  height: calc(100vh - var(--header-height));
+  /* Cap, don't force, the height: a short nav (e.g. 4 items) should hug its
+     own content instead of stretching a colored box down the whole viewport;
+     max-height + the inner nav's own overflow-y:auto still protects against
+     a nav list one day being taller than the viewport. */
+  max-height: calc(100vh - var(--header-height));
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
   border-right: 1px solid var(--border);
-  overflow: hidden;
   z-index: 50;
-  transition: width var(--transition-fast);
-}
-
-.app-sidebar:hover,
-.app-sidebar:focus-within {
-  width: var(--sidebar-width);
 }
 
 /* Sections thumbnail navigator — small preview cards next to the sidebar,
-   one per sidebar item, offering the same navigation as a visual picker. */
+   one per sidebar item, offering the same navigation as a visual picker.
+   Foldable: click the active icon again to close it (width collapses to 0,
+   giving the content column the space back), click any icon to reopen it. */
 .section-thumbnails {
   flex-shrink: 0;
   width: 166px;
+  position: sticky;
+  top: var(--header-height);
+  max-height: calc(100vh - var(--header-height));
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 16px 10px;
-  overflow-y: auto;
+  overflow: hidden hidden;
   border-right: 1px solid var(--border);
+  transition: width var(--transition-base), padding var(--transition-base), opacity var(--transition-fast);
+}
+
+.section-thumbnails:not(.is-closed) {
+  overflow-y: auto;
+}
+
+.section-thumbnails.is-closed {
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  opacity: 0;
+  border-right-color: transparent;
+  pointer-events: none;
 }
 
 /* Thumbnail cards deliberately render in the OPPOSITE of the app's current
@@ -439,16 +454,6 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   overflow-y: auto;
 }
 
-.app-footer {
-  flex-shrink: 0;
-  padding: 0;
-  font-size: 0.78rem;
-  color: var(--text-dim);
-  border-top: 1px solid rgba(99, 102, 241, 0.25);
-  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-primary) 100%);
-  margin-top: auto;
-}
-
 /* Fixed Copilot-style status bar — always visible at bottom */
 .footer-status-bar {
   position: fixed;
@@ -537,7 +542,6 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   flex-direction: column;
   gap: 4px;
   padding: 16px 12px;
-  flex: 1;
   overflow-y: auto;
 }
 
@@ -545,7 +549,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 12px;
   justify-content: center;
   position: relative;
   border-radius: var(--radius-sm);
@@ -556,20 +560,11 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   font-weight: 500;
   border: 1px solid transparent;
   overflow: hidden;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
-    border-color var(--transition-fast),
-    justify-content var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
   cursor: pointer;
   background: transparent;
   width: 100%;
   text-align: left;
-}
-
-.app-sidebar:hover .sidebar-item,
-.app-sidebar:focus-within .sidebar-item {
-  justify-content: flex-start;
 }
 
 .sidebar-item:hover {
@@ -592,18 +587,12 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   justify-content: center;
 }
 
+/* Never shown — the icon rail is permanently narrow (VS Code Activity Bar
+   style), so labels never get room to render. Each item's `title` attribute
+   gives a native tooltip instead. Kept in the DOM (not removed) so a11y
+   tools and any :not(.sidebar-label) selector elsewhere still make sense. */
 .sidebar-label {
-  white-space: nowrap;
-  overflow: hidden;
-  opacity: 0;
-  max-width: 0;
-  transition: opacity var(--transition-fast), max-width var(--transition-base);
-}
-
-.app-sidebar:hover .sidebar-label,
-.app-sidebar:focus-within .sidebar-label {
-  opacity: 1;
-  max-width: 160px;
+  display: none;
 }
 
 .sidebar-badge {
@@ -619,17 +608,6 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   background: rgba(99, 102, 241, 0.2);
   color: var(--accent3);
   border: 1px solid rgba(99, 102, 241, 0.25);
-  transition: margin-left var(--transition-fast), min-width var(--transition-fast),
-    padding var(--transition-fast), font-size var(--transition-fast);
-}
-
-.app-sidebar:hover .sidebar-badge,
-.app-sidebar:focus-within .sidebar-badge {
-  position: static;
-  margin-left: auto;
-  min-width: 20px;
-  padding: 2px 7px;
-  font-size: 0.68rem;
 }
 
 /* Content panels (SPA-style views) */
@@ -1279,27 +1257,13 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   cursor: pointer;
   text-align: left;
   box-shadow: var(--shadow-glow);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), justify-content var(--transition-fast), padding var(--transition-fast);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.app-sidebar:hover .sidebar-update-pill,
-.app-sidebar:focus-within .sidebar-update-pill {
-  justify-content: flex-start;
-  padding: 10px 12px;
-}
-
+/* Never shown, same reasoning as .sidebar-label above — a `title` attribute
+   carries the same text as a native tooltip instead. */
 .sidebar-update-label {
-  white-space: nowrap;
-  overflow: hidden;
-  opacity: 0;
-  max-width: 0;
-  transition: opacity var(--transition-fast), max-width var(--transition-base);
-}
-
-.app-sidebar:hover .sidebar-update-label,
-.app-sidebar:focus-within .sidebar-update-label {
-  opacity: 1;
-  max-width: 160px;
+  display: none;
 }
 
 .sidebar-update-pill:hover {
@@ -2602,60 +2566,13 @@ button.success:hover:not(:disabled),
     grid-template-columns: var(--sidebar-width-collapsed) 1fr;
   }
 
-  /* Touch devices have no real hover — a tap can leave a synthetic :hover
-     stuck, so force the icon rail regardless of :hover/:focus-within here.
-     Navigation still works: tapping an icon goes straight to its panel. */
-  .app-sidebar,
-  .app-sidebar:hover,
-  .app-sidebar:focus-within {
-    width: var(--sidebar-width-collapsed);
-  }
-
-  /* No room for a 166px thumbnail rail once the sidebar itself is
-     icon-only; tapping a sidebar icon already reaches every section. */
+  /* The icon rail is already permanently narrow at every width now (no
+     hover-expand left to fight), so the only tablet-specific need left is
+     hiding the Sections panel — no room for a 166px column once the main
+     content area is this narrow. Tapping a sidebar icon still reaches
+     every section directly. */
   .section-thumbnails {
     display: none;
-  }
-
-  .sidebar-item,
-  .app-sidebar:hover .sidebar-item,
-  .app-sidebar:focus-within .sidebar-item {
-    justify-content: center;
-    padding: 12px;
-    position: relative;
-  }
-
-  .sidebar-item .sidebar-label,
-  .app-sidebar:hover .sidebar-label,
-  .app-sidebar:focus-within .sidebar-label {
-    opacity: 0;
-    max-width: 0;
-  }
-
-  .sidebar-badge,
-  .app-sidebar:hover .sidebar-badge,
-  .app-sidebar:focus-within .sidebar-badge {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    margin-left: 0;
-    min-width: 16px;
-    padding: 1px 5px;
-    font-size: 0.6rem;
-  }
-
-  .sidebar-update-label,
-  .app-sidebar:hover .sidebar-update-label,
-  .app-sidebar:focus-within .sidebar-update-label {
-    opacity: 0;
-    max-width: 0;
-  }
-
-  .sidebar-update-pill,
-  .app-sidebar:hover .sidebar-update-pill,
-  .app-sidebar:focus-within .sidebar-update-pill {
-    justify-content: center;
-    padding: 10px;
   }
 
   .app-main {
@@ -2736,10 +2653,6 @@ button.success:hover:not(:disabled),
 
   .mobile-mode-bar {
     display: flex;
-  }
-
-  .app-footer {
-    display: none;
   }
 
   .footer-status-bar {
@@ -2893,22 +2806,6 @@ button.success:hover:not(:disabled),
   }
 }
 
-/* Footer detail — Premium Copilot-style */
-.premium-footer {
-  position: relative;
-  overflow: hidden;
-}
-
-.premium-footer-glow {
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent2), var(--accent), var(--accent2), transparent);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
-}
-
-.footer-inner {
-  padding: 10px 28px;
-}
-
 .footer-top {
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr;
@@ -2998,23 +2895,9 @@ button.success:hover:not(:disabled),
   padding: 4px 0;
 }
 
-.footer-bottom {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  color: var(--text-dim);
-}
-
 .footer-made {
   color: var(--accent3);
   opacity: 0.85;
-}
-
-.footer-sep {
-  opacity: 0.35;
 }
 
 /* Mobile nav items */
@@ -3186,7 +3069,6 @@ html.is-mobile-app .app-shell {
   padding-bottom: calc(var(--mobile-nav-height) + 52px);
 }
 
-html.is-mobile-app .app-footer,
 html.is-mobile-app .footer-status-bar {
   display: none !important;
 }

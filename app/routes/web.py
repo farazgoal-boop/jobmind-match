@@ -37,6 +37,7 @@ from app.paths import templates_dir
 templates = Jinja2Templates(directory=str(templates_dir()))
 templates.env.globals["static_version"] = settings.asset_version
 templates.env.globals["app_version"] = settings.app_version
+templates.env.globals["app_env"] = settings.app_env
 
 COUNTRY_LIST = [
     "Afghanistan", "Albania", "Algeria", "Argentina", "Armenia", "Australia", "Austria",
@@ -2365,9 +2366,9 @@ async def license_activate_api(
     return JSONResponse(activate_license(session, key))
 
 
-@router.get("/api/app/update-check")
-async def update_check_api():
-    """Check GitHub releases for a newer version than the running app."""
+async def _resolve_latest_release() -> dict:
+    """Check GitHub releases for a newer version than the running app.
+    Shared by the update-check poll and the start-update launcher below."""
     import requests as _requests
 
     current = settings.app_version
@@ -2402,15 +2403,13 @@ async def update_check_api():
                     download_url = asset.get("browser_download_url", "")
                     break
     except Exception:
-        return JSONResponse(
-            {
-                "current": current,
-                "latest": current,
-                "update_available": False,
-                "release_url": "",
-                "download_url": "",
-            }
-        )
+        return {
+            "current": current,
+            "latest": current,
+            "update_available": False,
+            "release_url": "",
+            "download_url": "",
+        }
 
     def _version_tuple(value: str):
         parts = []
@@ -2421,15 +2420,63 @@ async def update_check_api():
 
     update_available = _version_tuple(latest) > _version_tuple(current)
 
-    return JSONResponse(
-        {
-            "current": current,
-            "latest": latest,
-            "update_available": update_available,
-            "release_url": release_url,
-            "download_url": download_url,
-        }
-    )
+    return {
+        "current": current,
+        "latest": latest,
+        "update_available": update_available,
+        "release_url": release_url,
+        "download_url": download_url,
+    }
+
+
+@router.get("/api/app/update-check")
+async def update_check_api():
+    return JSONResponse(await _resolve_latest_release())
+
+
+@router.post("/api/app/start-update")
+async def start_update_api():
+    """Download the latest installer and launch its setup wizard directly —
+    like Chrome/Discord/Slack's "restart to update" — instead of dropping
+    Setup.exe in the user's Downloads folder for them to find and run by
+    hand. Windows-only: the release assets this resolves are .exe installers,
+    and os.startfile() (the launch mechanism) only exists on Windows."""
+    import platform
+
+    if platform.system() != "Windows":
+        return JSONResponse(
+            {"ok": False, "error": "Direct install launch is only available on Windows builds right now."},
+            status_code=400,
+        )
+
+    data = await _resolve_latest_release()
+    download_url = data.get("download_url", "")
+    if not download_url:
+        return JSONResponse(
+            {"ok": False, "error": "Could not find an installer file for the latest release."},
+            status_code=400,
+        )
+
+    import os
+    import tempfile
+    import requests as _requests
+
+    try:
+        resp = _requests.get(download_url, timeout=120, stream=True)
+        resp.raise_for_status()
+        installer_path = Path(tempfile.gettempdir()) / "JobMind-Match-Setup.exe"
+        with open(installer_path, "wb") as fh:
+            for chunk in resp.iter_content(chunk_size=1 << 16):
+                fh.write(chunk)
+    except Exception as exc:
+        return JSONResponse({"ok": False, "error": f"Download failed: {exc}"}, status_code=502)
+
+    try:
+        os.startfile(str(installer_path))  # Windows-only: launches the installer GUI
+    except Exception as exc:
+        return JSONResponse({"ok": False, "error": f"Could not launch installer: {exc}"}, status_code=500)
+
+    return JSONResponse({"ok": True, "latest": data.get("latest", "")})
 
 
 @router.post("/api/scrape/export")

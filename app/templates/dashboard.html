@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07070f" />
   <meta name="jobmind-static-version" content="{{ static_version }}" />
+  <meta name="jobmind-app-env" content="{{ app_env }}" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="JobMind Match" />
@@ -36,7 +37,6 @@
     .app-body { display:flex; flex:1; flex-direction:row; min-height:0; }
     .app-sidebar { width:220px; flex-shrink:0; background:#0e0e1c; border-right:1px solid rgba(255,255,255,.06); }
     .app-main { flex:1; padding:24px; overflow-y:auto; min-width:0; }
-    .app-footer { border-top:1px solid rgba(99,102,241,.25); background:#0e0e1c; margin-top:auto; }
     .footer-status-bar { position:fixed; bottom:0; left:0; right:0; z-index:95; display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 16px; font-size:11px; color:#6666a0; background:rgba(10,10,20,.96); border-top:1px solid rgba(99,102,241,.35); }
     .footer-status-bar em { font-style:normal; color:#c084fc; }
     .header-logo, .footer-logo { border-radius:8px; }
@@ -47,13 +47,12 @@
     input, select, textarea { background:#141428; border:1px solid rgba(255,255,255,.08); color:#eeeef8; border-radius:8px; padding:10px 12px; }
     html.is-mobile-app .mobile-mode-bar, html.is-mobile-app .mobile-nav { display:flex !important; }
     html.is-mobile-app .app-sidebar, html.is-mobile-app .header-mode-toggle { display:none !important; }
-    html.is-mobile-app .app-footer, html.is-mobile-app .footer-status-bar { display:none !important; }
+    html.is-mobile-app .footer-status-bar { display:none !important; }
     /* ── Light theme critical overrides ── */
     html[data-theme="light"], html[data-theme="light"] body { background:#f3f4f8 !important; color:#1a1d2e !important; }
     html[data-theme="light"] .app-shell { background:#f3f4f8; }
     html[data-theme="light"] .app-header { background:rgba(255,255,255,.96); border-bottom-color:rgba(0,0,0,.08); }
     html[data-theme="light"] .app-sidebar { background:#ffffff; border-right-color:rgba(0,0,0,.08); }
-    html[data-theme="light"] .app-footer { background:#ffffff; border-top-color:rgba(99,102,241,.18); }
     html[data-theme="light"] .footer-status-bar { background:rgba(255,255,255,.96); border-top-color:rgba(99,102,241,.18); color:#7e8799; }
     html[data-theme="light"] .footer-status-bar em { color:#4f46e5; }
     html[data-theme="light"] .sidebar-item { color:#7e8799; }
@@ -62,7 +61,6 @@
     html[data-theme="contrast"] .app-shell { background:#ffffff; }
     html[data-theme="contrast"] .app-header { background:#ffffff; border-bottom-color:#000000; }
     html[data-theme="contrast"] .app-sidebar { background:#ffffff; border-right-color:#000000; }
-    html[data-theme="contrast"] .app-footer { background:#ffffff; border-top-color:#000000; }
     html[data-theme="contrast"] .footer-status-bar { background:#ffffff; border-top-color:#000000; color:#000000; }
     html[data-theme="contrast"] .footer-status-bar em { color:#3525cd; }
     html[data-theme="contrast"] .sidebar-item { color:#000000; }
@@ -117,16 +115,16 @@
     <div class="app-body">
       <aside class="app-sidebar" data-role="app-sidebar">
         <nav class="sidebar-nav sidebar-nav-job {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-sidebar-mode="job">
-          <button type="button" class="sidebar-item active" data-nav-panel="job-search" data-nav-mode="job"><span class="sidebar-icon">🔍</span><span class="sidebar-label">Search &amp; Match</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="job-applications" data-nav-mode="job"><span class="sidebar-icon">📋</span><span class="sidebar-label">Applications</span><span class="sidebar-badge">{{ status_summary.total }}</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="job-profile" data-nav-mode="job"><span class="sidebar-icon">📄</span><span class="sidebar-label">CV &amp; Profile</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="job-links" data-nav-mode="job"><span class="sidebar-icon">🔗</span><span class="sidebar-label">Quick Links</span></button>
+          <button type="button" class="sidebar-item active" data-nav-panel="job-search" data-nav-mode="job" title="Search &amp; Match"><span class="sidebar-icon">🔍</span><span class="sidebar-label">Search &amp; Match</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-applications" data-nav-mode="job" title="Applications"><span class="sidebar-icon">📋</span><span class="sidebar-label">Applications</span><span class="sidebar-badge">{{ status_summary.total }}</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-profile" data-nav-mode="job" title="CV &amp; Profile"><span class="sidebar-icon">📄</span><span class="sidebar-label">CV &amp; Profile</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-links" data-nav-mode="job" title="Quick Links"><span class="sidebar-icon">🔗</span><span class="sidebar-label">Quick Links</span></button>
         </nav>
         <nav class="sidebar-nav sidebar-nav-sell {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-sidebar-mode="sell">
-          <button type="button" class="sidebar-item active" data-nav-panel="sell-hunter" data-nav-mode="sell"><span class="sidebar-icon">⚡</span><span class="sidebar-label">Lead Hunter</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="sell-tracker" data-nav-mode="sell"><span class="sidebar-icon">👥</span><span class="sidebar-label">Lead Tracker</span><span class="sidebar-badge">{{ client_status_summary.total }}</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="sell-search" data-nav-mode="sell"><span class="sidebar-icon">🎯</span><span class="sidebar-label">Client Search</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="sell-profile" data-nav-mode="sell"><span class="sidebar-icon">📄</span><span class="sidebar-label">Profile &amp; Pitch</span></button>
+          <button type="button" class="sidebar-item active" data-nav-panel="sell-hunter" data-nav-mode="sell" title="Lead Hunter"><span class="sidebar-icon">⚡</span><span class="sidebar-label">Lead Hunter</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-tracker" data-nav-mode="sell" title="Lead Tracker"><span class="sidebar-icon">👥</span><span class="sidebar-label">Lead Tracker</span><span class="sidebar-badge">{{ client_status_summary.total }}</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-search" data-nav-mode="sell" title="Client Search"><span class="sidebar-icon">🎯</span><span class="sidebar-label">Client Search</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-profile" data-nav-mode="sell" title="Profile &amp; Pitch"><span class="sidebar-icon">📄</span><span class="sidebar-label">Profile &amp; Pitch</span></button>
         </nav>
         <button type="button" class="sidebar-update-pill hidden" data-role="sidebar-update-pill" title="A new version is available">
           <span class="sidebar-update-dot"></span>
@@ -2101,20 +2099,6 @@ document.addEventListener('click',e=>{
     </section>
       </main>
     </div>
-
-    <footer class="app-footer premium-footer" data-role="premium-footer">
-      <div class="premium-footer-glow"></div>
-      <div class="footer-inner">
-        <div class="footer-bottom">
-          <span class="footer-status-dot"></span>
-          <span>System Ready · Local Data Only</span>
-          <span class="footer-sep">|</span>
-          <span>© 2026 JobMind Match</span>
-          <span class="footer-sep">|</span>
-          <span>v{{ app_version }}</span>
-        </div>
-      </div>
-    </footer>
 
     <div class="footer-status-bar" data-role="footer-status-bar">
       <img src="/static/icon-32.png?v={{ static_version }}" alt="" width="18" height="18" />

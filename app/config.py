@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 import os
 
-from app.paths import app_root
+from app.paths import app_root, static_dir
 
 load_dotenv()
 
@@ -17,6 +17,23 @@ def _read_app_version() -> str:
         return "0.0.0"
 
 
+def _dev_asset_version() -> str:
+    """Local dev has no CI commit SHA to cache-bust static assets with, so the
+    ?v= query string used to fall back to a hardcoded literal — meaning every
+    CSS/JS edit kept being served from the browser's cache under that exact
+    same URL forever, with no way to see the change short of a hard refresh.
+    Use the static folder's newest file mtime instead, so the URL actually
+    changes whenever a static file is edited."""
+    try:
+        newest = max(
+            (f.stat().st_mtime for f in static_dir().rglob("*") if f.is_file()),
+            default=0,
+        )
+        return str(int(newest))
+    except OSError:
+        return "premium-v9"
+
+
 class Settings(BaseModel):
     app_name: str = os.getenv("APP_NAME", "JobMind Match")
     app_env: str = os.getenv("APP_ENV", "dev")
@@ -27,7 +44,7 @@ class Settings(BaseModel):
         or os.getenv("RAILWAY_GIT_COMMIT_SHA")
         or os.getenv("GITHUB_SHA")
         or os.getenv("APP_ASSET_VERSION")
-        or "premium-v9"
+        or _dev_asset_version()
     )[:12]
     database_url: str = os.getenv(
         "DATABASE_URL",
