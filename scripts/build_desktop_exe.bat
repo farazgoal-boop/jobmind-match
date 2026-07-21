@@ -8,7 +8,7 @@ echo  Building JobMindMatch.exe desktop launcher...
 echo.
 
 if exist "%ROOT%\.venv\Scripts\python.exe" (
-  "%ROOT%\.venv\Scripts\python.exe" -m pip install pyinstaller --quiet --disable-pip-version-check
+  "%ROOT%\.venv\Scripts\python.exe" -m pip install pyinstaller pywebview pythonnet --quiet --disable-pip-version-check
   if not exist "%ROOT%\app\static\icon.ico" (
     "%ROOT%\.venv\Scripts\python.exe" "%ROOT%\scripts\make_icon_ico.py"
   )
@@ -23,7 +23,7 @@ if exist "%ROOT%\.venv\Scripts\python.exe" (
     --specpath "%ROOT%\build\launcher" ^
     "%ROOT%\scripts\desktop_launcher.py"
 ) else (
-  py -3.11 -m pip install pyinstaller --quiet --disable-pip-version-check
+  py -3.11 -m pip install pyinstaller pywebview pythonnet --quiet --disable-pip-version-check
   if not exist "%ROOT%\app\static\icon.ico" (
     py -3.11 "%ROOT%\scripts\make_icon_ico.py"
   )

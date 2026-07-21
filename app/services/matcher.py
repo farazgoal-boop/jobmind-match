@@ -1,13 +1,25 @@
 from collections import Counter
 from typing import Dict, List
 
-try:
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
+# sklearn drags in numpy/scipy's C extensions, which cost real wall-clock time
+# to import (~1s+ on a cold/first-run desktop install). matcher.py is imported
+# eagerly at app startup (via scheduler.py/web.py), so importing sklearn at
+# module scope here made that cost part of every app launch even when no
+# matching request had happened yet. Probe/import lazily on first actual use.
+_HAS_SKLEARN: bool | None = None
 
-    HAS_SKLEARN = True
-except ImportError:
-    HAS_SKLEARN = False
+
+def _sklearn_available() -> bool:
+    global _HAS_SKLEARN
+    if _HAS_SKLEARN is None:
+        try:
+            import sklearn.feature_extraction.text  # noqa: F401
+            import sklearn.metrics.pairwise  # noqa: F401
+
+            _HAS_SKLEARN = True
+        except ImportError:
+            _HAS_SKLEARN = False
+    return _HAS_SKLEARN
 
 
 BOOST_SKILLS = {
@@ -51,12 +63,15 @@ def rank_jobs(candidate_text: str, jobs: List[Dict], top_k: int = 5) -> List[Dic
     if not jobs:
         return []
 
-    if HAS_SKLEARN:
+    if _sklearn_available():
         return _rank_jobs_sklearn(candidate_text, jobs, top_k)
     return _rank_jobs_light(candidate_text, jobs, top_k)
 
 
 def _rank_jobs_sklearn(candidate_text: str, jobs: List[Dict], top_k: int) -> List[Dict]:
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+
     normalized_candidate = candidate_text.lower()
     candidate_skill_hits = _extract_candidate_skills(normalized_candidate)
     job_docs = [f"{j['title']} {j['description']}" for j in jobs]

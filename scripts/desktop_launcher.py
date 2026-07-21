@@ -1,6 +1,7 @@
 """
 JobMind Match desktop launcher.
-Opens the app in a clean window (Edge/Chrome app mode). No CMD.
+Opens the app in a dedicated native window (pywebview), falling back to an
+Edge/Chrome app-mode window if the WebView2 runtime isn't available. No CMD.
 """
 from __future__ import annotations
 
@@ -206,6 +207,25 @@ def browser_app_paths() -> list[Path]:
     ]
 
 
+def open_native_window(root: Path) -> None:
+    """Show the app in a dedicated pywebview window (no browser chrome, no
+    address bar/tabs) and block until the user closes it. Raises on any
+    failure (missing WebView2 runtime, import error, etc.) so the caller can
+    fall back to the Edge/Chrome app-mode window instead of leaving the user
+    stuck with nothing on screen."""
+    import webview
+
+    icon_path = root / "app" / "static" / "icon.ico"
+    webview.create_window(
+        "JobMind Match",
+        DASHBOARD_URL,
+        width=1440,
+        height=900,
+        min_size=(480, 360),
+    )
+    webview.start(icon=str(icon_path) if icon_path.exists() else None)
+
+
 def open_app_window(root: Path) -> bool:
     for browser in browser_app_paths():
         if not browser.exists():
@@ -288,11 +308,20 @@ def main() -> int:
         )
         return 1
 
-    if not open_app_window(root):
-        log(root, "UI open failed")
-        show_error("JobMind Match could not open its window.")
-        return 1
+    try:
+        open_native_window(root)
+        log(root, "Native window closed by user")
+    except Exception as exc:
+        log(root, f"pywebview unavailable ({exc}); falling back to browser window")
+        if not open_app_window(root):
+            log(root, "UI open failed")
+            show_error("JobMind Match could not open its window.")
+            return 1
+        log(root, "Launcher finished successfully (browser fallback; server left running)")
+        return 0
 
+    stop_server()
+    log(root, "Server stopped after window close")
     log(root, "Launcher finished successfully")
     return 0
 

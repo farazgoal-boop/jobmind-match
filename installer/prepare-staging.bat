@@ -32,6 +32,7 @@ for /d /r "%STAGING%\app" %%D in (__pycache__) do @if exist "%%D" rmdir /s /q "%
 xcopy /E /I /Y "%ROOT%\installer\runtime\python" "%STAGING%\runtime\python" >nul
 xcopy /E /I /Y "%ROOT%\setup" "%STAGING%\setup" >nul
 copy /Y "%ROOT%\dist\JobMindMatch.exe" "%STAGING%\" >nul
+copy /Y "%ROOT%\VERSION" "%STAGING%\" >nul
 copy /Y "%ROOT%\requirements.txt" "%STAGING%\" >nul
 copy /Y "%ROOT%\.env.example" "%STAGING%\" >nul
 copy /Y "%ROOT%\.python-version" "%STAGING%\" >nul

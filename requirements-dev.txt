@@ -1,2 +1,4 @@
 # Development / packaging dependencies (not required at runtime on Render)
 pyinstaller==6.11.1
+pywebview==6.2.1
+pythonnet==3.1.0

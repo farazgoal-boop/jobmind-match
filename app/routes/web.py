@@ -1519,6 +1519,18 @@ def _gh_headers() -> dict:
         headers['Authorization'] = f'Bearer {settings.github_token}'
     return headers
 
+def _gh_rate_limit_message() -> str:
+    """GitHub scrapers used to swallow 403s and return an empty lead list,
+    which looked exactly like a normal 'no matches this batch' result — the
+    hunt appeared to run fine while silently finding nothing. Raise this
+    instead so it surfaces as a real error in the batch result."""
+    if settings.github_token:
+        return "GitHub API rate limit reached even with a token configured — try again in a few minutes."
+    return (
+        "GitHub API rate limit reached (60 requests/hour without a token). "
+        "Add a GITHUB_TOKEN in Settings to raise this to 5000/hour."
+    )
+
 def _valid_email(e: str) -> bool:
     d = e.split('@')[-1].lower()
     tld = d.rsplit('.', 1)[-1]
@@ -1641,58 +1653,73 @@ def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
     try:
         url = f"https://api.github.com/search/users?q={_req.utils.quote(keyword)}&per_page=30&page={page}"
         r = _req.get(url, headers=_gh_headers(), timeout=15)
-        if r.status_code == 422: return leads  # Bad query
-        if r.status_code == 403:
-            logger.warning("github: rate-limited (403) on search %r — configure GITHUB_TOKEN to raise the limit", keyword)
-            time.sleep(10)
-            return leads
-        if r.status_code != 200:
-            logger.warning("github: search %r returned %s", keyword, r.status_code)
-            return leads
-
-        users = r.json().get('items', [])
-        for u in users[:20]:
-            try:
-                pr = _req.get(
-                    f"https://api.github.com/users/{u['login']}",
-                    headers=_gh_headers(),
-                    timeout=10
-                )
-                if pr.status_code != 200: continue
-                p = pr.json()
-
-                # Get all possible contact info
-                email = p.get('email') or ''
-                bio = f"{p.get('bio') or ''} {p.get('blog') or ''} {p.get('location') or ''} {p.get('company') or ''}"
-                bio_emails, bio_wa = _extract(bio)
-
-                if not email and bio_emails:
-                    email = bio_emails[0]
-                wa = bio_wa[0] if bio_wa else ''
-
-                # Check blog URL for email
-                blog = p.get('blog') or ''
-                if blog and not email:
-                    be, bw = _extract(blog)
-                    email = be[0] if be else ''
-                    if not wa and bw: wa = bw[0]
-
-                if email or wa:
-                    leads.append({
-                        'name': p.get('name') or p.get('login', ''),
-                        'designation': _desig(p.get('bio') or 'Developer'),
-                        'email': email,
-                        'whatsapp': wa,
-                        'source': 'github',
-                        'url': p.get('html_url', ''),
-                        'notes': (p.get('bio') or '')[:100],
-                        'location': p.get('location') or '',
-                    })
-                time.sleep(0.2)
-            except Exception:
-                continue
     except Exception:
-        logger.exception("github profiles: fetch failed for %r", keyword)
+        logger.exception("github profiles: search request failed for %r", keyword)
+        return leads
+
+    if r.status_code == 422: return leads  # Bad query
+    if r.status_code == 403:
+        raise RuntimeError(_gh_rate_limit_message())
+    if r.status_code != 200:
+        logger.warning("github: search %r returned %s", keyword, r.status_code)
+        return leads
+
+    users = r.json().get('items', [])
+    profile_calls = 0
+    rate_limited_calls = 0
+    for u in users[:20]:
+        try:
+            pr = _req.get(
+                f"https://api.github.com/users/{u['login']}",
+                headers=_gh_headers(),
+                timeout=10
+            )
+        except Exception:
+            continue
+        profile_calls += 1
+        if pr.status_code == 403:
+            rate_limited_calls += 1
+            continue
+        if pr.status_code != 200: continue
+        try:
+            p = pr.json()
+
+            # Get all possible contact info
+            email = p.get('email') or ''
+            bio = f"{p.get('bio') or ''} {p.get('blog') or ''} {p.get('location') or ''} {p.get('company') or ''}"
+            bio_emails, bio_wa = _extract(bio)
+
+            if not email and bio_emails:
+                email = bio_emails[0]
+            wa = bio_wa[0] if bio_wa else ''
+
+            # Check blog URL for email
+            blog = p.get('blog') or ''
+            if blog and not email:
+                be, bw = _extract(blog)
+                email = be[0] if be else ''
+                if not wa and bw: wa = bw[0]
+
+            if email or wa:
+                leads.append({
+                    'name': p.get('name') or p.get('login', ''),
+                    'designation': _desig(p.get('bio') or 'Developer'),
+                    'email': email,
+                    'whatsapp': wa,
+                    'source': 'github',
+                    'url': p.get('html_url', ''),
+                    'notes': (p.get('bio') or '')[:100],
+                    'location': p.get('location') or '',
+                })
+            time.sleep(0.2)
+        except Exception:
+            continue
+
+    # A search that returned real candidates but got 403'd on every single
+    # profile lookup is the exhausted-quota case, not "nobody had contact
+    # info" — surface it instead of returning an indistinguishable empty list.
+    if profile_calls and rate_limited_calls == profile_calls:
+        raise RuntimeError(_gh_rate_limit_message())
     return leads
 
 
@@ -1703,6 +1730,8 @@ def _fetch_github_readme(keyword: str, page: int = 1) -> list[dict]:
         q = f"{keyword} email in:readme"
         url = f"https://api.github.com/search/repositories?q={_req.utils.quote(q)}&per_page=20&sort=updated&page={page}"
         r = _req.get(url, headers=_gh_headers(), timeout=15)
+        if r.status_code == 403:
+            raise RuntimeError(_gh_rate_limit_message())
         if r.status_code != 200:
             logger.warning("github readme: search %r returned %s", keyword, r.status_code)
             return leads
@@ -1733,6 +1762,8 @@ def _fetch_github_readme(keyword: str, page: int = 1) -> list[dict]:
                 time.sleep(0.25)
             except Exception:
                 continue
+    except RuntimeError:
+        raise
     except Exception:
         logger.exception("github readme: fetch failed for %r", keyword)
     return leads
