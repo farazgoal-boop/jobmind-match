@@ -773,6 +773,25 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   flex-shrink: 0;
 }
 
+/* Header-scoped only: the shared .ghost-action padding (10px 12px) makes the
+   Install App chip and settings gear taller than the theme-segmented pill
+   next to them, so their top/bottom edges don't line up even though all
+   three are centered on the same axis. Normalize just these to one height
+   so the row reads as aligned instead of jagged. Scoped to .header-actions
+   so preset/copy ghost-action buttons elsewhere are untouched. */
+.header-actions .ghost-action {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+}
+
+.header-actions .ghost-action[data-role="settings-toggle"] {
+  width: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
 .header-profile:hover {
   border-color: var(--border-active);
 }
@@ -1204,11 +1223,13 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
 .theme-segmented {
   display: flex;
   align-items: center;
+  height: 36px;
   gap: 2px;
   padding: 3px;
   border-radius: var(--radius-pill);
   background: var(--bg-surface2);
   border: 1px solid var(--border);
+  box-sizing: border-box;
 }
 
 .theme-segmented-btn {
@@ -1235,6 +1256,14 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
 .theme-segmented-btn.active {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #fff;
+}
+
+/* The high-contrast icon (◐) is a plain text glyph, not a color emoji like
+   the other two buttons, so at the same font-size it renders visibly
+   smaller/thinner and makes the three buttons look inconsistently sized.
+   Bump it to optically match. */
+.theme-segmented-btn[data-theme-value="contrast"] {
+  font-size: 1.15rem;
 }
 
 /* --------------------------------------------------------------------------
