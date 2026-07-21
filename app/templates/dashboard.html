@@ -2160,6 +2160,20 @@ document.addEventListener('click',e=>{
         <p class="hint">Active profile: {% if selected %}{{ selected.full_name }}{% else %}None selected{% endif %}</p>
         <p class="hint">Job tracker: {{ status_summary.total }} · Lead tracker: {{ client_status_summary.total }}</p>
         <button type="button" class="ghost-action install-chip hidden" data-role="install-app">Install as App</button>
+
+        <div class="update-section">
+          <p class="hint">App version: v{{ app_version }}</p>
+          <button type="button" class="ghost-action" data-role="check-update-btn">Check for Update</button>
+          <p class="update-status hidden" data-role="update-status"></p>
+          <div class="update-progress hidden" data-role="update-progress">
+            <div class="update-progress-track">
+              <div class="update-progress-bar" data-role="update-progress-bar"></div>
+            </div>
+            <span class="update-progress-label" data-role="update-progress-label"></span>
+          </div>
+          <button type="button" class="ghost-action update-download-btn hidden" data-role="download-update-btn">Download update</button>
+          <button type="button" class="ghost-action update-install-btn hidden" data-role="install-update-btn">Install now</button>
+        </div>
       </div>
     </div>
   </div>

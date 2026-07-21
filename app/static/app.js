@@ -464,72 +464,209 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   function wireUpdateCheck() {
+    // Passive background check: silently polls once per cache window and
+    // shows a sidebar badge if something's available. Clicking the badge
+    // doesn't download anything itself — it opens Settings and hands off
+    // to the real check/download/install flow in wireUpdateFlow() below,
+    // so there's exactly one code path that ever starts a download.
     const pill = document.querySelector('[data-role="sidebar-update-pill"]');
-    if (!pill) {
-      return;
-    }
     const cacheKey = "jobmind.updateCheck.v1";
     const cacheTtlMs = 6 * 60 * 60 * 1000;
-    let releaseUrl = "";
-    let downloadUrl = "";
-    const label = pill.querySelector(".sidebar-update-label");
-    const defaultLabelPrefix = "Update available";
 
-    function showUpdate(data) {
+    function showPill(data) {
+      if (!pill) {
+        return;
+      }
       if (!data.update_available) {
         pill.classList.add("hidden");
         return;
       }
-      releaseUrl = data.release_url || "";
-      downloadUrl = data.download_url || "";
-      label.textContent = `${defaultLabelPrefix} v${data.latest}`;
+      const label = pill.querySelector(".sidebar-update-label");
+      if (label) {
+        label.textContent = `Update available v${data.latest}`;
+      }
       pill.classList.remove("hidden");
     }
 
     const cached = readStorage(cacheKey, null);
     if (cached && Date.now() - cached.checkedAt < cacheTtlMs) {
-      showUpdate(cached);
+      showPill(cached);
     } else {
       fetch("/api/app/update-check")
         .then((res) => res.json())
         .then((data) => {
           writeStorage(cacheKey, { ...data, checkedAt: Date.now() });
-          showUpdate(data);
+          showPill(data);
         })
         .catch(() => {});
     }
 
-    let starting = false;
-    pill.addEventListener("click", () => {
-      if (starting) {
+    pill?.addEventListener("click", () => {
+      document.querySelector('[data-role="settings-toggle"]')?.click();
+      document.querySelector('[data-role="check-update-btn"]')?.click();
+    });
+  }
+
+  function wireUpdateFlow() {
+    // The full check -> download (with progress) -> install flow, scoped to
+    // the Settings modal. Three explicit steps, matching three server
+    // endpoints (update-check / download-update+download-progress /
+    // install-update) — no step is skipped or auto-chained without the
+    // user clicking the corresponding button.
+    const checkBtn = document.querySelector('[data-role="check-update-btn"]');
+    const statusEl = document.querySelector('[data-role="update-status"]');
+    const progressWrap = document.querySelector('[data-role="update-progress"]');
+    const progressBar = document.querySelector('[data-role="update-progress-bar"]');
+    const progressLabel = document.querySelector('[data-role="update-progress-label"]');
+    const downloadBtn = document.querySelector('[data-role="download-update-btn"]');
+    const installBtn = document.querySelector('[data-role="install-update-btn"]');
+    if (!checkBtn) {
+      return;
+    }
+
+    let latestVersion = "";
+    let pollTimer = null;
+
+    function setStatus(text, tone) {
+      if (!statusEl) {
         return;
       }
-      if (!downloadUrl) {
-        if (releaseUrl) {
-          window.open(releaseUrl, "_blank", "noopener");
-        }
-        return;
+      statusEl.textContent = text;
+      statusEl.classList.remove("hidden");
+      statusEl.dataset.tone = tone || "neutral";
+    }
+
+    function hideProgress() {
+      progressWrap?.classList.add("hidden");
+      if (progressBar) {
+        progressBar.style.width = "0%";
       }
-      // Download the installer server-side and launch its setup wizard
-      // directly — matches how Chrome/Discord/Slack "restart to update"
-      // works, instead of dropping Setup.exe in Downloads for the user to
-      // find and double-click themselves.
-      starting = true;
-      label.textContent = "Downloading update…";
-      fetch("/api/app/start-update", { method: "POST" })
+      if (progressLabel) {
+        progressLabel.textContent = "";
+      }
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    function formatBytes(n) {
+      if (!n) {
+        return "0 MB";
+      }
+      return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function pollProgress() {
+      stopPolling();
+      pollTimer = setInterval(() => {
+        fetch("/api/app/download-progress")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.status === "downloading") {
+              progressWrap?.classList.remove("hidden");
+              if (progressBar) {
+                progressBar.style.width = `${data.percent}%`;
+              }
+              if (progressLabel) {
+                progressLabel.textContent = data.total
+                  ? `${data.percent}% — ${formatBytes(data.downloaded)} / ${formatBytes(data.total)}`
+                  : `${formatBytes(data.downloaded)} downloaded`;
+              }
+            } else if (data.status === "done") {
+              stopPolling();
+              if (progressBar) {
+                progressBar.style.width = "100%";
+              }
+              if (progressLabel) {
+                progressLabel.textContent = "100%";
+              }
+              downloadBtn?.classList.add("hidden");
+              installBtn?.classList.remove("hidden");
+              setStatus(`Update v${latestVersion} downloaded — ready to install.`, "good");
+            } else if (data.status === "error") {
+              stopPolling();
+              hideProgress();
+              downloadBtn?.classList.remove("hidden");
+              setStatus(data.error || "Download failed — try again.", "bad");
+            }
+          })
+          .catch(() => {});
+      }, 400);
+    }
+
+    checkBtn.addEventListener("click", () => {
+      checkBtn.disabled = true;
+      setStatus("Checking for updates…", "neutral");
+      downloadBtn?.classList.add("hidden");
+      installBtn?.classList.add("hidden");
+      hideProgress();
+      fetch("/api/app/update-check")
         .then((res) => res.json())
         .then((data) => {
-          if (data.ok) {
-            label.textContent = "Installer launched — follow the setup wizard";
+          writeStorage("jobmind.updateCheck.v1", { ...data, checkedAt: Date.now() });
+          if (data.update_available) {
+            latestVersion = data.latest;
+            setStatus(`Update available: v${data.latest}`, "good");
+            if (downloadBtn) {
+              downloadBtn.textContent = `Download update (v${data.latest})`;
+              downloadBtn.classList.remove("hidden");
+            }
           } else {
-            label.textContent = data.error || "Update failed — click to retry";
+            setStatus(`You're up to date (v${data.current}).`, "neutral");
           }
         })
         .catch(() => {
-          label.textContent = "Update failed — click to retry";
+          setStatus("Couldn't check for updates — check your connection.", "bad");
         })
         .finally(() => {
-          starting = false;
+          checkBtn.disabled = false;
+        });
+    });
+
+    downloadBtn?.addEventListener("click", () => {
+      downloadBtn.disabled = true;
+      downloadBtn.classList.add("hidden");
+      setStatus(`Downloading v${latestVersion}…`, "neutral");
+      fetch("/api/app/download-update", { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.ok) {
+            pollProgress();
+          } else {
+            downloadBtn.classList.remove("hidden");
+            setStatus(data.error || "Download failed — try again.", "bad");
+          }
+        })
+        .catch(() => {
+          downloadBtn.classList.remove("hidden");
+          setStatus("Download failed — try again.", "bad");
+        })
+        .finally(() => {
+          downloadBtn.disabled = false;
+        });
+    });
+
+    installBtn?.addEventListener("click", () => {
+      installBtn.disabled = true;
+      setStatus("Launching installer — this app will close…", "neutral");
+      fetch("/api/app/install-update", { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.ok) {
+            setStatus(data.error || "Could not launch the installer.", "bad");
+            installBtn.disabled = false;
+          }
+          // On success the server exits itself shortly after responding —
+          // nothing left to do client-side but let the tab go dark.
+        })
+        .catch(() => {
+          // A fetch error here usually just means the server already shut
+          // itself down mid-response, i.e. the launch actually succeeded.
+          setStatus("Installer launched — this app will close.", "good");
         });
     });
   }
@@ -1247,6 +1384,7 @@ window.addEventListener("DOMContentLoaded", () => {
   wirePanelNavigation();
   wireHeaderControls();
   wireUpdateCheck();
+  wireUpdateFlow();
   clearSubmitStates();
   restoreModeState("job");
   restoreModeState("sell");

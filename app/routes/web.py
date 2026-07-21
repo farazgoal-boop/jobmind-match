@@ -1,11 +1,17 @@
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
+import asyncio
 import csv
 import io
 import json
 import logging
+import os
+import platform
 import re
 import random
+import subprocess
+import tempfile
+import threading
 import time
 from pathlib import Path
 from typing import Annotated, Optional
@@ -2434,20 +2440,66 @@ async def update_check_api():
     return JSONResponse(await _resolve_latest_release())
 
 
-@router.post("/api/app/start-update")
-async def start_update_api():
-    """Download the latest installer and launch its setup wizard directly —
-    like Chrome/Discord/Slack's "restart to update" — instead of dropping
-    Setup.exe in the user's Downloads folder for them to find and run by
-    hand. Windows-only: the release assets this resolves are .exe installers,
-    and os.startfile() (the launch mechanism) only exists on Windows."""
-    import platform
+# In-process state for the installer download, polled by the settings panel
+# so it can render a real progress bar instead of a single opaque "please
+# wait". Single-slot (not keyed by session) — this app only ever runs one
+# local instance per machine, so one in-flight download at a time is fine.
+_update_download_state: dict = {
+    "status": "idle",  # idle | downloading | done | error
+    "percent": 0,
+    "downloaded": 0,
+    "total": 0,
+    "error": "",
+    "installer_path": "",
+    "latest": "",
+}
+_update_download_lock = threading.Lock()
 
+
+def _download_installer_worker(download_url: str, latest: str) -> None:
+    import requests as _requests
+
+    with _update_download_lock:
+        _update_download_state.update(
+            status="downloading", percent=0, downloaded=0, total=0, error="", installer_path="", latest=latest
+        )
+    try:
+        resp = _requests.get(download_url, timeout=120, stream=True)
+        resp.raise_for_status()
+        total = int(resp.headers.get("content-length") or 0)
+        installer_path = Path(tempfile.gettempdir()) / "JobMind-Match-Setup.exe"
+        downloaded = 0
+        with open(installer_path, "wb") as fh:
+            for chunk in resp.iter_content(chunk_size=1 << 16):
+                if not chunk:
+                    continue
+                fh.write(chunk)
+                downloaded += len(chunk)
+                percent = int(downloaded * 100 / total) if total else 0
+                with _update_download_lock:
+                    _update_download_state.update(status="downloading", percent=percent, downloaded=downloaded, total=total)
+        with _update_download_lock:
+            _update_download_state.update(status="done", percent=100, installer_path=str(installer_path))
+    except Exception as exc:
+        with _update_download_lock:
+            _update_download_state.update(status="error", error=str(exc))
+
+
+@router.post("/api/app/download-update")
+async def download_update_api():
+    """Kick off the installer download in a background thread. Windows-only:
+    the release assets this resolves are .exe installers, and the install
+    step (os.startfile / subprocess launch) only applies to Windows."""
     if platform.system() != "Windows":
         return JSONResponse(
-            {"ok": False, "error": "Direct install launch is only available on Windows builds right now."},
+            {"ok": False, "error": "Direct install is only available on Windows builds right now."},
             status_code=400,
         )
+
+    with _update_download_lock:
+        already_running = _update_download_state["status"] == "downloading"
+    if already_running:
+        return JSONResponse({"ok": True})
 
     data = await _resolve_latest_release()
     download_url = data.get("download_url", "")
@@ -2457,26 +2509,42 @@ async def start_update_api():
             status_code=400,
         )
 
-    import os
-    import tempfile
-    import requests as _requests
+    threading.Thread(
+        target=_download_installer_worker, args=(download_url, data.get("latest", "")), daemon=True
+    ).start()
+    return JSONResponse({"ok": True})
+
+
+@router.get("/api/app/download-progress")
+async def download_progress_api():
+    with _update_download_lock:
+        return JSONResponse(dict(_update_download_state))
+
+
+@router.post("/api/app/install-update")
+async def install_update_api():
+    """Launch the already-downloaded installer, then close this app so the
+    installer isn't fighting a running instance for the same files."""
+    with _update_download_lock:
+        state = dict(_update_download_state)
+
+    installer_path = state.get("installer_path", "")
+    if state.get("status") != "done" or not installer_path or not Path(installer_path).exists():
+        return JSONResponse({"ok": False, "error": "Installer not downloaded yet."}, status_code=400)
 
     try:
-        resp = _requests.get(download_url, timeout=120, stream=True)
-        resp.raise_for_status()
-        installer_path = Path(tempfile.gettempdir()) / "JobMind-Match-Setup.exe"
-        with open(installer_path, "wb") as fh:
-            for chunk in resp.iter_content(chunk_size=1 << 16):
-                fh.write(chunk)
-    except Exception as exc:
-        return JSONResponse({"ok": False, "error": f"Download failed: {exc}"}, status_code=502)
-
-    try:
-        os.startfile(str(installer_path))  # Windows-only: launches the installer GUI
+        subprocess.Popen([installer_path], close_fds=True)
     except Exception as exc:
         return JSONResponse({"ok": False, "error": f"Could not launch installer: {exc}"}, status_code=500)
 
-    return JSONResponse({"ok": True, "latest": data.get("latest", "")})
+    async def _shutdown_soon() -> None:
+        # Give the JSON response time to actually reach the browser before
+        # the process exits out from under the request.
+        await asyncio.sleep(0.8)
+        os._exit(0)
+
+    asyncio.create_task(_shutdown_soon())
+    return JSONResponse({"ok": True})
 
 
 @router.post("/api/scrape/export")

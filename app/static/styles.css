@@ -3074,6 +3074,59 @@ html.is-mobile-app .mode-shell[data-mode-panel="sell"] .panel.active {
   margin-bottom: 16px;
 }
 
+.update-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.update-status {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.update-status[data-tone="good"] {
+  color: var(--green);
+}
+
+.update-status[data-tone="bad"] {
+  color: var(--amber);
+}
+
+.update-progress {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.update-progress-track {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface2);
+  overflow: hidden;
+}
+
+.update-progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  transition: width 0.2s ease;
+}
+
+.update-progress-label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
 .settings-modal {
   position: fixed;
   inset: 0;
