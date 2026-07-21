@@ -40,7 +40,9 @@
   --shadow-accent: 0 8px 32px rgba(99, 102, 241, 0.22);
 
   --sidebar-width: 220px;
-  --sidebar-width-collapsed: 68px;
+  /* VS Code's activity bar is a fixed 48px — match it exactly rather than
+     our previous wider, more-padded rail. */
+  --sidebar-width-collapsed: 48px;
   --header-height: 60px;
   --mobile-nav-height: 64px;
 
@@ -103,7 +105,7 @@ html[data-theme="contrast"] textarea {
 html[data-theme="contrast"] .sidebar-item.active {
   color: #000000;
   background: #e5e5e5;
-  box-shadow: inset 3px 0 0 #000000;
+  border-left-color: #000000;
 }
 
 html[data-theme="contrast"] button[type="submit"],
@@ -348,10 +350,10 @@ pre,
   text-align: left;
   font-family: var(--font-body);
   /* Subtle two-layer elevation (tight contact shadow + soft ambient falloff)
-     instead of the previous flat card with no shadow at all — same
-     technique as macOS/modern desktop card components. Blur radii are kept
-     inside the panel's 10px side padding on purpose: .section-thumbnails
-     clips overflow-x (needed for a clean fold/unfold width animation), so
+     instead of a flat card with no shadow at all — same technique as
+     macOS/modern desktop card components. Blur radii are kept inside the
+     panel's 10px side padding on purpose: .section-thumbnails clips
+     overflow-x (needed for a clean fold/unfold width animation), so
      anything wider than that gutter would get visibly cut off at the
      panel edge instead of reading as a soft shadow. */
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.06);
@@ -567,70 +569,93 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   }
 }
 
-/* Sidebar navigation */
+/* Sidebar navigation — VS Code Activity Bar: a flush, gapless stack of
+   fixed 48x48 icon buttons. Inactive icons are dimmed (opacity, not just a
+   muted color) and snap to full opacity on hover/active, matching VS Code's
+   own treatment; the active icon additionally gets a 2px accent bar on its
+   left edge, VS Code's exact "this is the open view container" indicator. */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 16px 12px;
+  gap: 0;
+  padding: 8px 0;
   overflow-y: auto;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
   justify-content: center;
   position: relative;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 0;
+  color: var(--text-primary);
   text-decoration: none;
   font-family: var(--font-heading);
   font-size: 0.88rem;
   font-weight: 500;
-  border: 1px solid transparent;
-  overflow: hidden;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  border: none;
+  border-left: 2px solid transparent;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
   cursor: pointer;
   background: transparent;
-  width: 100%;
   text-align: left;
-  /* VS Code Activity Bar rows: each icon is its own tight, self-contained
-     button. Explicit here (not just "no flex-grow set") so a future flex
-     change on .sidebar-nav can't stretch the active/hover highlight box
-     into a tall shared block again — height always hugs this row's own
-     content, never the sidebar's remaining space. */
-  height: auto;
   flex-shrink: 0;
 }
 
 .sidebar-item:hover {
-  color: var(--text-primary);
+  opacity: 0.9;
   background: rgba(255, 255, 255, 0.04);
 }
 
 .sidebar-item.active {
-  color: var(--text-primary);
-  background: rgba(99, 102, 241, 0.12);
-  border-color: var(--border-active);
-  box-shadow: inset 3px 0 0 var(--accent);
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border-left-color: var(--accent3);
 }
 
 .sidebar-icon {
-  width: 20px;
+  width: 22px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
-/* Never shown — the icon rail is permanently narrow (VS Code Activity Bar
-   style), so labels never get room to render. Each item's `title` attribute
-   gives a native tooltip instead. Kept in the DOM (not removed) so a11y
-   tools and any :not(.sidebar-label) selector elsewhere still make sense. */
+/* The icon rail itself stays permanently narrow (VS Code Activity Bar
+   style) — it never resizes on hover, so it doesn't push or reflow the
+   Sections panel next to it. Instead each label is an absolutely-positioned
+   flyout that only appears floating over that panel on hover, same idea as
+   a rich tooltip. The `title` attribute stays as a native-tooltip fallback
+   (e.g. for keyboard focus, where :hover doesn't fire). */
 .sidebar-label {
-  display: none;
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: block;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface3);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 70;
+}
+
+.sidebar-item:hover .sidebar-label {
+  opacity: 1;
 }
 
 .sidebar-badge {
@@ -991,6 +1016,8 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   padding: 8px 10px;
   font-size: 0.68rem;
   min-width: 64px;
+  height: auto;
+  opacity: 1;
   text-align: center;
   justify-content: center;
 }
