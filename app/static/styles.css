@@ -303,7 +303,7 @@ pre,
    giving the content column the space back), click any icon to reopen it. */
 .section-thumbnails {
   flex-shrink: 0;
-  width: 166px;
+  width: 178px;
   position: sticky;
   top: var(--header-height);
   max-height: calc(100vh - var(--header-height));
@@ -339,7 +339,7 @@ pre,
 .section-thumb {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
   padding: 10px;
   border-radius: var(--radius-card);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -347,35 +347,60 @@ pre,
   cursor: pointer;
   text-align: left;
   font-family: var(--font-body);
-  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+  /* Subtle two-layer elevation (tight contact shadow + soft ambient falloff)
+     instead of the previous flat card with no shadow at all — same
+     technique as macOS/modern desktop card components. Blur radii are kept
+     inside the panel's 10px side padding on purpose: .section-thumbnails
+     clips overflow-x (needed for a clean fold/unfold width animation), so
+     anything wider than that gutter would get visibly cut off at the
+     panel edge instead of reading as a soft shadow. */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.06);
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .section-thumb:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   border-color: rgba(79, 70, 229, 0.45);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
 }
 
 .section-thumb.active {
-  border-color: rgba(79, 70, 229, 0.45);
-  box-shadow: var(--shadow-glow);
+  border-color: rgba(79, 70, 229, 0.5);
+  /* Scale + a colored (not just dark) shadow reads as "raised and selected",
+     not just outlined — deliberately stronger than the plain hover shadow. */
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.28);
   /* Opaque tint, not a low-alpha overlay — this card sits on the app's dark
      page background, and a translucent purple would just read as "dark"
      again instead of a clearly lighter active card. */
   background: #eceafd;
 }
 
+.section-thumb.active:hover {
+  transform: scale(1.02) translateY(-2px);
+}
+
 .section-thumb-head {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.72rem;
-  font-weight: 600;
+  /* Same family/weight as .sidebar-item's own label typography (500 /
+     var(--font-heading)) so the thumbnail's heading reads as the same kind
+     of label as the sidebar icon it mirrors, not a smaller caption. Kept a
+     touch under the sidebar's 0.88rem — full size truncated "Search &
+     Match" mid-word inside a 166px card, which is worse than a caption
+     that's merely smaller. */
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: var(--font-heading);
   color: #464555;
 }
 
 .section-thumb-icon {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 
 .section-thumb-heading {
@@ -388,6 +413,7 @@ pre,
   height: 6px;
   border-radius: 3px;
   background: #eceef0;
+  flex-shrink: 0;
 }
 
 .section-thumb-line.short {
@@ -395,14 +421,16 @@ pre,
 }
 
 .section-thumb-label {
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 500;
+  font-family: var(--font-heading);
   color: #777587;
   text-align: center;
 }
 
 .section-thumb.active .section-thumb-label {
   color: #4f46e5;
+  font-weight: 600;
 }
 
 /* Shell is light or high-contrast → thumbnail cards flip to the dark
@@ -411,16 +439,19 @@ html[data-theme="light"] .section-thumb,
 html[data-theme="contrast"] .section-thumb {
   border-color: rgba(255, 255, 255, 0.07);
   background: #171a22;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 7px rgba(0, 0, 0, 0.32);
 }
 
 html[data-theme="light"] .section-thumb:hover,
 html[data-theme="contrast"] .section-thumb:hover {
   border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.4);
 }
 
 html[data-theme="light"] .section-thumb.active,
 html[data-theme="contrast"] .section-thumb.active {
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.35);
   /* Opaque tint for the same reason as the base rule above, mirrored: this
      card sits on the app's light page background here. */
   background: #1c2038;
