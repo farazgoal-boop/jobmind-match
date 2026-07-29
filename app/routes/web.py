@@ -2228,6 +2228,24 @@ async def scrape_all_time_download(kind: str):
     return FileResponse(path, media_type="text/plain", filename=filename)
 
 
+@router.get("/api/scrape/auto-hunt")
+async def auto_hunt_status_api(session: Annotated[Session, Depends(get_session)]):
+    from app.services.auto_hunt import get_auto_hunt_settings
+
+    return JSONResponse(get_auto_hunt_settings(session))
+
+
+@router.post("/api/scrape/auto-hunt")
+async def auto_hunt_save_api(
+    session: Annotated[Session, Depends(get_session)],
+    enabled: str = Form(default=""),
+    interval_hours: int = Form(default=4),
+):
+    from app.services.auto_hunt import set_auto_hunt_settings
+
+    return JSONResponse(set_auto_hunt_settings(session, enabled == "1", interval_hours))
+
+
 @router.get("/api/scrape/pool-health")
 async def scrape_pool_health_api(session: Annotated[Session, Depends(get_session)]):
     """Total deduplicated pool size + growth + confidence breakdown — the

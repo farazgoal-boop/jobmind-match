@@ -2328,6 +2328,21 @@ document.addEventListener('click',e=>{
           <button type="button" class="ghost-action" data-role="places-key-save-btn">Save Places API Key</button>
           <p id="places-usage-status" class="hint" style="margin-top:10px"></p>
         </div>
+
+        <div class="update-section">
+          <p class="hint">Auto-Hunt (optional) — runs a few platforms in the background every N hours, rotating through the full platform list so the pool keeps growing without you clicking Start Hunting. Uses the exact same dedup/DNC/confidence rules as a manual hunt.</p>
+          <label style="display:flex;align-items:center;gap:8px;margin:8px 0">
+            <input type="checkbox" id="auto-hunt-enabled" />
+            <span>Enable Auto-Hunt</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;margin:8px 0">
+            <span>Every</span>
+            <input type="number" id="auto-hunt-interval" min="1" max="24" value="4" style="width:60px" />
+            <span>hours</span>
+          </label>
+          <p id="auto-hunt-status" class="hint"></p>
+          <button type="button" class="ghost-action" data-role="auto-hunt-save-btn">Save Auto-Hunt Settings</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2513,6 +2528,41 @@ document.addEventListener('click',e=>{
         refreshUsage();
       }catch(e){pkStatus.style.color='#f59e0b';pkStatus.textContent='Network error — try again.';}
       pkBtn.disabled=false;
+    });
+    refresh();
+  })();
+  </script>
+  <script>
+  (function(){
+    const ahEnabled=document.getElementById('auto-hunt-enabled');
+    const ahInterval=document.getElementById('auto-hunt-interval');
+    const ahStatus=document.getElementById('auto-hunt-status');
+    const ahBtn=document.querySelector('[data-role="auto-hunt-save-btn"]');
+    if(!ahEnabled||!ahBtn)return;
+    function fmtLast(iso){
+      if(!iso)return 'never run yet';
+      try{return new Date(iso+'Z').toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});}catch(e){return iso;}
+    }
+    function render(cfg){
+      ahEnabled.checked=!!cfg.enabled;
+      ahInterval.value=cfg.interval_hours;
+      ahStatus.style.color='';
+      ahStatus.textContent=`${cfg.platforms_per_tick} platforms every tick, rotating through all ${cfg.total_platforms} · last ran: ${fmtLast(cfg.last_run_at)}`;
+    }
+    async function refresh(){
+      try{
+        const res=await fetch('/api/scrape/auto-hunt');
+        render(await res.json());
+      }catch(e){}
+    }
+    ahBtn.addEventListener('click',async()=>{
+      ahBtn.disabled=true;
+      try{
+        const body=new URLSearchParams({enabled:ahEnabled.checked?'1':'0',interval_hours:String(ahInterval.value||4)});
+        const res=await fetch('/api/scrape/auto-hunt',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+        render(await res.json());
+      }catch(e){ahStatus.style.color='#f59e0b';ahStatus.textContent='Network error — try again.';}
+      ahBtn.disabled=false;
     });
     refresh();
   })();

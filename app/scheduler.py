@@ -9,6 +9,7 @@ from app.models import CandidateProfile
 from app.services.matcher import rank_jobs
 from app.services.notifier import send_email_digest
 from app.services.source_registry import fetch_jobs_from_sources, free_sources_list
+from app.services.auto_hunt import run_auto_hunt_tick
 
 logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
@@ -48,6 +49,19 @@ def start_scheduler() -> None:
         minute=0,
         id="daily-digest",
         replace_existing=True,
+    )
+    # Polls every 15 minutes and is a cheap no-op unless auto-hunt is both
+    # enabled and actually due — see auto_hunt.py. Polling at a fixed short
+    # cadence (rather than dynamically rescheduling this job whenever the
+    # user changes the interval setting in Settings) means the user-facing
+    # "every N hours" interval never needs the scheduler itself touched.
+    scheduler.add_job(
+        run_auto_hunt_tick,
+        trigger="interval",
+        minutes=15,
+        id="auto-hunt-tick",
+        replace_existing=True,
+        max_instances=1,
     )
     scheduler.start()
 
