@@ -296,6 +296,19 @@ _CORE_PLATFORMS: list[dict[str, Any]] = [
         "chip": "misc",
         "batches": 2,
     },
+    {
+        # Real businesses via Google Places (Text Search -> Place Details
+        # website -> the same wa.me/mailto crawl every other source uses).
+        # A single batch, not the 50+ query variants github/devto get —
+        # Places needs a real keywords+location query to be useful at all,
+        # unlike a fixed query list. No-ops (0 leads, 0 API calls) with no
+        # key configured or no location given — see google_places_source.py.
+        "id": "core_google_places",
+        "name": "📍 Google Places (real businesses)",
+        "type": "google_places",
+        "chip": "places",
+        "batches": 1,
+    },
 ]
 
 

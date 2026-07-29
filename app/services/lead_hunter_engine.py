@@ -124,6 +124,8 @@ def fetch_for_source(source: str, offset: int, keywords: str = "", location: str
             return _fetch_site_contacts(platform.get("site", ""), kw, offset)
         if ptype == "arbeitnow":
             return _fetch_arbeitnow_contacts()
+        if ptype == "google_places":
+            return _fetch_google_places(kw, loc)
 
     # Legacy source keys (backward compatible)
     if source == "github":
@@ -398,6 +400,20 @@ def _fetch_site_contacts(site: str, keywords: str, offset: int) -> list[dict]:
         except Exception:
             continue
     return leads
+
+
+def _fetch_google_places(keywords: str, location: str) -> list[dict]:
+    """Runs on the shared scrape thread pool (see fetch_for_source's caller),
+    so it can't reuse the request's own DB session — opens its own short-
+    lived one against the same engine, same pattern as db.py's own startup
+    helpers."""
+    from sqlmodel import Session as _Session
+
+    from app.db import engine
+    from app.services.google_places_source import fetch_places_leads
+
+    with _Session(engine) as places_session:
+        return fetch_places_leads(places_session, keywords, location)
 
 
 def _fetch_arbeitnow_contacts() -> list[dict]:
