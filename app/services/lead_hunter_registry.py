@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Iterable
 
 from sqlmodel import Session, select
@@ -235,6 +235,28 @@ def get_session_leads(session: Session, hunt_session_id: int) -> list[dict]:
         .order_by(HuntedContact.hunted_at)
     ).all()
     return [_contact_to_dict(row) for row in rows]
+
+
+def pool_health(session: Session) -> dict:
+    """What 'maximum hunting' actually looks like day to day: not one big
+    hunt, but a steadily growing, deduplicated pool. Cheap enough to compute
+    on every dashboard load — HuntedContact stays in the low tens of
+    thousands even for a heavily-used install, well within a single
+    in-memory pass."""
+    now = datetime.utcnow()
+    rows = session.exec(select(HuntedContact)).all()
+    cutoff_7d = now - timedelta(days=7)
+    cutoff_30d = now - timedelta(days=30)
+    high = sum(1 for r in rows if r.confidence == "high")
+    return {
+        "total": len(rows),
+        "growth_7d": sum(1 for r in rows if r.hunted_at >= cutoff_7d),
+        "growth_30d": sum(1 for r in rows if r.hunted_at >= cutoff_30d),
+        "confidence_high": high,
+        "confidence_medium": len(rows) - high,
+        "emails": sum(1 for r in rows if r.email),
+        "whatsapp": sum(1 for r in rows if r.whatsapp),
+    }
 
 
 def list_hunt_sessions(session: Session, limit: int = 100) -> list[dict]:

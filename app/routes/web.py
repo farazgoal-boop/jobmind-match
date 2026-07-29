@@ -2228,6 +2228,16 @@ async def scrape_all_time_download(kind: str):
     return FileResponse(path, media_type="text/plain", filename=filename)
 
 
+@router.get("/api/scrape/pool-health")
+async def scrape_pool_health_api(session: Annotated[Session, Depends(get_session)]):
+    """Total deduplicated pool size + growth + confidence breakdown — the
+    metric that matters once hunting is a continuous background process
+    rather than one-off sessions: a growing number, not a single big run."""
+    from app.services.lead_hunter_registry import pool_health
+
+    return JSONResponse(pool_health(session))
+
+
 @router.get("/api/scrape/history")
 async def scrape_history_api(session: Annotated[Session, Depends(get_session)]):
     """Every past hunt session with its contact counts — the Hunt History

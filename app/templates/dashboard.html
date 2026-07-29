@@ -874,6 +874,13 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
     </div>
     <div class="settings-body">
       <p class="hint">Every past hunt — re-export any of them without re-running. All-time contact files (every unique contact ever hunted): <a href="/api/scrape/all-time/emails" download>emails_all_time.txt</a> · <a href="/api/scrape/all-time/whatsapp" download>whatsapp_all_time.txt</a></p>
+      <div id="pool-health-row" class="lh-stats" style="display:none;margin-bottom:14px">
+        <div class="lh-stat"><div class="lh-sn" id="ph-total">0</div><div class="lh-sl">Total pool</div></div>
+        <div class="lh-stat"><div class="lh-sn" id="ph-7d">0</div><div class="lh-sl">+ last 7 days</div></div>
+        <div class="lh-stat"><div class="lh-sn" id="ph-30d">0</div><div class="lh-sl">+ last 30 days</div></div>
+        <div class="lh-stat"><div class="lh-sn" id="ph-high">0</div><div class="lh-sl">High confidence</div></div>
+        <div class="lh-stat"><div class="lh-sn" id="ph-medium">0</div><div class="lh-sl">Medium confidence</div></div>
+      </div>
       <p id="history-status" class="hint" style="color:#f59e0b"></p>
       <div class="lh-tscroll" style="max-height:50vh">
         <table class="lht" id="history-table">
@@ -2377,7 +2384,20 @@ document.addEventListener('click',e=>{
         URL.revokeObjectURL(a.href);
       }catch(e){if(statusEl)statusEl.textContent=`Export failed: ${label}`;}
     }
+    async function loadPoolHealth(){
+      try{
+        const res=await fetch('/api/scrape/pool-health');
+        const d=await res.json();
+        document.getElementById('ph-total').textContent=d.total;
+        document.getElementById('ph-7d').textContent=`+${d.growth_7d}`;
+        document.getElementById('ph-30d').textContent=`+${d.growth_30d}`;
+        document.getElementById('ph-high').textContent=d.confidence_high;
+        document.getElementById('ph-medium').textContent=d.confidence_medium;
+        document.getElementById('pool-health-row').style.display='grid';
+      }catch(e){}
+    }
     async function load(){
+      loadPoolHealth();
       tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#6666a0;padding:20px">Loading…</td></tr>';
       try{
         const res=await fetch('/api/scrape/history');
