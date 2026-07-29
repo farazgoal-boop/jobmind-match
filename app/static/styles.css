@@ -3123,6 +3123,14 @@ html.is-mobile-app .mode-shell[data-mode-panel="sell"] .panel.active {
   z-index: 1;
   max-width: 420px;
   margin: 15vh auto;
+  /* The Settings modal has grown past a short license/version panel into
+     several stacked optional-feature sections (GitHub token, Places key,
+     Auto-Hunt) — tall enough on common viewport heights to overflow past
+     15vh top margin + content, with no scroll path back to it since
+     .settings-modal itself doesn't clip or scroll. Cap and scroll the box
+     itself so new sections can never again go permanently unreachable. */
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .settings-head {
