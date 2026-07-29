@@ -7,7 +7,7 @@ from typing import Iterable
 
 from sqlmodel import Session, select
 
-from app.models import DoNotContactEntry, HuntedContact
+from app.models import DoNotContactEntry, HuntedContact, HuntSession
 
 
 def _norm_email(value: str) -> str:
@@ -78,7 +78,7 @@ def filter_new_leads(
     return fresh, skipped
 
 
-def register_leads(session: Session, leads: Iterable[dict]) -> int:
+def register_leads(session: Session, leads: Iterable[dict], hunt_session_id: int | None = None) -> int:
     saved = 0
     for lead in leads:
         email = _norm_email(lead.get("email", ""))
@@ -106,11 +106,14 @@ def register_leads(session: Session, leads: Iterable[dict]) -> int:
                 url=(lead.get("url") or "")[:500],
                 notes=(lead.get("notes") or "")[:300],
                 location=(lead.get("location") or "")[:120],
+                hunt_session_id=hunt_session_id,
                 hunted_at=datetime.utcnow(),
             )
         )
         saved += 1
-    if saved:
+        # Commit each contact as it's found rather than batching until the
+        # whole source finishes — if the app is killed mid-hunt, everything
+        # found so far must already be on disk.
         session.commit()
     return saved
 
@@ -121,4 +124,85 @@ def registry_stats(session: Session) -> dict:
         "total": len(rows),
         "emails": sum(1 for row in rows if row.email),
         "whatsapp": sum(1 for row in rows if row.whatsapp),
+    }
+
+
+def _contact_to_dict(row: HuntedContact) -> dict:
+    return {
+        "id": row.id,
+        "name": row.name,
+        "designation": row.designation,
+        "email": row.email,
+        "whatsapp": row.whatsapp,
+        "source": row.source,
+        "url": row.url,
+        "notes": row.notes,
+        "location": row.location,
+        "hunted_at": row.hunted_at.isoformat(),
+    }
+
+
+def start_hunt_session(
+    session: Session,
+    candidate_id: int = 0,
+    target: str = "",
+    keywords: str = "",
+    location: str = "",
+    chips_csv: str = "",
+) -> HuntSession:
+    hunt_session = HuntSession(
+        candidate_id=candidate_id,
+        target=target,
+        keywords=keywords,
+        location=location,
+        chips_csv=chips_csv,
+        status="running",
+    )
+    session.add(hunt_session)
+    session.commit()
+    session.refresh(hunt_session)
+    return hunt_session
+
+
+def end_hunt_session(session: Session, hunt_session_id: int, status: str = "completed") -> HuntSession | None:
+    hunt_session = session.get(HuntSession, hunt_session_id)
+    if not hunt_session:
+        return None
+    hunt_session.status = status
+    hunt_session.ended_at = datetime.utcnow()
+    session.add(hunt_session)
+    session.commit()
+    session.refresh(hunt_session)
+    return hunt_session
+
+
+def get_session_leads(session: Session, hunt_session_id: int) -> list[dict]:
+    rows = session.exec(
+        select(HuntedContact)
+        .where(HuntedContact.hunt_session_id == hunt_session_id)
+        .order_by(HuntedContact.hunted_at)
+    ).all()
+    return [_contact_to_dict(row) for row in rows]
+
+
+def get_latest_session(session: Session) -> dict | None:
+    hunt_session = session.exec(
+        select(HuntSession).order_by(HuntSession.started_at.desc())
+    ).first()
+    if not hunt_session:
+        return None
+    lead_count = len(
+        session.exec(
+            select(HuntedContact).where(HuntedContact.hunt_session_id == hunt_session.id)
+        ).all()
+    )
+    return {
+        "id": hunt_session.id,
+        "status": hunt_session.status,
+        "target": hunt_session.target,
+        "keywords": hunt_session.keywords,
+        "location": hunt_session.location,
+        "started_at": hunt_session.started_at.isoformat(),
+        "ended_at": hunt_session.ended_at.isoformat() if hunt_session.ended_at else None,
+        "lead_count": lead_count,
     }

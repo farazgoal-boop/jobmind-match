@@ -84,6 +84,21 @@ class FilterPreset(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
+class HuntSession(SQLModel, table=True):
+    """One run of the Lead Hunter panel — lets a hunt's results be recovered
+    and re-exported from disk after an app restart or browser reload, instead
+    of living only in the page's in-memory JS array."""
+    id: Optional[int] = Field(default=None, primary_key=True)
+    candidate_id: int = 0
+    status: str = "running"  # running | stopped | completed
+    target: str = ""
+    keywords: str = ""
+    location: str = ""
+    chips_csv: str = ""
+    started_at: datetime = Field(default_factory=datetime.utcnow)
+    ended_at: Optional[datetime] = None
+
+
 class HuntedContact(SQLModel, table=True):
     """Permanent registry — never hunt the same email/WhatsApp twice."""
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -95,6 +110,7 @@ class HuntedContact(SQLModel, table=True):
     url: str = ""
     notes: str = ""
     location: str = ""
+    hunt_session_id: Optional[int] = Field(default=None, index=True)
     hunted_at: datetime = Field(default_factory=datetime.utcnow)
 
 

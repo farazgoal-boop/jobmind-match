@@ -27,11 +27,18 @@ def _build_engine():
 
     if normalized.startswith("sqlite:///"):
         _ensure_sqlite_directory(database_url)
-        return create_engine(
+        engine = create_engine(
             database_url,
             echo=False,
             connect_args={"check_same_thread": False},
         )
+        # WAL lets a read (dashboard render) and a write (a hunt batch
+        # committing a contact) happen concurrently without lock contention,
+        # and survives a hard crash mid-write better than the default
+        # rollback-journal mode.
+        with engine.begin() as connection:
+            connection.exec_driver_sql("PRAGMA journal_mode=WAL")
+        return engine
 
     return create_engine(database_url, echo=False)
 
@@ -77,6 +84,15 @@ def _ensure_lead_hunter_location_columns() -> None:
                 )
 
 
+def _ensure_hunt_session_columns() -> None:
+    column_names = {column["name"] for column in inspect(engine).get_columns("huntedcontact")}
+    if "hunt_session_id" not in column_names:
+        with engine.begin() as connection:
+            connection.exec_driver_sql(
+                "ALTER TABLE huntedcontact ADD COLUMN hunt_session_id INTEGER"
+            )
+
+
 engine = _build_engine()
 
 
@@ -84,6 +100,7 @@ def init_db() -> None:
     SQLModel.metadata.create_all(engine)
     _ensure_candidate_profile_columns()
     _ensure_lead_hunter_location_columns()
+    _ensure_hunt_session_columns()
 
 
 def get_session():

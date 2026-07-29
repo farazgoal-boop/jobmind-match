@@ -150,6 +150,7 @@ def run_scrape_batch(
     keywords: str = "",
     location: str = "",
     locations: list[str] | None = None,
+    hunt_session_id: int | None = None,
 ) -> dict[str, Any]:
     loc = location.strip()
     # `locations` is the full radius-resolved place list (Phase 2b); `loc` (the
@@ -205,7 +206,7 @@ def run_scrape_batch(
 
     fresh, skipped = filter_new_leads(raw_leads, known_emails, known_whatsapp)
     if fresh:
-        register_leads(session, fresh)
+        register_leads(session, fresh, hunt_session_id=hunt_session_id)
     return {
         "leads": fresh,
         "count": len(fresh),

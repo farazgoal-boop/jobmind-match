@@ -2153,6 +2153,57 @@ async def scrape_registry(session: Annotated[Session, Depends(get_session)]):
     )
 
 
+@router.post("/api/scrape/session/start")
+async def scrape_session_start(
+    session: Annotated[Session, Depends(get_session)],
+    target: str = Form(default=""),
+    keywords: str = Form(default=""),
+    location: str = Form(default=""),
+    chips: str = Form(default=""),
+):
+    """Open a hunt session so every contact found during this run can be
+    recovered and exported from disk later, even after a restart."""
+    from app.services.lead_hunter_registry import start_hunt_session
+
+    hunt_session = start_hunt_session(
+        session, target=target, keywords=keywords, location=location, chips_csv=chips
+    )
+    return JSONResponse({"id": hunt_session.id, "started_at": hunt_session.started_at.isoformat()})
+
+
+@router.post("/api/scrape/session/{session_id}/end")
+async def scrape_session_end(
+    session_id: int,
+    session: Annotated[Session, Depends(get_session)],
+    status: str = Form(default="completed"),
+):
+    from app.services.lead_hunter_registry import end_hunt_session
+
+    hunt_session = end_hunt_session(session, session_id, status=status)
+    if not hunt_session:
+        raise HTTPException(status_code=404, detail="Unknown hunt session")
+    return JSONResponse({"id": hunt_session.id, "status": hunt_session.status})
+
+
+@router.get("/api/scrape/session/latest")
+async def scrape_session_latest(session: Annotated[Session, Depends(get_session)]):
+    """The most recent hunt session — lets the dashboard offer to recover an
+    in-progress or just-finished hunt after a reload/restart."""
+    from app.services.lead_hunter_registry import get_latest_session
+
+    latest = get_latest_session(session)
+    return JSONResponse(latest or {})
+
+
+@router.get("/api/scrape/session/{session_id}/leads")
+async def scrape_session_leads(session_id: int, session: Annotated[Session, Depends(get_session)]):
+    """Full lead records for a hunt session, read straight from disk — the
+    durable source of truth an export can always fall back to."""
+    from app.services.lead_hunter_registry import get_session_leads
+
+    return JSONResponse({"leads": get_session_leads(session, session_id)})
+
+
 @router.get("/api/geo/search")
 async def geo_search_api(q: str = Query(default="")):
     """Forward-geocode a place name (city/country) via Nominatim, for the location autocomplete."""
@@ -2360,6 +2411,7 @@ async def scrape_leads(
     batch_size: int = Query(default=50),
     source: str = Query(default="github"),
     offset: int = Query(default=0),
+    session_id: Optional[int] = Query(default=None),
 ):
     """Server-side lead scraper — filters against permanent hunted registry."""
     from app.services.lead_hunter_engine import run_scrape_batch
@@ -2369,7 +2421,7 @@ async def scrape_leads(
     loc_list = [p.strip() for p in locations.split(",") if p.strip()]
 
     try:
-        result = run_scrape_batch(session, source, offset, kw, loc, loc_list)
+        result = run_scrape_batch(session, source, offset, kw, loc, loc_list, hunt_session_id=session_id)
         return JSONResponse(result)
     except Exception as e:
         logger.exception("lead hunt: /api/scrape/leads failed for source=%s offset=%s", source, offset)
@@ -2581,17 +2633,27 @@ async def install_update_api():
 @router.post("/api/scrape/export")
 async def export_scraped_leads(
     request: Request,
+    session: Annotated[Session, Depends(get_session)],
     fmt: str = Query(default="csv"),
     filename: str = Query(default="leads"),
+    session_id: Optional[int] = Query(default=None),
 ):
-    """Export scraped leads in multiple formats. Leads are posted as a JSON body
-    rather than a query string — a hunt session can hold thousands of rows, well
-    past what a URL can carry."""
+    """Export scraped leads in multiple formats. Leads are normally posted as a
+    JSON body — a hunt session can hold thousands of rows, well past what a
+    URL can carry. If `session_id` is given, leads are instead read straight
+    from disk (the HuntedContact table), so a recovered/past hunt can still be
+    exported even if the page never held the array in memory (reload, crash,
+    restart)."""
     try:
         payload = await request.json()
         leads = payload if isinstance(payload, list) else payload.get("leads", [])
     except Exception:
         leads = []
+
+    if not leads and session_id is not None:
+        from app.services.lead_hunter_registry import get_session_leads
+
+        leads = get_session_leads(session, session_id)
 
     if not leads:
         raise HTTPException(status_code=400, detail="No leads to export")

@@ -963,6 +963,15 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
   <label class="lh-chip active"><input type="checkbox" class="lhc" value="misc" checked>🌐 +200 More</label>
 </div>
 
+<!-- Recovery banner: an unfinished/just-finished hunt survives a reload or
+     restart on disk (HuntedContact rows tagged with a hunt_session_id) even
+     though the in-page LEADS array does not — offer to reload it. -->
+<div id="lhp-recover-bar" class="lh-export-bar" style="display:none;padding:12px 28px;border-bottom:1px solid var(--bd);gap:10px;align-items:center;flex-wrap:wrap;background:rgba(79,70,229,.08)">
+  <span id="lhp-recover-text" style="font-size:12.5px;color:var(--tx,inherit)"></span>
+  <button class="lhb lhb-primary" onclick="lhpRecover()">↻ Recover contacts</button>
+  <button class="lhb lhb-ghost" onclick="lhpDismissRecover()">Dismiss</button>
+</div>
+
 <!-- Action buttons -->
 <div class="lh-actions">
   <button class="lhb lhb-primary" id="lhp-start" onclick="lhpGo()">🚀 Start Hunting</button>
@@ -1067,6 +1076,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
 // ═══════════════════════════════════════════════════════════
 let LEADS=[], EMAILS=new Set(), WAS=new Set(), DUPS=0, KNOWN_TOTAL=0, RUNNING=false, HALT=false;
 let HUNT_PLAN=[];
+let CURRENT_SESSION_ID=null;
 
 function updStats(){
   document.getElementById('lhs-total').textContent=LEADS.length;
@@ -1358,6 +1368,7 @@ async function fetchFromAPI(source, offset=0){
   const locs=HUNT_LOCATION.places.join(',');
   try{
     const params=new URLSearchParams({source,offset,target:tgt,keywords:kw,location:loc,locations:locs,batch_size:30});
+    if(CURRENT_SESSION_ID)params.set('session_id',CURRENT_SESSION_ID);
     const res=await fetch(`/api/scrape/leads?${params}`);
     if(!res.ok){lhLog(`${source}: server error (HTTP ${res.status})`,'warn');return{leads:[],skipped:0};}
     const data=await res.json();
@@ -1398,9 +1409,22 @@ async function lhpGo(){
   if(RUNNING)return;
   RUNNING=true;HALT=false;
   LEADS=[];DUPS=0;
+  lhpDismissRecover();
 
   const maxL=parseInt(document.getElementById('lhp-max').value);
   const chips=[...document.querySelectorAll('.lhc:checked')].map(c=>c.value);
+  const tgt=document.getElementById('lhp-tgt').value;
+  const kw=document.getElementById('lhp-kw').value.trim();
+
+  try{
+    const body=new URLSearchParams({target:tgt,keywords:kw,location:huntLocationString(),chips:chips.join(',')});
+    const res=await fetch('/api/scrape/session/start',{method:'POST',body});
+    const data=await res.json();
+    CURRENT_SESSION_ID=data.id||null;
+  }catch(e){
+    CURRENT_SESSION_ID=null;
+    lhLog(`Could not open a hunt session on the server — contacts will still be saved, but recovery after a restart won't work for this run: ${e.message}`,'warn');
+  }
 
   document.getElementById('lhp-start').disabled=true;
   document.getElementById('lhp-start').textContent='⏳ Hunting…';
@@ -1451,6 +1475,7 @@ async function lhpGo(){
   document.getElementById('lhp-ppct').textContent='100%';
   document.getElementById('lhp-pstatus').textContent=`✅ Done! ${LEADS.length} new contacts | ${DUPS} skipped (saved registry)`;
   lhLog(`✅ COMPLETE — ${LEADS.length} new | ${DUPS} skipped | ${KNOWN_TOTAL} total saved forever`,'ok');
+  endHuntSession('completed');
   updStats();render(LEADS);
   if(LEADS.length>0){
     document.getElementById('lhp-xbtn').style.display='';
@@ -1461,6 +1486,13 @@ async function lhpGo(){
   document.getElementById('lhp-stop').style.display='none';
   RUNNING=false;
   toast(`✅ ${LEADS.length} new contacts (${DUPS} skipped — never re-hunted)`,'ok');
+}
+
+async function endHuntSession(status){
+  if(!CURRENT_SESSION_ID)return;
+  try{
+    await fetch(`/api/scrape/session/${CURRENT_SESSION_ID}/end`,{method:'POST',body:new URLSearchParams({status})});
+  }catch(e){/* best-effort — the session row just stays "running"; recovery still works */}
 }
 
 function srcTag(s){
@@ -1567,6 +1599,7 @@ window.lhpHalt=function(){
   document.getElementById('lhp-stop').style.display='none';
   if(LEADS.length>0)document.getElementById('lhp-xbtn').style.display='';
   if(LEADS.length>0)document.getElementById('lhp-export-bar').style.display='flex';
+  endHuntSession('stopped');
   toast('Stopped — export available','in');
 };
 window.lhpToggleExport=function(){document.getElementById('lhp-xmenu').classList.toggle('open');};
@@ -1604,6 +1637,8 @@ window.lhpCopyWA=function(){
   navigator.clipboard.writeText(w).then(()=>toast(`Copied ${LEADS.filter(l=>l.whatsapp).length} numbers!`,'ok'));
 };
 window.lhpClear=function(){
+  endHuntSession('completed');
+  CURRENT_SESSION_ID=null;
   LEADS=[];DUPS=0;
   render([]);updStats();
   document.getElementById('lhp-xbtn').style.display='none';
@@ -1612,7 +1647,47 @@ window.lhpClear=function(){
   toast('Session cleared — saved registry kept forever','in');
 };
 
+let RECOVERABLE_SESSION=null;
+
+async function checkForRecoverableSession(){
+  try{
+    const res=await fetch('/api/scrape/session/latest');
+    if(!res.ok)return;
+    const data=await res.json();
+    if(!data.id||!data.lead_count)return;
+    RECOVERABLE_SESSION=data;
+    const started=new Date(data.started_at).toLocaleString();
+    document.getElementById('lhp-recover-text').textContent=
+      `A previous hunt (started ${started}, status: ${data.status}) has ${data.lead_count} contact(s) saved on disk that aren't loaded in this view.`;
+    document.getElementById('lhp-recover-bar').style.display='flex';
+  }catch(e){/* recovery is best-effort */}
+}
+
+window.lhpRecover=async function(){
+  if(!RECOVERABLE_SESSION)return;
+  try{
+    const res=await fetch(`/api/scrape/session/${RECOVERABLE_SESSION.id}/leads`);
+    const data=await res.json();
+    CURRENT_SESSION_ID=RECOVERABLE_SESSION.id;
+    const added=addLeads(data.leads||[]);
+    render(LEADS);
+    lhpDismissRecover();
+    if(LEADS.length>0){
+      document.getElementById('lhp-xbtn').style.display='';
+      document.getElementById('lhp-export-bar').style.display='flex';
+    }
+    toast(`✅ Recovered ${added} contact(s) — export available`,'ok');
+  }catch(e){
+    toast('Could not recover — see log','er');
+  }
+};
+
+window.lhpDismissRecover=function(){
+  document.getElementById('lhp-recover-bar').style.display='none';
+};
+
 loadRegistry();
+checkForRecoverableSession();
 
 function toast(msg,cls='ok'){
   const el=document.getElementById('lht');
