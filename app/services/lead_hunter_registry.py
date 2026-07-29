@@ -1,6 +1,7 @@
 """Persistent hunted contact registry — emails/WhatsApp never searched again."""
 from __future__ import annotations
 
+import logging
 import re
 from datetime import datetime
 from typing import Iterable
@@ -8,6 +9,36 @@ from typing import Iterable
 from sqlmodel import Session, select
 
 from app.models import DoNotContactEntry, HuntedContact, HuntSession
+
+logger = logging.getLogger("jobmind.leadhunter.registry")
+
+_EMAILS_ALL_TIME_FILENAME = "emails_all_time.txt"
+_WHATSAPP_ALL_TIME_FILENAME = "whatsapp_all_time.txt"
+
+
+def _append_all_time(email: str, whatsapp: str) -> None:
+    """Appends a newly-registered contact to the cumulative all-time export
+    files, in the app's own data directory (next to the database — never
+    Downloads). Only called for genuinely new HuntedContact rows, and
+    HuntedContact is itself the permanent dedup registry, so every call here
+    is already guaranteed unique — no need to re-read the file to dedupe.
+    Best-effort: a write failure here must never break a hunt batch, it just
+    means this session's contacts are still on the file for next time."""
+    if not email and not whatsapp:
+        return
+    from app.paths import data_dir
+
+    try:
+        directory = data_dir()
+        directory.mkdir(parents=True, exist_ok=True)
+        if email:
+            with open(directory / _EMAILS_ALL_TIME_FILENAME, "a", encoding="utf-8") as fh:
+                fh.write(email + "\n")
+        if whatsapp:
+            with open(directory / _WHATSAPP_ALL_TIME_FILENAME, "a", encoding="utf-8") as fh:
+                fh.write(whatsapp + "\n")
+    except OSError:
+        logger.exception("registry: failed to append to all-time contact files")
 
 
 def _norm_email(value: str) -> str:
@@ -128,6 +159,7 @@ def register_leads(session: Session, leads: Iterable[dict], hunt_session_id: int
             )
         )
         saved += 1
+        _append_all_time(email, wa)
         # Commit each contact as it's found rather than batching until the
         # whole source finishes — if the app is killed mid-hunt, everything
         # found so far must already be on disk.
@@ -203,6 +235,37 @@ def get_session_leads(session: Session, hunt_session_id: int) -> list[dict]:
         .order_by(HuntedContact.hunted_at)
     ).all()
     return [_contact_to_dict(row) for row in rows]
+
+
+def list_hunt_sessions(session: Session, limit: int = 100) -> list[dict]:
+    """Every past hunt session, newest first, with per-session contact
+    counts — the query behind the Hunt History view. All the data already
+    exists (HuntSession + HuntedContact.hunt_session_id from the Priority-0
+    persistence work); this is just a read, no new scraping."""
+    sessions = session.exec(
+        select(HuntSession).order_by(HuntSession.started_at.desc()).limit(limit)
+    ).all()
+    result: list[dict] = []
+    for hunt_session in sessions:
+        contacts = session.exec(
+            select(HuntedContact).where(HuntedContact.hunt_session_id == hunt_session.id)
+        ).all()
+        result.append(
+            {
+                "id": hunt_session.id,
+                "status": hunt_session.status,
+                "target": hunt_session.target,
+                "keywords": hunt_session.keywords,
+                "location": hunt_session.location,
+                "chips_csv": hunt_session.chips_csv,
+                "started_at": hunt_session.started_at.isoformat(),
+                "ended_at": hunt_session.ended_at.isoformat() if hunt_session.ended_at else None,
+                "lead_count": len(contacts),
+                "email_count": sum(1 for c in contacts if c.email),
+                "whatsapp_count": sum(1 for c in contacts if c.whatsapp),
+            }
+        )
+    return result
 
 
 def get_latest_session(session: Session) -> dict | None:

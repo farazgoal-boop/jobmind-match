@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, select
 
@@ -2208,6 +2208,35 @@ async def scrape_session_latest(session: Annotated[Session, Depends(get_session)
 
     latest = get_latest_session(session)
     return JSONResponse(latest or {})
+
+
+@router.get("/api/scrape/all-time/{kind}")
+async def scrape_all_time_download(kind: str):
+    """Downloads the cumulative all-time contact file — every unique
+    email/WhatsApp ever hunted across every session, not just the current
+    one. For the user's own reuse (e.g. importing into their own outreach
+    tool); this is not a bulk export/resale feature."""
+    from app.paths import data_dir
+
+    filenames = {"emails": "emails_all_time.txt", "whatsapp": "whatsapp_all_time.txt"}
+    filename = filenames.get(kind)
+    if not filename:
+        raise HTTPException(status_code=404, detail="Unknown all-time file")
+    path = data_dir() / filename
+    if not path.exists():
+        return PlainTextResponse("", media_type="text/plain")
+    return FileResponse(path, media_type="text/plain", filename=filename)
+
+
+@router.get("/api/scrape/history")
+async def scrape_history_api(session: Annotated[Session, Depends(get_session)]):
+    """Every past hunt session with its contact counts — the Hunt History
+    view. Re-export uses the existing /api/scrape/export?session_id=... and
+    /api/scrape/session/{id}/leads routes, which already read straight from
+    disk; nothing here re-runs a hunt."""
+    from app.services.lead_hunter_registry import list_hunt_sessions
+
+    return JSONResponse({"sessions": list_hunt_sessions(session)})
 
 
 @router.get("/api/scrape/session/{session_id}/leads")

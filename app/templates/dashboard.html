@@ -861,6 +861,29 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
     <span class="lh-badge">212+ PLATFORMS</span>
     <span class="lh-badge lh-badge-green">NEVER RE-HUNT</span>
     <span class="lh-badge">MULTI-EXPORT</span>
+    <button type="button" class="ghost-action" data-role="history-open" style="margin-left:8px">🕘 Hunt History</button>
+  </div>
+</div>
+
+<div class="settings-modal hidden" data-role="history-modal">
+  <div class="settings-backdrop" data-role="history-close"></div>
+  <div class="settings-box card" style="max-width:760px">
+    <div class="settings-head">
+      <h3>Hunt History</h3>
+      <button type="button" class="ghost-action" data-role="history-close">✕</button>
+    </div>
+    <div class="settings-body">
+      <p class="hint">Every past hunt — re-export any of them without re-running. All-time contact files (every unique contact ever hunted): <a href="/api/scrape/all-time/emails" download>emails_all_time.txt</a> · <a href="/api/scrape/all-time/whatsapp" download>whatsapp_all_time.txt</a></p>
+      <p id="history-status" class="hint" style="color:#f59e0b"></p>
+      <div class="lh-tscroll" style="max-height:50vh">
+        <table class="lht" id="history-table">
+          <thead>
+            <tr><th>Started</th><th>Target</th><th>Contacts</th><th>Email</th><th>WhatsApp</th><th>Status</th><th>Export</th></tr>
+          </thead>
+          <tbody id="history-tbody"><tr><td colspan="7" style="text-align:center;color:#6666a0;padding:20px">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2323,6 +2346,71 @@ document.addEventListener('click',e=>{
     });
     document.querySelectorAll('[data-role=license-close]').forEach(el=>el.addEventListener('click',hide));
     check();
+  })();
+  </script>
+  <script>
+  (function(){
+    const modal=document.querySelector('[data-role="history-modal"]');
+    const tbody=document.getElementById('history-tbody');
+    const openBtn=document.querySelector('[data-role="history-open"]');
+    if(!modal||!tbody||!openBtn)return;
+    function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function show(){modal.classList.remove('hidden');}
+    function hide(){modal.classList.add('hidden');}
+    function fmtDate(iso){
+      if(!iso)return '—';
+      try{const d=new Date(iso);return d.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});}catch(e){return iso;}
+    }
+    const statusEl=document.getElementById('history-status');
+    async function downloadExport(sessionId, fmt, label){
+      if(statusEl)statusEl.textContent='';
+      try{
+        const res=await fetch(`/api/scrape/export?fmt=${fmt}&filename=hunt_${sessionId}&session_id=${sessionId}`,{method:'POST'});
+        if(!res.ok)throw new Error('export failed');
+        const blob=await res.blob();
+        const cd=res.headers.get('Content-Disposition')||'';
+        const m=/filename="?([^"]+)"?/.exec(cd);
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download=m?m[1]:`hunt_${sessionId}.${fmt}`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }catch(e){if(statusEl)statusEl.textContent=`Export failed: ${label}`;}
+    }
+    async function load(){
+      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#6666a0;padding:20px">Loading…</td></tr>';
+      try{
+        const res=await fetch('/api/scrape/history');
+        const data=await res.json();
+        const sessions=data.sessions||[];
+        if(!sessions.length){
+          tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#6666a0;padding:20px">No past hunts yet</td></tr>';
+          return;
+        }
+        tbody.innerHTML=sessions.map(s=>`
+          <tr>
+            <td>${fmtDate(s.started_at)}</td>
+            <td>${esc(s.target||'—')}${s.location?` · ${esc(s.location)}`:''}</td>
+            <td>${s.lead_count}</td>
+            <td>${s.email_count}</td>
+            <td>${s.whatsapp_count}</td>
+            <td>${esc(s.status)}</td>
+            <td style="white-space:nowrap">
+              <button class="lh-cb" data-fmt="csv" data-sid="${s.id}" title="Export CSV">CSV</button>
+              <button class="lh-cb" data-fmt="xlsx" data-sid="${s.id}" title="Export Excel">XLS</button>
+              <button class="lh-cb" data-fmt="txt_email" data-sid="${s.id}" title="Export emails.txt">✉</button>
+              <button class="lh-cb" data-fmt="txt_wa" data-sid="${s.id}" title="Export whatsapp.txt">💬</button>
+            </td>
+          </tr>`).join('');
+        tbody.querySelectorAll('button[data-fmt]').forEach(btn=>{
+          btn.addEventListener('click',()=>downloadExport(btn.dataset.sid, btn.dataset.fmt, btn.dataset.fmt));
+        });
+      }catch(e){
+        tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#f59e0b;padding:20px">Could not load hunt history</td></tr>';
+      }
+    }
+    openBtn.addEventListener('click',()=>{show();load();});
+    document.querySelectorAll('[data-role=history-close]').forEach(el=>el.addEventListener('click',hide));
   })();
   </script>
   <script>
