@@ -2543,6 +2543,33 @@ async def github_token_save_api(
     return JSONResponse({"ok": True, "configured": bool(cleaned), "masked": _mask_github_token(cleaned)})
 
 
+@router.get("/api/settings/places-api-key")
+async def places_api_key_status_api(session: Annotated[Session, Depends(get_session)]):
+    from app.services.google_places_source import get_places_api_key
+
+    key = get_places_api_key(session)
+    return JSONResponse({"configured": bool(key), "masked": _mask_github_token(key)})
+
+
+@router.post("/api/settings/places-api-key")
+async def places_api_key_save_api(
+    session: Annotated[Session, Depends(get_session)],
+    key: str = Form(default=""),
+):
+    from app.services.google_places_source import save_places_api_key, get_places_api_key
+
+    save_places_api_key(session, key)
+    saved = get_places_api_key(session)
+    return JSONResponse({"ok": True, "configured": bool(saved), "masked": _mask_github_token(saved)})
+
+
+@router.get("/api/settings/places-usage")
+async def places_usage_api(session: Annotated[Session, Depends(get_session)]):
+    from app.services.google_places_source import get_usage
+
+    return JSONResponse(get_usage(session))
+
+
 async def _resolve_latest_release() -> dict:
     """Check GitHub releases for a newer version than the running app.
     Shared by the update-check poll and the start-update launcher below."""

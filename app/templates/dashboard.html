@@ -2319,6 +2319,14 @@ document.addEventListener('click',e=>{
           <p id="gh-token-status" class="hint"></p>
           <button type="button" class="ghost-action" data-role="gh-token-save-btn">Save GitHub Token</button>
         </div>
+
+        <div class="update-section">
+          <p class="hint">Google Places API Key (optional) — adds real local businesses as a Lead Hunter source (Text Search → Place Details website → the same wa.me/mailto crawl as every other source). Scoped to the free tier: 5,000 search calls + 5,000 details calls per month, tracked below. Calls that would exceed either free allowance are refused, not billed. Get a key at console.cloud.google.com.</p>
+          <input type="password" id="places-key-input" placeholder="AIza..." style="width:100%;margin:8px 0;font-family:JetBrains Mono,monospace" autocomplete="off" />
+          <p id="places-key-status" class="hint"></p>
+          <button type="button" class="ghost-action" data-role="places-key-save-btn">Save Places API Key</button>
+          <p id="places-usage-status" class="hint" style="margin-top:10px"></p>
+        </div>
       </div>
     </div>
   </div>
@@ -2459,6 +2467,51 @@ document.addEventListener('click',e=>{
         ghStatus.textContent=data.configured?`Saved: ${data.masked} — hunts use 5,000/hr limit.`:'Token cleared — hunts use the unauthenticated 60/hr limit.';
       }catch(e){ghStatus.style.color='#f59e0b';ghStatus.textContent='Network error — try again.';}
       ghBtn.disabled=false;
+    });
+    refresh();
+  })();
+  </script>
+  <script>
+  (function(){
+    const pkInput=document.getElementById('places-key-input');
+    const pkStatus=document.getElementById('places-key-status');
+    const pkUsage=document.getElementById('places-usage-status');
+    const pkBtn=document.querySelector('[data-role="places-key-save-btn"]');
+    if(!pkInput||!pkBtn)return;
+    function renderUsage(u){
+      if(!pkUsage||!u)return;
+      const near=u.search_calls>=u.free_tier_limit*0.9||u.details_calls>=u.free_tier_limit*0.9;
+      pkUsage.style.color=near?'#f59e0b':'';
+      pkUsage.textContent=`This month (${u.month}): ${u.search_calls}/${u.free_tier_limit} search calls, ${u.details_calls}/${u.free_tier_limit} details calls — free tier resets monthly.`;
+    }
+    async function refreshUsage(){
+      try{
+        const res=await fetch('/api/settings/places-usage');
+        renderUsage(await res.json());
+      }catch(e){}
+    }
+    async function refresh(){
+      try{
+        const res=await fetch('/api/settings/places-api-key');
+        const data=await res.json();
+        pkStatus.style.color='';
+        pkStatus.textContent=data.configured?`Saved: ${data.masked} — Google Places source active.`:'Not set — Google Places source unavailable until a key is added.';
+      }catch(e){}
+      refreshUsage();
+    }
+    pkBtn.addEventListener('click',async()=>{
+      const key=(pkInput.value||'').trim();
+      pkBtn.disabled=true;pkStatus.style.color='';pkStatus.textContent='Saving…';
+      try{
+        const body=new URLSearchParams({key});
+        const res=await fetch('/api/settings/places-api-key',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+        const data=await res.json();
+        pkInput.value='';
+        pkStatus.style.color='#10b981';
+        pkStatus.textContent=data.configured?`Saved: ${data.masked} — Google Places source active.`:'Key cleared — Google Places source unavailable.';
+        refreshUsage();
+      }catch(e){pkStatus.style.color='#f59e0b';pkStatus.textContent='Network error — try again.';}
+      pkBtn.disabled=false;
     });
     refresh();
   })();
