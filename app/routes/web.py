@@ -10,6 +10,7 @@ import platform
 import re
 import random
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -2643,10 +2644,47 @@ async def download_progress_api():
         return JSONResponse(dict(_update_download_state))
 
 
+def _spawn_update_after_current_process_exits(installer_path: str) -> None:
+    """Ported from MessageCannon Pro's update_checker.py, where launching the
+    installer and closing the app at essentially the same moment (Popen +
+    a short sleep + os._exit) was verified via a real controlled
+    reproduction to fail outright with Inno Setup exit code 5 — the
+    installer can't overwrite this app's own locked, in-use .exe. The
+    previous fire-and-forget Popen here had that same shape and never
+    checked for that failure, so it would have looked identical to a
+    successful update while silently leaving the user on the old version.
+
+    Fix (same as MessageCannon's): spawn a detached helper that waits for
+    THIS process's own PID to fully exit — guaranteed by Windows' process
+    semantics, not a fixed sleep/guess — before it runs the installer at
+    all. installer/jobmind-match.iss uses PrivilegesRequired=lowest like
+    MessageCannon's, so the same silent, unelevated re-run is safe here too.
+    `CREATE_NEW_PROCESS_GROUP` alone (no `DETACHED_PROCESS`) is required —
+    MessageCannon found DETACHED_PROCESS reliably prevented the helper from
+    completing its job."""
+    pid = os.getpid()
+    install_cmd = [installer_path, "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"]
+    escaped_path = install_cmd[0].replace("'", "''")
+    args_literal = ",".join(f"'{a}'" for a in install_cmd[1:])
+    ps_script = (
+        f"Wait-Process -Id {pid} -ErrorAction SilentlyContinue; "
+        f"Start-Process -FilePath '{escaped_path}' -ArgumentList {args_literal}"
+    )
+    command = ["powershell.exe", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps_script]
+    kwargs: dict = {}
+    if sys.platform == "win32":
+        kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+    subprocess.Popen(
+        command, close_fds=True,
+        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        **kwargs,
+    )
+
+
 @router.post("/api/app/install-update")
 async def install_update_api():
-    """Launch the already-downloaded installer, then close this app so the
-    installer isn't fighting a running instance for the same files."""
+    """Launch the already-downloaded installer once this app has fully
+    closed, then close this app — see _spawn_update_after_current_process_exits."""
     with _update_download_lock:
         state = dict(_update_download_state)
 
@@ -2655,13 +2693,15 @@ async def install_update_api():
         return JSONResponse({"ok": False, "error": "Installer not downloaded yet."}, status_code=400)
 
     try:
-        subprocess.Popen([installer_path], close_fds=True)
+        _spawn_update_after_current_process_exits(installer_path)
     except Exception as exc:
         return JSONResponse({"ok": False, "error": f"Could not launch installer: {exc}"}, status_code=500)
 
     async def _shutdown_soon() -> None:
         # Give the JSON response time to actually reach the browser before
-        # the process exits out from under the request.
+        # the process exits — the PowerShell helper above is what actually
+        # waits for this exit to complete before touching the installer, so
+        # this delay is purely for the HTTP response, not installer safety.
         await asyncio.sleep(0.8)
         os._exit(0)
 
