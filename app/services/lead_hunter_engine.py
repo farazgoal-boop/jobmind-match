@@ -31,6 +31,14 @@ _SCRAPE_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
     max_workers=6, thread_name_prefix="leadhunt"
 )
 
+# Pass 2 (website crawl for wa.me/mailto links) is best-effort enrichment on
+# top of Pass 1's fetch — bounded independently so a batch of slow/hostile
+# candidate sites can never make a single /api/scrape/leads call hang
+# indefinitely. Unfinished crawls at the deadline are simply dropped from
+# this batch's results, not retried.
+_MAX_WEBSITES_PER_BATCH = 8
+_WEBSITE_CRAWL_BUDGET_SECONDS = 15
+
 
 def list_platforms() -> list[dict[str, Any]]:
     return [
@@ -212,6 +220,52 @@ def run_scrape_batch(
         raw_leads = kept
     location_filtered = fetched - len(raw_leads)
 
+    # Pass 2: crawl each candidate's own website (if Pass 1 found one — e.g.
+    # GitHub's profile "blog" field) for wa.me/mailto links. This is the
+    # actual mechanism that finds WhatsApp numbers at any real volume — see
+    # website_crawler.py's module docstring for why text-scanning alone
+    # (Pass 1) essentially never does. Skips leads that already have both
+    # contact fields; caps how many sites one batch will crawl so a source
+    # with many candidates can't blow the batch's wall-clock budget.
+    website_pages_crawled = 0
+    website_contacts_found = 0
+    crawl_candidates = [
+        lead for lead in raw_leads
+        if lead.get("website") and not (lead.get("whatsapp") and lead.get("email"))
+    ][:_MAX_WEBSITES_PER_BATCH]
+    if crawl_candidates:
+        from app.services.website_crawler import crawl_websites_bounded
+
+        crawl_results: dict[str, dict] = {}
+        crawl_urls = [lead["website"] for lead in crawl_candidates]
+        crawl_future = _SCRAPE_EXECUTOR.submit(crawl_websites_bounded, crawl_urls)
+        try:
+            crawl_results = crawl_future.result(timeout=_WEBSITE_CRAWL_BUDGET_SECONDS)
+        except concurrent.futures.TimeoutError:
+            logger.warning(
+                "lead hunt: source=%s offset=%s website crawl exceeded %ss budget, using partial results",
+                source, offset, _WEBSITE_CRAWL_BUDGET_SECONDS,
+            )
+        except Exception:
+            logger.exception("lead hunt: source=%s offset=%s website crawl failed", source, offset)
+
+        for lead in crawl_candidates:
+            found = crawl_results.get(lead["website"])
+            if not found:
+                continue
+            website_pages_crawled += found.get("pages_crawled", 0)
+            gained = False
+            if not lead.get("whatsapp") and found.get("whatsapp"):
+                lead["whatsapp"] = found["whatsapp"]
+                lead["whatsapp_method"] = found["whatsapp_method"]
+                gained = True
+            if not lead.get("email") and found.get("email"):
+                lead["email"] = found["email"]
+                lead["email_method"] = found["email_method"]
+                gained = True
+            if gained:
+                website_contacts_found += 1
+
     dnc_filtered = 0
     if raw_leads:
         dnc_emails, dnc_whatsapp = load_dnc_keys(session)
@@ -236,6 +290,9 @@ def run_scrape_batch(
         dnc_filtered=dnc_filtered,
         duplicate=skipped,
         fresh=len(fresh),
+        websites_crawled=len(crawl_candidates),
+        website_pages=website_pages_crawled,
+        website_contacts_found=website_contacts_found,
     )
     return {
         "leads": fresh,

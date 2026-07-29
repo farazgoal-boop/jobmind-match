@@ -1706,7 +1706,15 @@ def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
                 email = be[0] if be else ''
                 if not wa and bw: wa = bw[0]
 
-            if email or wa:
+            # GitHub's profile "website" field (blog) is usually the
+            # candidate's own personal/business site — a real crawl target
+            # for Pass 2's wa.me/mailto discovery (see website_crawler.py),
+            # not just more text to regex-scan. Only worth passing on when
+            # it's a real absolute URL, not a bare handle some profiles put
+            # here instead (e.g. "@someuser").
+            website = blog if blog.startswith(('http://', 'https://')) else ''
+
+            if email or wa or website:
                 leads.append({
                     'name': p.get('name') or p.get('login', ''),
                     'designation': _desig(p.get('bio') or 'Developer'),
@@ -1714,6 +1722,7 @@ def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
                     'whatsapp': wa,
                     'source': 'github',
                     'url': p.get('html_url', ''),
+                    'website': website,
                     'notes': (p.get('bio') or '')[:100],
                     'location': p.get('location') or '',
                 })
