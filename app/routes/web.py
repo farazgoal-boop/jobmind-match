@@ -2421,7 +2421,16 @@ async def scrape_leads(
     loc_list = [p.strip() for p in locations.split(",") if p.strip()]
 
     try:
-        result = run_scrape_batch(session, source, offset, kw, loc, loc_list, hunt_session_id=session_id)
+        # run_scrape_batch is a synchronous function that itself blocks on a
+        # ThreadPoolExecutor future (up to _SOURCE_TIMEOUT_SECONDS) — calling
+        # it directly here would freeze the whole asyncio event loop for
+        # that long, stalling every other request the app is serving during
+        # a hunt. Offload it to a worker thread instead (the sqlite
+        # connection was opened with check_same_thread=False for exactly
+        # this reason).
+        result = await asyncio.to_thread(
+            run_scrape_batch, session, source, offset, kw, loc, loc_list, hunt_session_id=session_id
+        )
         return JSONResponse(result)
     except Exception as e:
         logger.exception("lead hunt: /api/scrape/leads failed for source=%s offset=%s", source, offset)

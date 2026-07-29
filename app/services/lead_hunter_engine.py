@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import logging
+import time
 from typing import Any
 
 from sqlmodel import Session
@@ -23,8 +24,11 @@ logger = logging.getLogger("jobmind.leadhunter")
 # calls) must never block the whole request — cap every source fetch to a
 # hard wall-clock budget and surface a real error instead of hanging.
 _SOURCE_TIMEOUT_SECONDS = 25
+# Sized to match the dashboard's concurrent-platform hunt lanes (see
+# dashboard.html's LHP_CONCURRENCY) so genuine parallel fetches actually run
+# in parallel here instead of queuing behind a smaller pool.
 _SCRAPE_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
-    max_workers=4, thread_name_prefix="leadhunt"
+    max_workers=6, thread_name_prefix="leadhunt"
 )
 
 
@@ -152,12 +156,21 @@ def run_scrape_batch(
     locations: list[str] | None = None,
     hunt_session_id: int | None = None,
 ) -> dict[str, Any]:
+    t0 = time.monotonic()
     loc = location.strip()
     # `locations` is the full radius-resolved place list (Phase 2b); `loc` (the
     # originally-picked pin/city) is always included so single-place hunts still work.
     candidate_places = [p for p in [loc, *(locations or [])] if p.strip()]
     platform = PLATFORM_MAP.get(source)
     known_emails, known_whatsapp = load_known_keys(session)
+
+    def _log(reason: str, **counts: int) -> None:
+        elapsed_ms = round((time.monotonic() - t0) * 1000)
+        parts = " ".join(f"{k}={v}" for k, v in counts.items())
+        logger.info(
+            "lead hunt: source=%s offset=%s elapsed_ms=%s reason=%s %s",
+            source, offset, elapsed_ms, reason, parts,
+        )
 
     def _timeout_result(error: str) -> dict[str, Any]:
         return {
@@ -175,14 +188,18 @@ def run_scrape_batch(
     try:
         raw_leads = future.result(timeout=_SOURCE_TIMEOUT_SECONDS)
     except concurrent.futures.TimeoutError:
+        _log("timeout", attempted=0, fresh=0)
         logger.warning(
             "lead hunt: source=%s offset=%s timed out after %ss",
             source, offset, _SOURCE_TIMEOUT_SECONDS,
         )
         return _timeout_result(f"Timed out after {_SOURCE_TIMEOUT_SECONDS}s — source skipped.")
     except Exception as exc:
+        _log("error", attempted=0, fresh=0)
         logger.exception("lead hunt: source=%s offset=%s raised", source, offset)
         return _timeout_result(str(exc))
+
+    fetched = len(raw_leads)
 
     if candidate_places:
         native = _uses_native_location_qualifier(source)
@@ -193,20 +210,33 @@ def run_scrape_batch(
                     lead["location"] = loc or candidate_places[0]
                 kept.append(lead)
         raw_leads = kept
+    location_filtered = fetched - len(raw_leads)
 
+    dnc_filtered = 0
     if raw_leads:
         dnc_emails, dnc_whatsapp = load_dnc_keys(session)
         if dnc_emails or dnc_whatsapp:
+            before_dnc = len(raw_leads)
             raw_leads = [
                 lead
                 for lead in raw_leads
                 if _norm_email(lead.get("email", "")) not in dnc_emails
                 and _norm_whatsapp(lead.get("whatsapp", "")) not in dnc_whatsapp
             ]
+            dnc_filtered = before_dnc - len(raw_leads)
 
     fresh, skipped = filter_new_leads(raw_leads, known_emails, known_whatsapp)
     if fresh:
         register_leads(session, fresh, hunt_session_id=hunt_session_id)
+
+    _log(
+        "ok",
+        attempted=fetched,
+        location_filtered=location_filtered,
+        dnc_filtered=dnc_filtered,
+        duplicate=skipped,
+        fresh=len(fresh),
+    )
     return {
         "leads": fresh,
         "count": len(fresh),

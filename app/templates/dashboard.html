@@ -1077,6 +1077,12 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
 let LEADS=[], EMAILS=new Set(), WAS=new Set(), DUPS=0, KNOWN_TOTAL=0, RUNNING=false, HALT=false;
 let HUNT_PLAN=[];
 let CURRENT_SESSION_ID=null;
+// How many platforms are worked concurrently. Each platform's own batches
+// stay strictly sequential (one lane never fires two requests at the same
+// source at once) — only different platforms overlap, so no single source
+// gets hammered with parallel requests. Matches _SCRAPE_EXECUTOR's worker
+// count server-side so real parallelism happens, not just queuing.
+const LHP_CONCURRENCY=5;
 
 function updStats(){
   document.getElementById('lhs-total').textContent=LEADS.length;
@@ -1449,26 +1455,41 @@ async function lhpGo(){
 
   const totalBatches=activePlan.reduce((s,p)=>s+p.batches,0);
   let doneBatches=0;
+  const lanes=Math.min(LHP_CONCURRENCY, activePlan.length);
 
-  lhLog(`🚀 Hunting ${activePlan.length} platforms (${totalBatches} batches)…`,'info');
+  lhLog(`🚀 Hunting ${activePlan.length} platforms (${totalBatches} batches) across ${lanes} parallel lanes…`,'info');
   lhLog(`${KNOWN_TOTAL} contacts saved — will never re-hunt these`,'info');
 
-  for(const plan of activePlan){
-    if(HALT||LEADS.length>=maxL)break;
-    for(let offset=0;offset<plan.batches;offset++){
-      if(HALT||LEADS.length>=maxL)break;
-      setProg((doneBatches/totalBatches)*100, `Scanning ${plan.label} (batch ${offset+1}/${plan.batches})…`);
-      const {leads:newLeads,skipped}=await fetchFromAPI(plan.source, offset);
-      DUPS+=skipped;
-      const added=addLeads(newLeads);
-      doneBatches++;
-      lhLog(`${plan.label} batch ${offset+1} → ${newLeads.length} new, ${skipped} already hunted | Session: ${LEADS.length}`, added>0?'ok':'');
-      render(LEADS);
-      updStats();
-      if(added>0)lhLog(`✅ Latest: ${LEADS[LEADS.length-1]?.name||'?'} — ${LEADS[LEADS.length-1]?.email||LEADS[LEADS.length-1]?.whatsapp||'contact'}`, 'ok');
-      await delay(600);
+  // Bounded cross-platform concurrency: up to `lanes` platforms are worked
+  // at once (each pulling the next unclaimed platform off the shared plan
+  // queue), while any one lane still walks its own platform's batches
+  // strictly in order. JS's single-threaded execution means the shared
+  // counters below (LEADS/DUPS/doneBatches/planIdx) never need locking —
+  // only one lane's code actually runs at a time, interleaving at `await`.
+  let planIdx=0;
+  const nextPlanItem=()=>planIdx<activePlan.length?activePlan[planIdx++]:null;
+
+  async function huntLane(){
+    while(!HALT&&LEADS.length<maxL){
+      const plan=nextPlanItem();
+      if(!plan)return;
+      for(let offset=0;offset<plan.batches;offset++){
+        if(HALT||LEADS.length>=maxL)return;
+        setProg((doneBatches/totalBatches)*100, `Scanning ${plan.label} (batch ${offset+1}/${plan.batches})…`);
+        const {leads:newLeads,skipped}=await fetchFromAPI(plan.source, offset);
+        DUPS+=skipped;
+        const added=addLeads(newLeads);
+        doneBatches++;
+        lhLog(`${plan.label} batch ${offset+1} → ${newLeads.length} new, ${skipped} already hunted | Session: ${LEADS.length}`, added>0?'ok':'');
+        render(LEADS);
+        updStats();
+        if(added>0)lhLog(`✅ Latest: ${LEADS[LEADS.length-1]?.name||'?'} — ${LEADS[LEADS.length-1]?.email||LEADS[LEADS.length-1]?.whatsapp||'contact'}`, 'ok');
+        await delay(600);
+      }
     }
   }
+
+  await Promise.all(Array.from({length:lanes},()=>huntLane()));
 
   // Final
   document.getElementById('lhp-pfill').style.width='100%';
