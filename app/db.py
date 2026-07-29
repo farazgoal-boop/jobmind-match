@@ -5,6 +5,7 @@ from sqlmodel import SQLModel, Session, create_engine
 from sqlalchemy.pool import StaticPool
 
 from app.config import settings
+from app.models import AppSetting
 
 
 def _ensure_sqlite_directory(database_url: str) -> None:
@@ -93,6 +94,17 @@ def _ensure_hunt_session_columns() -> None:
             )
 
 
+def _load_saved_github_token() -> None:
+    # A user-saved token (Settings > GitHub Token) lives in AppSetting, not
+    # the GITHUB_TOKEN env var settings.github_token was built from at import
+    # time — pull it in now so every GitHub call picks it up from process
+    # start, not just after the next in-app save.
+    with Session(engine) as session:
+        row = session.get(AppSetting, "github_token")
+        if row and row.value:
+            settings.github_token = row.value
+
+
 engine = _build_engine()
 
 
@@ -101,6 +113,7 @@ def init_db() -> None:
     _ensure_candidate_profile_columns()
     _ensure_lead_hunter_location_columns()
     _ensure_hunt_session_columns()
+    _load_saved_github_token()
 
 
 def get_session():

@@ -23,7 +23,7 @@ from sqlmodel import Session, select
 
 from app.config import settings
 from app.db import get_session
-from app.models import ApplicationRecord, CandidateProfile, ClientLead, FilterPreset
+from app.models import AppSetting, ApplicationRecord, CandidateProfile, ClientLead, FilterPreset
 from app.services.assisted_apply import (
     build_assisted_links,
     build_client_access_links,
@@ -1519,6 +1519,11 @@ def _gh_headers() -> dict:
         headers['Authorization'] = f'Bearer {settings.github_token}'
     return headers
 
+def _mask_github_token(token: str) -> str:
+    if len(token) < 8:
+        return ""
+    return f"{token[:4]}…{token[-4:]}"
+
 def _gh_rate_limit_message() -> str:
     """GitHub scrapers used to swallow 403s and return an empty lead list,
     which looked exactly like a normal 'no matches this batch' result — the
@@ -2462,6 +2467,31 @@ async def license_activate_api(
     from app.services.license_service import activate_license
 
     return JSONResponse(activate_license(session, key))
+
+
+@router.get("/api/settings/github-token")
+async def github_token_status_api(session: Annotated[Session, Depends(get_session)]):
+    row = session.get(AppSetting, "github_token")
+    token = row.value if row else ""
+    return JSONResponse({"configured": bool(token), "masked": _mask_github_token(token)})
+
+
+@router.post("/api/settings/github-token")
+async def github_token_save_api(
+    session: Annotated[Session, Depends(get_session)],
+    token: str = Form(default=""),
+):
+    # A blank submit clears the saved token, falling back to unauthenticated
+    # GitHub calls (60/hr) rather than being treated as "no change" — that's
+    # the only way to remove a token once one is saved.
+    cleaned = token.strip()
+    session.merge(AppSetting(key="github_token", value=cleaned))
+    session.commit()
+    # settings is a shared singleton imported by _gh_headers(), github_client.py,
+    # and _resolve_latest_release() below — mutating it here makes the new
+    # token take effect immediately, no restart needed.
+    settings.github_token = cleaned
+    return JSONResponse({"ok": True, "configured": bool(cleaned), "masked": _mask_github_token(cleaned)})
 
 
 async def _resolve_latest_release() -> dict:

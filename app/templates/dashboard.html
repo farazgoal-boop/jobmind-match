@@ -2270,6 +2270,13 @@ document.addEventListener('click',e=>{
           <button type="button" class="ghost-action update-download-btn hidden" data-role="download-update-btn">Download update</button>
           <button type="button" class="ghost-action update-install-btn hidden" data-role="install-update-btn">Install now</button>
         </div>
+
+        <div class="update-section">
+          <p class="hint">GitHub Token (optional) — raises the Lead Hunter's GitHub rate limit from 60/hr to 5,000/hr. Get a free one at github.com/settings/tokens (no scopes needed, public read only).</p>
+          <input type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width:100%;margin:8px 0;font-family:JetBrains Mono,monospace" autocomplete="off" />
+          <p id="gh-token-status" class="hint"></p>
+          <button type="button" class="ghost-action" data-role="gh-token-save-btn">Save GitHub Token</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2304,6 +2311,36 @@ document.addEventListener('click',e=>{
     });
     document.querySelectorAll('[data-role=license-close]').forEach(el=>el.addEventListener('click',hide));
     check();
+  })();
+  </script>
+  <script>
+  (function(){
+    const ghInput=document.getElementById('gh-token-input');
+    const ghStatus=document.getElementById('gh-token-status');
+    const ghBtn=document.querySelector('[data-role="gh-token-save-btn"]');
+    if(!ghInput||!ghBtn)return;
+    async function refresh(){
+      try{
+        const res=await fetch('/api/settings/github-token');
+        const data=await res.json();
+        ghStatus.style.color='';
+        ghStatus.textContent=data.configured?`Saved: ${data.masked} — hunts use 5,000/hr limit.`:'Not set — hunts use the unauthenticated 60/hr limit.';
+      }catch(e){}
+    }
+    ghBtn.addEventListener('click',async()=>{
+      const token=(ghInput.value||'').trim();
+      ghBtn.disabled=true;ghStatus.style.color='';ghStatus.textContent='Saving…';
+      try{
+        const body=new URLSearchParams({token});
+        const res=await fetch('/api/settings/github-token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
+        const data=await res.json();
+        ghInput.value='';
+        ghStatus.style.color='#10b981';
+        ghStatus.textContent=data.configured?`Saved: ${data.masked} — hunts use 5,000/hr limit.`:'Token cleared — hunts use the unauthenticated 60/hr limit.';
+      }catch(e){ghStatus.style.color='#f59e0b';ghStatus.textContent='Network error — try again.';}
+      ghBtn.disabled=false;
+    });
+    refresh();
   })();
   </script>
   <script>
