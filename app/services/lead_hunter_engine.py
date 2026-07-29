@@ -266,6 +266,17 @@ def run_scrape_batch(
             if gained:
                 website_contacts_found += 1
 
+    # Confidence tier: "high" only for contact info found via a real
+    # wa.me/mailto: link (website_crawler.py's Pass 2); everything else is a
+    # text-pattern match (Pass 1's regex scan of bios/article bodies/RSS
+    # text) and stays "medium" here — register_leads() below separately
+    # elevates a contact to "high" the moment it's confirmed by a 2nd
+    # distinct source, regardless of how either sighting was found.
+    for lead in raw_leads:
+        method = lead.get("whatsapp_method") or lead.get("email_method") or "text_pattern"
+        lead["discovery_method"] = method
+        lead["confidence"] = "high" if method in ("wa_me_link", "mailto_link") else "medium"
+
     dnc_filtered = 0
     if raw_leads:
         dnc_emails, dnc_whatsapp = load_dnc_keys(session)

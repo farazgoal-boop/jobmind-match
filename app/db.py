@@ -94,6 +94,21 @@ def _ensure_hunt_session_columns() -> None:
             )
 
 
+def _ensure_confidence_columns() -> None:
+    column_names = {column["name"] for column in inspect(engine).get_columns("huntedcontact")}
+    additions = {
+        "confidence": "VARCHAR NOT NULL DEFAULT 'medium'",
+        "discovery_method": "VARCHAR NOT NULL DEFAULT 'text_pattern'",
+        "seen_sources": "VARCHAR NOT NULL DEFAULT ''",
+    }
+    missing = {name: ddl for name, ddl in additions.items() if name not in column_names}
+    if not missing:
+        return
+    with engine.begin() as connection:
+        for name, ddl in missing.items():
+            connection.exec_driver_sql(f"ALTER TABLE huntedcontact ADD COLUMN {name} {ddl}")
+
+
 def _load_saved_github_token() -> None:
     # A user-saved token (Settings > GitHub Token) lives in AppSetting, not
     # the GITHUB_TOKEN env var settings.github_token was built from at import
@@ -113,6 +128,7 @@ def init_db() -> None:
     _ensure_candidate_profile_columns()
     _ensure_lead_hunter_location_columns()
     _ensure_hunt_session_columns()
+    _ensure_confidence_columns()
     _load_saved_github_token()
 
 

@@ -94,7 +94,21 @@ def register_leads(session: Session, leads: Iterable[dict], hunt_session_id: int
             existing = session.exec(
                 select(HuntedContact).where(HuntedContact.whatsapp == wa)
             ).first()
+        source = (lead.get("source") or "")[:80]
         if existing:
+            # Not a new contact, but a 2nd (or 3rd...) independent sighting
+            # is itself a confidence signal — cross-source confirmation is
+            # stronger evidence than any single source's own discovery
+            # method, so this elevates the tier even for a contact first
+            # found via a lower-confidence text-pattern match.
+            seen = [s for s in existing.seen_sources.split(",") if s]
+            if source and source not in seen:
+                seen.append(source)
+                existing.seen_sources = ",".join(seen)
+                if len(seen) >= 2:
+                    existing.confidence = "high"
+                session.add(existing)
+                session.commit()
             continue
         session.add(
             HuntedContact(
@@ -102,12 +116,15 @@ def register_leads(session: Session, leads: Iterable[dict], hunt_session_id: int
                 whatsapp=wa,
                 name=(lead.get("name") or "")[:120],
                 designation=(lead.get("designation") or "")[:120],
-                source=(lead.get("source") or "")[:80],
+                source=source,
                 url=(lead.get("url") or "")[:500],
                 notes=(lead.get("notes") or "")[:300],
                 location=(lead.get("location") or "")[:120],
                 hunt_session_id=hunt_session_id,
                 hunted_at=datetime.utcnow(),
+                confidence=lead.get("confidence") or "medium",
+                discovery_method=lead.get("discovery_method") or "text_pattern",
+                seen_sources=source,
             )
         )
         saved += 1
@@ -139,6 +156,9 @@ def _contact_to_dict(row: HuntedContact) -> dict:
         "notes": row.notes,
         "location": row.location,
         "hunted_at": row.hunted_at.isoformat(),
+        "confidence": row.confidence,
+        "discovery_method": row.discovery_method,
+        "seen_sources": row.seen_sources,
     }
 
 

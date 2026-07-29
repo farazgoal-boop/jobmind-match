@@ -112,6 +112,14 @@ class HuntedContact(SQLModel, table=True):
     location: str = ""
     hunt_session_id: Optional[int] = Field(default=None, index=True)
     hunted_at: datetime = Field(default_factory=datetime.utcnow)
+    # "high" (found via a real wa.me/mailto: link, or confirmed by 2+ distinct
+    # sources) vs "medium" (a text-pattern match — a phone/email-shaped
+    # substring found in a bio, article body, etc).
+    confidence: str = "medium"
+    discovery_method: str = "text_pattern"
+    # Comma-separated distinct `source` values this contact has been found
+    # under across every hunt it's ever turned up in (not just the first).
+    seen_sources: str = ""
 
 
 class DoNotContactEntry(SQLModel, table=True):
