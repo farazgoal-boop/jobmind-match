@@ -137,55 +137,31 @@
 
       <nav class="section-thumbnails {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-thumb-mode="job" aria-label="Job Search sections">
         <button type="button" class="section-thumb active" data-nav-panel="job-search" data-nav-mode="job">
-          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-search"/></svg></span><span class="section-thumb-heading">Search &amp; Match</span></div>
-          <div class="section-thumb-line"></div>
-          <div class="section-thumb-line short"></div>
-          <div class="section-thumb-label">Search &amp; Match</div>
+          <span class="section-thumb-icon"><svg class="icon"><use href="#tabler-search"/></svg></span><span class="section-thumb-label">Search &amp; Match</span>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="job-applications" data-nav-mode="job">
-          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-clipboard-list"/></svg></span><span class="section-thumb-heading">Applications</span></div>
-          <div class="section-thumb-line"></div>
-          <div class="section-thumb-line short"></div>
-          <div class="section-thumb-label">Applications</div>
+          <span class="section-thumb-icon"><svg class="icon"><use href="#tabler-clipboard-list"/></svg></span><span class="section-thumb-label">Applications</span>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="job-profile" data-nav-mode="job">
-          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-file-text"/></svg></span><span class="section-thumb-heading">CV &amp; Profile</span></div>
-          <div class="section-thumb-line"></div>
-          <div class="section-thumb-line short"></div>
-          <div class="section-thumb-label">CV &amp; Profile</div>
+          <span class="section-thumb-icon"><svg class="icon"><use href="#tabler-file-text"/></svg></span><span class="section-thumb-label">CV &amp; Profile</span>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="job-links" data-nav-mode="job">
-          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-link"/></svg></span><span class="section-thumb-heading">Quick Links</span></div>
-          <div class="section-thumb-line"></div>
-          <div class="section-thumb-line short"></div>
-          <div class="section-thumb-label">Quick Links</div>
+          <span class="section-thumb-icon"><svg class="icon"><use href="#tabler-link"/></svg></span><span class="section-thumb-label">Quick Links</span>
         </button>
       </nav>
 
       <nav class="section-thumbnails {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-thumb-mode="sell" aria-label="Sell Services sections">
         <button type="button" class="section-thumb active" data-nav-panel="sell-hunter" data-nav-mode="sell">
-          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></span><span class="section-thumb-heading">Lead Hunter</span></div>
-          <div class="section-thumb-line"></div>
-          <div class="section-thumb-line short"></div>
-          <div class="section-thumb-label">Lead Hunter</div>
+          <span class="section-thumb-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></span><span class="section-thumb-label">Lead Hunter</span>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="sell-tracker" data-nav-mode="sell">
-          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-users"/></svg></span><span class="section-thumb-heading">Lead Tracker</span></div>
-          <div class="section-thumb-line"></div>
-          <div class="section-thumb-line short"></div>
-          <div class="section-thumb-label">Lead Tracker</div>
+          <span class="section-thumb-icon"><svg class="icon"><use href="#tabler-users"/></svg></span><span class="section-thumb-label">Lead Tracker</span>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="sell-search" data-nav-mode="sell">
-          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-target"/></svg></span><span class="section-thumb-heading">Client Search</span></div>
-          <div class="section-thumb-line"></div>
-          <div class="section-thumb-line short"></div>
-          <div class="section-thumb-label">Client Search</div>
+          <span class="section-thumb-icon"><svg class="icon"><use href="#tabler-target"/></svg></span><span class="section-thumb-label">Client Search</span>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="sell-profile" data-nav-mode="sell">
-          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-file-text"/></svg></span><span class="section-thumb-heading">Profile &amp; Pitch</span></div>
-          <div class="section-thumb-line"></div>
-          <div class="section-thumb-line short"></div>
-          <div class="section-thumb-label">Profile &amp; Pitch</div>
+          <span class="section-thumb-icon"><svg class="icon"><use href="#tabler-file-text"/></svg></span><span class="section-thumb-label">Profile &amp; Pitch</span>
         </button>
       </nav>
 
@@ -695,7 +671,7 @@
 .lh-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--p),var(--p2));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 16px rgba(99,102,241,.25)}
 .lh-title{font-size:19px;font-weight:700;color:var(--tx);letter-spacing:-.4px}
 .lh-subtitle{font-size:12px;color:var(--mt);margin-top:2px}
-.lh-badges{display:flex;gap:7px;flex-wrap:wrap}
+.lh-badges{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .lh-badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.7px;border:1px solid rgba(99,102,241,.25);background:rgba(99,102,241,.09);color:var(--p3)}
 .lh-badge-green{border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.09);color:var(--g2)}
 

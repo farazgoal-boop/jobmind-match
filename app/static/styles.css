@@ -395,9 +395,10 @@ pre,
    when the shell itself is light/contrast) swaps in the dark palette. */
 .section-thumb {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
   border-radius: var(--radius-card);
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: #f2f4f6;
@@ -438,54 +439,31 @@ pre,
   transform: scale(1.02) translateY(-2px);
 }
 
-.section-thumb-head {
+.section-thumb-icon {
   display: flex;
   align-items: center;
-  gap: 6px;
-  /* Same family/weight as .sidebar-item's own label typography (500 /
-     var(--font-heading)) so the thumbnail's heading reads as the same kind
-     of label as the sidebar icon it mirrors, not a smaller caption. Kept a
-     touch under the sidebar's 0.88rem — full size truncated "Search &
-     Match" mid-word inside a 166px card, which is worse than a caption
-     that's merely smaller. */
-  font-size: 0.8rem;
-  font-weight: 500;
-  font-family: var(--font-heading);
+  justify-content: center;
+  flex-shrink: 0;
   color: #464555;
 }
 
-.section-thumb-icon {
-  font-size: var(--text-caption);
-  line-height: 1;
-  flex-shrink: 0;
+.section-thumb-icon .icon {
+  width: 18px;
+  height: 18px;
 }
 
-.section-thumb-heading {
+.section-thumb-label {
+  font-size: 0.84rem;
+  font-weight: 500;
+  font-family: var(--font-heading);
+  color: #464555;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.section-thumb-line {
-  height: 6px;
-  border-radius: 3px;
-  background: #eceef0;
-  flex-shrink: 0;
-}
-
-.section-thumb-line.short {
-  width: 65%;
-}
-
-.section-thumb-label {
-  font-size: 0.72rem;
-  font-weight: 500;
-  font-family: var(--font-heading);
-  color: #777587;
-  text-align: center;
-}
-
-.section-thumb.active .section-thumb-label {
+.section-thumb.active .section-thumb-label,
+.section-thumb.active .section-thumb-icon {
   color: #4f46e5;
   font-weight: 600;
 }
@@ -514,14 +492,9 @@ html[data-theme="contrast"] .section-thumb.active {
   background: #1c2038;
 }
 
-html[data-theme="light"] .section-thumb-head,
-html[data-theme="contrast"] .section-thumb-head {
+html[data-theme="light"] .section-thumb-icon,
+html[data-theme="contrast"] .section-thumb-icon {
   color: #9aa0b8;
-}
-
-html[data-theme="light"] .section-thumb-line,
-html[data-theme="contrast"] .section-thumb-line {
-  background: #1d2130;
 }
 
 html[data-theme="light"] .section-thumb-label,
@@ -530,7 +503,9 @@ html[data-theme="contrast"] .section-thumb-label {
 }
 
 html[data-theme="light"] .section-thumb.active .section-thumb-label,
-html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
+html[data-theme="contrast"] .section-thumb.active .section-thumb-label,
+html[data-theme="light"] .section-thumb.active .section-thumb-icon,
+html[data-theme="contrast"] .section-thumb.active .section-thumb-icon {
   color: #a5b4fc;
 }
 
