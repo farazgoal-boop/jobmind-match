@@ -80,6 +80,9 @@
   </script>
 </head>
 <body>
+  <!-- Tabler Icons (MIT), vendored inline as a sprite -- see app/static/ICONS.md.
+       Every <symbol> below is referenced elsewhere as <svg class="icon"><use href="#tabler-name"/></svg>. -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false"><symbol id="tabler-search" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></symbol><symbol id="tabler-briefcase" viewBox="0 0 24 24"><path d="M3 9a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -9" /><path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2" /><path d="M12 12l0 .01" /><path d="M3 13a20 20 0 0 0 18 0" /></symbol><symbol id="tabler-settings" viewBox="0 0 24 24"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></symbol><symbol id="tabler-clipboard-list" viewBox="0 0 24 24"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" /><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2" /><path d="M9 12l.01 0" /><path d="M13 12l2 0" /><path d="M9 16l.01 0" /><path d="M13 16l2 0" /></symbol><symbol id="tabler-file-text" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" /><path d="M9 9l1 0" /><path d="M9 13l6 0" /><path d="M9 17l6 0" /></symbol><symbol id="tabler-link" viewBox="0 0 24 24"><path d="M9 15l6 -6" /><path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464" /><path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463" /></symbol><symbol id="tabler-bolt" viewBox="0 0 24 24"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11" /></symbol><symbol id="tabler-users" viewBox="0 0 24 24"><path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></symbol><symbol id="tabler-target" viewBox="0 0 24 24"><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M7 12a5 5 0 1 0 10 0a5 5 0 1 0 -10 0" /><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /></symbol><symbol id="tabler-history" viewBox="0 0 24 24"><path d="M12 8l0 4l2 2" /><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" /></symbol><symbol id="tabler-x" viewBox="0 0 24 24"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></symbol><symbol id="tabler-map-2" viewBox="0 0 24 24"><path d="M12 18.5l-3 -1.5l-6 3v-13l6 -3l6 3l6 -3v7.5" /><path d="M9 4v13" /><path d="M15 7v5.5" /><path d="M21.121 20.121a3 3 0 1 0 -4.242 0c.418 .419 1.125 1.045 2.121 1.879c1.051 -.89 1.759 -1.516 2.121 -1.879" /><path d="M19 18v.01" /></symbol><symbol id="tabler-brand-github" viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" /></symbol><symbol id="tabler-brand-reddit" viewBox="0 0 24 24"><path d="M12 8c2.648 0 5.028 .826 6.675 2.14a2.5 2.5 0 0 1 2.326 4.36c0 3.59 -4.03 6.5 -9 6.5c-4.875 0 -8.845 -2.8 -9 -6.294l-1 -.206a2.5 2.5 0 0 1 2.326 -4.36c1.646 -1.313 4.026 -2.14 6.674 -2.14l.999 0" /><path d="M12 8l1 -5l6 1" /><path d="M18 4a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M8.5 13a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor" /><path d="M14.5 13a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor" /><path d="M10 17c.667 .333 1.333 .5 2 .5s1.333 -.167 2 -.5" /></symbol><symbol id="tabler-brand-x" viewBox="0 0 24 24"><path d="M4 4l11.733 16h4.267l-11.733 -16l-4.267 0" /><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" /></symbol><symbol id="tabler-brand-whatsapp" viewBox="0 0 24 24"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9" /><path d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1" /></symbol><symbol id="tabler-code" viewBox="0 0 24 24"><path d="M7 8l-4 4l4 4" /><path d="M17 8l4 4l-4 4" /><path d="M14 4l-4 16" /></symbol><symbol id="tabler-brand-medium" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -12" /><path d="M8 9h1l3 3l3 -3h1" /><path d="M8 15l2 0" /><path d="M14 15l2 0" /><path d="M9 9l0 6" /><path d="M15 9l0 6" /></symbol><symbol id="tabler-brand-stackoverflow" viewBox="0 0 24 24"><path d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-1" /><path d="M8 16h8" /><path d="M8.322 12.582l7.956 .836" /><path d="M8.787 9.168l7.826 1.664" /><path d="M10.096 5.764l7.608 2.472" /></symbol><symbol id="tabler-rocket" viewBox="0 0 24 24"><path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3" /><path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3" /><path d="M14 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></symbol><symbol id="tabler-flag" viewBox="0 0 24 24"><path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9" /><path d="M5 21v-7" /></symbol><symbol id="tabler-palette" viewBox="0 0 24 24"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25" /><path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /></symbol><symbol id="tabler-send" viewBox="0 0 24 24"><path d="M10 14l11 -11" /><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5" /></symbol><symbol id="tabler-brand-telegram" viewBox="0 0 24 24"><path d="M15 10l-4 4l6 6l4 -16l-18 7l4 2l2 6l3 -4" /></symbol><symbol id="tabler-brand-facebook" viewBox="0 0 24 24"><path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3" /></symbol><symbol id="tabler-world" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M3.6 9h16.8" /><path d="M3.6 15h16.8" /><path d="M11.5 3a17 17 0 0 0 0 18" /><path d="M12.5 3a17 17 0 0 1 0 18" /></symbol><symbol id="tabler-map-pin" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0" /></symbol><symbol id="tabler-download" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></symbol><symbol id="tabler-trash" viewBox="0 0 24 24"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></symbol><symbol id="tabler-table-export" viewBox="0 0 24 24"><path d="M12.5 21h-7.5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v7.5" /><path d="M3 10h18" /><path d="M10 3v18" /><path d="M16 19h6" /><path d="M19 16l3 3l-3 3" /></symbol><symbol id="tabler-braces" viewBox="0 0 24 24"><path d="M7 4a2 2 0 0 0 -2 2v3a2 3 0 0 1 -2 3a2 3 0 0 1 2 3v3a2 2 0 0 0 2 2" /><path d="M17 4a2 2 0 0 1 2 2v3a2 3 0 0 0 2 3a2 3 0 0 0 -2 3v3a2 2 0 0 1 -2 2" /></symbol><symbol id="tabler-mail" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></symbol><symbol id="tabler-brand-youtube" viewBox="0 0 24 24"><path d="M2 8a4 4 0 0 1 4 -4h12a4 4 0 0 1 4 4v8a4 4 0 0 1 -4 4h-12a4 4 0 0 1 -4 -4v-8" /><path d="M10 9l5 3l-5 3l0 -6" /></symbol><symbol id="tabler-refresh" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></symbol><symbol id="tabler-player-stop" viewBox="0 0 24 24"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10" /></symbol></svg>
   <div class="app-shell">
     <header class="app-header">
       <div class="header-brand">
@@ -87,8 +90,8 @@
         <span class="header-title">JobMind</span>
       </div>
       <div class="header-mode-toggle mode-switch" data-role="mode-switch">
-        <button type="button" class="mode-switch-button {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="job">🔍 Job Search</button>
-        <button type="button" class="mode-switch-button {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="sell">💼 Sell Services</button>
+        <button type="button" class="mode-switch-button {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="job"><svg class="icon"><use href="#tabler-search"/></svg> Job Search</button>
+        <button type="button" class="mode-switch-button {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="sell"><svg class="icon"><use href="#tabler-briefcase"/></svg> Sell Services</button>
       </div>
       <div class="header-profile" data-role="header-profile">
         <button type="button" class="header-profile-btn" data-role="profile-dropdown-toggle">
@@ -108,23 +111,23 @@
           <button type="button" class="theme-segmented-btn" data-theme-value="dark" title="Dark theme" aria-label="Dark theme">🌙</button>
           <button type="button" class="theme-segmented-btn" data-theme-value="contrast" title="High-contrast theme" aria-label="High-contrast theme">◐</button>
         </div>
-        <button type="button" class="ghost-action" data-role="settings-toggle" title="Settings">⚙</button>
+        <button type="button" class="ghost-action" data-role="settings-toggle" title="Settings"><svg class="icon"><use href="#tabler-settings"/></svg></button>
       </div>
     </header>
 
     <div class="app-body">
       <aside class="app-sidebar" data-role="app-sidebar">
         <nav class="sidebar-nav sidebar-nav-job {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-sidebar-mode="job">
-          <button type="button" class="sidebar-item active" data-nav-panel="job-search" data-nav-mode="job" title="Search &amp; Match"><span class="sidebar-icon">🔍</span><span class="sidebar-label">Search &amp; Match</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="job-applications" data-nav-mode="job" title="Applications"><span class="sidebar-icon">📋</span><span class="sidebar-label">Applications</span><span class="sidebar-badge">{{ status_summary.total }}</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="job-profile" data-nav-mode="job" title="CV &amp; Profile"><span class="sidebar-icon">📄</span><span class="sidebar-label">CV &amp; Profile</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="job-links" data-nav-mode="job" title="Quick Links"><span class="sidebar-icon">🔗</span><span class="sidebar-label">Quick Links</span></button>
+          <button type="button" class="sidebar-item active" data-nav-panel="job-search" data-nav-mode="job" title="Search &amp; Match"><span class="sidebar-icon"><svg class="icon"><use href="#tabler-search"/></svg></span><span class="sidebar-label">Search &amp; Match</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-applications" data-nav-mode="job" title="Applications"><span class="sidebar-icon"><svg class="icon"><use href="#tabler-clipboard-list"/></svg></span><span class="sidebar-label">Applications</span><span class="sidebar-badge">{{ status_summary.total }}</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-profile" data-nav-mode="job" title="CV &amp; Profile"><span class="sidebar-icon"><svg class="icon"><use href="#tabler-file-text"/></svg></span><span class="sidebar-label">CV &amp; Profile</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="job-links" data-nav-mode="job" title="Quick Links"><span class="sidebar-icon"><svg class="icon"><use href="#tabler-link"/></svg></span><span class="sidebar-label">Quick Links</span></button>
         </nav>
         <nav class="sidebar-nav sidebar-nav-sell {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-sidebar-mode="sell">
-          <button type="button" class="sidebar-item active" data-nav-panel="sell-hunter" data-nav-mode="sell" title="Lead Hunter"><span class="sidebar-icon">⚡</span><span class="sidebar-label">Lead Hunter</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="sell-tracker" data-nav-mode="sell" title="Lead Tracker"><span class="sidebar-icon">👥</span><span class="sidebar-label">Lead Tracker</span><span class="sidebar-badge">{{ client_status_summary.total }}</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="sell-search" data-nav-mode="sell" title="Client Search"><span class="sidebar-icon">🎯</span><span class="sidebar-label">Client Search</span></button>
-          <button type="button" class="sidebar-item" data-nav-panel="sell-profile" data-nav-mode="sell" title="Profile &amp; Pitch"><span class="sidebar-icon">📄</span><span class="sidebar-label">Profile &amp; Pitch</span></button>
+          <button type="button" class="sidebar-item active" data-nav-panel="sell-hunter" data-nav-mode="sell" title="Lead Hunter"><span class="sidebar-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></span><span class="sidebar-label">Lead Hunter</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-tracker" data-nav-mode="sell" title="Lead Tracker"><span class="sidebar-icon"><svg class="icon"><use href="#tabler-users"/></svg></span><span class="sidebar-label">Lead Tracker</span><span class="sidebar-badge">{{ client_status_summary.total }}</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-search" data-nav-mode="sell" title="Client Search"><span class="sidebar-icon"><svg class="icon"><use href="#tabler-target"/></svg></span><span class="sidebar-label">Client Search</span></button>
+          <button type="button" class="sidebar-item" data-nav-panel="sell-profile" data-nav-mode="sell" title="Profile &amp; Pitch"><span class="sidebar-icon"><svg class="icon"><use href="#tabler-file-text"/></svg></span><span class="sidebar-label">Profile &amp; Pitch</span></button>
         </nav>
         <button type="button" class="sidebar-update-pill hidden" data-role="sidebar-update-pill" title="A new version is available">
           <span class="sidebar-update-dot"></span>
@@ -134,25 +137,25 @@
 
       <nav class="section-thumbnails {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-thumb-mode="job" aria-label="Job Search sections">
         <button type="button" class="section-thumb active" data-nav-panel="job-search" data-nav-mode="job">
-          <div class="section-thumb-head"><span class="section-thumb-icon">🔍</span><span class="section-thumb-heading">Search &amp; Match</span></div>
+          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-search"/></svg></span><span class="section-thumb-heading">Search &amp; Match</span></div>
           <div class="section-thumb-line"></div>
           <div class="section-thumb-line short"></div>
           <div class="section-thumb-label">Search &amp; Match</div>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="job-applications" data-nav-mode="job">
-          <div class="section-thumb-head"><span class="section-thumb-icon">📋</span><span class="section-thumb-heading">Applications</span></div>
+          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-clipboard-list"/></svg></span><span class="section-thumb-heading">Applications</span></div>
           <div class="section-thumb-line"></div>
           <div class="section-thumb-line short"></div>
           <div class="section-thumb-label">Applications</div>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="job-profile" data-nav-mode="job">
-          <div class="section-thumb-head"><span class="section-thumb-icon">📄</span><span class="section-thumb-heading">CV &amp; Profile</span></div>
+          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-file-text"/></svg></span><span class="section-thumb-heading">CV &amp; Profile</span></div>
           <div class="section-thumb-line"></div>
           <div class="section-thumb-line short"></div>
           <div class="section-thumb-label">CV &amp; Profile</div>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="job-links" data-nav-mode="job">
-          <div class="section-thumb-head"><span class="section-thumb-icon">🔗</span><span class="section-thumb-heading">Quick Links</span></div>
+          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-link"/></svg></span><span class="section-thumb-heading">Quick Links</span></div>
           <div class="section-thumb-line"></div>
           <div class="section-thumb-line short"></div>
           <div class="section-thumb-label">Quick Links</div>
@@ -161,25 +164,25 @@
 
       <nav class="section-thumbnails {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-thumb-mode="sell" aria-label="Sell Services sections">
         <button type="button" class="section-thumb active" data-nav-panel="sell-hunter" data-nav-mode="sell">
-          <div class="section-thumb-head"><span class="section-thumb-icon">⚡</span><span class="section-thumb-heading">Lead Hunter</span></div>
+          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></span><span class="section-thumb-heading">Lead Hunter</span></div>
           <div class="section-thumb-line"></div>
           <div class="section-thumb-line short"></div>
           <div class="section-thumb-label">Lead Hunter</div>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="sell-tracker" data-nav-mode="sell">
-          <div class="section-thumb-head"><span class="section-thumb-icon">👥</span><span class="section-thumb-heading">Lead Tracker</span></div>
+          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-users"/></svg></span><span class="section-thumb-heading">Lead Tracker</span></div>
           <div class="section-thumb-line"></div>
           <div class="section-thumb-line short"></div>
           <div class="section-thumb-label">Lead Tracker</div>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="sell-search" data-nav-mode="sell">
-          <div class="section-thumb-head"><span class="section-thumb-icon">🎯</span><span class="section-thumb-heading">Client Search</span></div>
+          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-target"/></svg></span><span class="section-thumb-heading">Client Search</span></div>
           <div class="section-thumb-line"></div>
           <div class="section-thumb-line short"></div>
           <div class="section-thumb-label">Client Search</div>
         </button>
         <button type="button" class="section-thumb" data-nav-panel="sell-profile" data-nav-mode="sell">
-          <div class="section-thumb-head"><span class="section-thumb-icon">📄</span><span class="section-thumb-heading">Profile &amp; Pitch</span></div>
+          <div class="section-thumb-head"><span class="section-thumb-icon"><svg class="icon"><use href="#tabler-file-text"/></svg></span><span class="section-thumb-heading">Profile &amp; Pitch</span></div>
           <div class="section-thumb-line"></div>
           <div class="section-thumb-line short"></div>
           <div class="section-thumb-label">Profile &amp; Pitch</div>
@@ -861,7 +864,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
     <span class="lh-badge">212+ PLATFORMS</span>
     <span class="lh-badge lh-badge-green">NEVER RE-HUNT</span>
     <span class="lh-badge">MULTI-EXPORT</span>
-    <button type="button" class="ghost-action" data-role="history-open" style="margin-left:8px">🕘 Hunt History</button>
+    <button type="button" class="ghost-action" data-role="history-open" style="margin-left:8px"><svg class="icon"><use href="#tabler-history"/></svg> Hunt History</button>
   </div>
 </div>
 
@@ -870,7 +873,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
   <div class="settings-box card" style="max-width:760px">
     <div class="settings-head">
       <h3>Hunt History</h3>
-      <button type="button" class="ghost-action" data-role="history-close">✕</button>
+      <button type="button" class="ghost-action" data-role="history-close"><svg class="icon"><use href="#tabler-x"/></svg></button>
     </div>
     <div class="settings-body">
       <p class="hint">Every past hunt — re-export any of them without re-running. All-time contact files (every unique contact ever hunted): <a href="/api/scrape/all-time/emails" download>emails_all_time.txt</a> · <a href="/api/scrape/all-time/whatsapp" download>whatsapp_all_time.txt</a></p>
@@ -965,9 +968,9 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
         <option value="100">100 km radius</option>
         <option value="200">200 km radius</option>
       </select>
-      <button type="button" class="lhb" id="lhp-map-toggle">🗺️ Pick on map</button>
+      <button type="button" class="lhb" id="lhp-map-toggle"><svg class="icon"><use href="#tabler-map-2"/></svg> Pick on map</button>
     </div>
-    <div class="lh-loc-chip hidden" id="lhp-loc-chip">📍 <span id="lhp-loc-chip-text"></span><button type="button" id="lhp-loc-clear" title="Clear location">✕</button></div>
+    <div class="lh-loc-chip hidden" id="lhp-loc-chip"><svg class="icon"><use href="#tabler-map-pin"/></svg> <span id="lhp-loc-chip-text"></span><button type="button" id="lhp-loc-clear" title="Clear location"><svg class="icon"><use href="#tabler-x"/></svg></button></div>
     <p class="hint hidden" id="lhp-places-loc-hint" style="color:#f59e0b;margin-top:6px">📍 Google Places source needs a country or city set above to search — it's currently skipped since location is empty.</p>
     <details class="lh-loc-places hidden" id="lhp-places-details">
       <summary id="lhp-places-summary">0 places in range ▾</summary>
@@ -980,22 +983,22 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
 <!-- Platform chips -->
 <div class="lh-chips">
   <span class="lh-chip-lbl">Platforms:</span>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="google" checked>🔍 Google</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="github" checked>💻 GitHub</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="reddit" checked>📖 Reddit</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="twitter" checked>🐦 Twitter/X</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="wahunt" checked>💬 WA Links</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="devto" checked>👨‍💻 Dev.to</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="medium" checked>📝 Medium</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="stackoverflow" checked>💡 StackOverflow</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="producthunt" checked>🚀 ProductHunt</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="indiehackers" checked>🏴 IndieHackers</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="behance" checked>🎨 Behance</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="telegram" checked>✈️ Telegram</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="facebook" checked>📘 FB Groups</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="youtube" checked>▶️ YouTube</label>
-  <label class="lh-chip active"><input type="checkbox" class="lhc" value="misc" checked>🌐 +200 More</label>
-  <label class="lh-chip active" title="Needs a Google Places API key in Settings — no-ops without one"><input type="checkbox" class="lhc" value="places" checked>📍 Google Places</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="google" checked><svg class="icon"><use href="#tabler-search"/></svg> Google</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="github" checked><svg class="icon"><use href="#tabler-brand-github"/></svg> GitHub</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="reddit" checked><svg class="icon"><use href="#tabler-brand-reddit"/></svg> Reddit</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="twitter" checked><svg class="icon"><use href="#tabler-brand-x"/></svg> Twitter/X</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="wahunt" checked><svg class="icon"><use href="#tabler-brand-whatsapp"/></svg> WA Links</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="devto" checked><svg class="icon"><use href="#tabler-code"/></svg> Dev.to</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="medium" checked><svg class="icon"><use href="#tabler-brand-medium"/></svg> Medium</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="stackoverflow" checked><svg class="icon"><use href="#tabler-brand-stackoverflow"/></svg> StackOverflow</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="producthunt" checked><svg class="icon"><use href="#tabler-rocket"/></svg> ProductHunt</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="indiehackers" checked><svg class="icon"><use href="#tabler-flag"/></svg> IndieHackers</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="behance" checked><svg class="icon"><use href="#tabler-palette"/></svg> Behance</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="telegram" checked><svg class="icon"><use href="#tabler-brand-telegram"/></svg> Telegram</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="facebook" checked><svg class="icon"><use href="#tabler-brand-facebook"/></svg> FB Groups</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="youtube" checked><svg class="icon"><use href="#tabler-brand-youtube"/></svg> YouTube</label>
+  <label class="lh-chip active"><input type="checkbox" class="lhc" value="misc" checked><svg class="icon"><use href="#tabler-world"/></svg> +200 More</label>
+  <label class="lh-chip active" title="Needs a Google Places API key in Settings — no-ops without one"><input type="checkbox" class="lhc" value="places" checked><svg class="icon"><use href="#tabler-map-pin"/></svg> Google Places</label>
 </div>
 
 <!-- Recovery banner: an unfinished/just-finished hunt survives a reload or
@@ -1003,16 +1006,16 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
      though the in-page LEADS array does not — offer to reload it. -->
 <div id="lhp-recover-bar" class="lh-export-bar" style="display:none;padding:12px 28px;border-bottom:1px solid var(--bd);gap:10px;align-items:center;flex-wrap:wrap;background:rgba(79,70,229,.08)">
   <span id="lhp-recover-text" style="font-size:12.5px;color:var(--tx,inherit)"></span>
-  <button class="lhb lhb-primary" onclick="lhpRecover()">↻ Recover contacts</button>
+  <button class="lhb lhb-primary" onclick="lhpRecover()"><svg class="icon"><use href="#tabler-refresh"/></svg> Recover contacts</button>
   <button class="lhb lhb-ghost" onclick="lhpDismissRecover()">Dismiss</button>
 </div>
 
 <!-- Action buttons -->
 <div class="lh-actions">
-  <button class="lhb lhb-primary" id="lhp-start" onclick="lhpGo()">🚀 Start Hunting</button>
-  <button class="lhb lhb-stop" id="lhp-stop" onclick="lhpHalt()" style="display:none">⏹ Stop</button>
+  <button class="lhb lhb-primary" id="lhp-start" onclick="lhpGo()"><svg class="icon"><use href="#tabler-rocket"/></svg> Start Hunting</button>
+  <button class="lhb lhb-stop" id="lhp-stop" onclick="lhpHalt()" style="display:none"><svg class="icon"><use href="#tabler-player-stop"/></svg> Stop</button>
   <div class="lh-export-wrap">
-    <button class="lhb lhb-green" id="lhp-xbtn" onclick="lhpToggleExport()" style="display:none">⬇ Export ▾</button>
+    <button class="lhb lhb-green" id="lhp-xbtn" onclick="lhpToggleExport()" style="display:none"><svg class="icon"><use href="#tabler-download"/></svg> Export ▾</button>
     <div class="lh-export-menu" id="lhp-xmenu">
       <div class="lh-export-item" onclick="lhpExport('csv')">📄 CSV (Excel, Google Sheets)</div>
       <div class="lh-export-item" onclick="lhpExport('xls')">📊 XLSX (Excel format)</div>
@@ -1022,19 +1025,19 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
       <div class="lh-export-item" onclick="lhpExport('html')">🌐 HTML contact cards</div>
     </div>
   </div>
-  <button class="lhb lhb-amber" onclick="lhpCopyEmails()">📋 Copy All Emails</button>
-  <button class="lhb lhb-ghost" onclick="lhpCopyWA()">💬 Copy All WA Nums</button>
-  <button class="lhb lhb-ghost" onclick="lhpClear()">🗑 Clear</button>
+  <button class="lhb lhb-amber" onclick="lhpCopyEmails()"><svg class="icon"><use href="#tabler-clipboard-list"/></svg> Copy All Emails</button>
+  <button class="lhb lhb-ghost" onclick="lhpCopyWA()"><svg class="icon"><use href="#tabler-brand-whatsapp"/></svg> Copy All WA Nums</button>
+  <button class="lhb lhb-ghost" onclick="lhpClear()"><svg class="icon"><use href="#tabler-trash"/></svg> Clear</button>
 </div>
 
 <div class="lh-export-bar" id="lhp-export-bar" style="display:none;padding:12px 28px;border-bottom:1px solid var(--bd);gap:8px;flex-wrap:wrap">
   <span class="lh-chip-lbl" style="margin-right:4px">Export:</span>
-  <button class="lhb lhb-ghost" onclick="lhpExport('csv')">📄 CSV</button>
-  <button class="lhb lhb-ghost" onclick="lhpExport('xls')">📊 XLSX</button>
-  <button class="lhb lhb-ghost" onclick="lhpExport('json')">🔧 JSON</button>
-  <button class="lhb lhb-ghost" onclick="lhpExport('txt_email')">📋 Emails.txt</button>
-  <button class="lhb lhb-ghost" onclick="lhpExport('txt_wa')">💬 WA.txt</button>
-  <button class="lhb lhb-ghost" onclick="lhpExport('html')">🌐 HTML</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('csv')"><svg class="icon"><use href="#tabler-file-text"/></svg> CSV</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('xls')"><svg class="icon"><use href="#tabler-table-export"/></svg> XLSX</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('json')"><svg class="icon"><use href="#tabler-braces"/></svg> JSON</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('txt_email')"><svg class="icon"><use href="#tabler-clipboard-list"/></svg> Emails.txt</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('txt_wa')"><svg class="icon"><use href="#tabler-brand-whatsapp"/></svg> WA.txt</button>
+  <button class="lhb lhb-ghost" onclick="lhpExport('html')"><svg class="icon"><use href="#tabler-world"/></svg> HTML</button>
 </div>
 
 <!-- Progress -->
@@ -2209,7 +2212,7 @@ document.addEventListener('click',e=>{
         <div class="tracker-modal-panel">
           <div class="tracker-modal-head">
             <h3>Add lead</h3>
-            <button type="button" class="tracker-modal-close" onclick="document.getElementById('tracker-add-modal').style.display='none'">✕</button>
+            <button type="button" class="tracker-modal-close" onclick="document.getElementById('tracker-add-modal').style.display='none'"><svg class="icon"><use href="#tabler-x"/></svg></button>
           </div>
           <form action="/dashboard/client-leads" method="post" class="stack-form">
             <input type="hidden" name="candidate_id" value="{{ selected.id }}" />
@@ -2267,22 +2270,22 @@ document.addEventListener('click',e=>{
     </div>
 
     <div class="mobile-mode-bar" data-role="mobile-mode-bar">
-      <button type="button" class="mobile-mode-btn {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="job">🔍 Job Search</button>
-      <button type="button" class="mobile-mode-btn {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="sell">⚡ Sell &amp; Lead Hunter</button>
+      <button type="button" class="mobile-mode-btn {% if active_ui_mode != 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="job"><svg class="icon"><use href="#tabler-search"/></svg> Job Search</button>
+      <button type="button" class="mobile-mode-btn {% if active_ui_mode == 'sell' %}active{% endif %}" data-role="mode-toggle" data-mode="sell"><svg class="icon"><use href="#tabler-bolt"/></svg> Sell &amp; Lead Hunter</button>
     </div>
 
     <nav class="mobile-nav" data-role="mobile-nav">
       <div class="mobile-nav-job {% if active_ui_mode == 'sell' %}hidden{% endif %}" data-mobile-mode="job">
-        <button type="button" class="mobile-nav-item active" data-nav-panel="job-search" data-nav-mode="job">🔍<span>Search</span></button>
-        <button type="button" class="mobile-nav-item" data-nav-panel="job-applications" data-nav-mode="job">📋<span>Apps</span></button>
-        <button type="button" class="mobile-nav-item" data-nav-panel="job-profile" data-nav-mode="job">📄<span>CV</span></button>
-        <button type="button" class="mobile-nav-item" data-nav-panel="job-links" data-nav-mode="job">🔗<span>Links</span></button>
+        <button type="button" class="mobile-nav-item active" data-nav-panel="job-search" data-nav-mode="job"><svg class="icon"><use href="#tabler-search"/></svg><span>Search</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="job-applications" data-nav-mode="job"><svg class="icon"><use href="#tabler-clipboard-list"/></svg><span>Apps</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="job-profile" data-nav-mode="job"><svg class="icon"><use href="#tabler-file-text"/></svg><span>CV</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="job-links" data-nav-mode="job"><svg class="icon"><use href="#tabler-link"/></svg><span>Links</span></button>
       </div>
       <div class="mobile-nav-sell {% if active_ui_mode != 'sell' %}hidden{% endif %}" data-mobile-mode="sell">
-        <button type="button" class="mobile-nav-item active" data-nav-panel="sell-hunter" data-nav-mode="sell">⚡<span>Hunt</span></button>
-        <button type="button" class="mobile-nav-item" data-nav-panel="sell-tracker" data-nav-mode="sell">👥<span>Leads</span></button>
-        <button type="button" class="mobile-nav-item" data-nav-panel="sell-search" data-nav-mode="sell">🎯<span>Search</span></button>
-        <button type="button" class="mobile-nav-item" data-nav-panel="sell-profile" data-nav-mode="sell">📄<span>Pitch</span></button>
+        <button type="button" class="mobile-nav-item active" data-nav-panel="sell-hunter" data-nav-mode="sell"><svg class="icon"><use href="#tabler-bolt"/></svg><span>Hunt</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="sell-tracker" data-nav-mode="sell"><svg class="icon"><use href="#tabler-users"/></svg><span>Leads</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="sell-search" data-nav-mode="sell"><svg class="icon"><use href="#tabler-target"/></svg><span>Search</span></button>
+        <button type="button" class="mobile-nav-item" data-nav-panel="sell-profile" data-nav-mode="sell"><svg class="icon"><use href="#tabler-file-text"/></svg><span>Pitch</span></button>
       </div>
     </nav>
   </div>
@@ -2307,7 +2310,7 @@ document.addEventListener('click',e=>{
     <div class="settings-box card">
       <div class="settings-head">
         <h3>Settings</h3>
-        <button type="button" class="ghost-action" data-role="settings-close">✕</button>
+        <button type="button" class="ghost-action" data-role="settings-close"><svg class="icon"><use href="#tabler-x"/></svg></button>
       </div>
       <div class="settings-body">
         <p class="hint">Active profile: {% if selected %}{{ selected.full_name }}{% else %}None selected{% endif %}</p>

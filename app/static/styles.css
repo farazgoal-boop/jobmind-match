@@ -3140,6 +3140,19 @@ html.is-mobile-app .mode-shell[data-mode-panel="sell"] .panel.active {
   margin-bottom: 16px;
 }
 
+/* Tabler Icons sprite (dashboard.html <body>). Default size/stroke matches
+   Tabler's own 24x24/2px source; `.icon` sizes it to the surrounding text by
+   default (1em) so it drops into any existing emoji slot without per-usage
+   sizing, and inherits color via stroke="currentColor" set in the sprite. */
+.icon {
+  width: 1em;
+  height: 1em;
+  stroke: currentColor;
+  fill: none;
+  vertical-align: -0.15em;
+  flex-shrink: 0;
+}
+
 .key-get-link {
   display: inline-flex;
   align-items: center;
