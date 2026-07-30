@@ -738,7 +738,7 @@
 .lh-loc-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--mt);margin-top:2px}
 .lh-conf-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;letter-spacing:.3px;margin-top:2px;padding:1px 6px;border-radius:99px;text-transform:uppercase}
 .lh-conf-high{color:#10b981;background:rgba(16,185,129,.12)}
-.lh-conf-medium{color:#f59e0b;background:rgba(245,158,11,.12)}
+.lh-conf-medium{color:var(--a);background:rgba(245,158,11,.12)}
 .lh-loc-places{margin-top:8px}
 .lh-loc-places>summary{font-size:11px;color:var(--mt);cursor:pointer;list-style:none;user-select:none}
 .lh-loc-places>summary:hover{color:var(--p3)}
@@ -891,7 +891,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
         <div class="lh-stat"><div class="lh-sn" id="ph-high">0</div><div class="lh-sl">High confidence</div></div>
         <div class="lh-stat"><div class="lh-sn" id="ph-medium">0</div><div class="lh-sl">Medium confidence</div></div>
       </div>
-      <p id="history-status" class="hint" style="color:#f59e0b"></p>
+      <p id="history-status" class="hint" style="color:var(--a)"></p>
       <div class="lh-tscroll" style="max-height:50vh">
         <table class="lht" id="history-table">
           <thead>
@@ -978,7 +978,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
       <button type="button" class="lhb" id="lhp-map-toggle"><svg class="icon"><use href="#tabler-map-2"/></svg> Pick on map</button>
     </div>
     <div class="lh-loc-chip hidden" id="lhp-loc-chip"><svg class="icon"><use href="#tabler-map-pin"/></svg> <span id="lhp-loc-chip-text"></span><button type="button" id="lhp-loc-clear" title="Clear location"><svg class="icon"><use href="#tabler-x"/></svg></button></div>
-    <p class="hint hidden" id="lhp-places-loc-hint" style="color:#f59e0b;margin-top:6px">📍 Google Places source needs a country or city set above to search — it's currently skipped since location is empty.</p>
+    <p class="hint hidden" id="lhp-places-loc-hint" style="color:var(--a);margin-top:6px">📍 Google Places source needs a country or city set above to search — it's currently skipped since location is empty.</p>
     <details class="lh-loc-places hidden" id="lhp-places-details">
       <summary id="lhp-places-summary">0 places in range ▾</summary>
       <div class="lh-loc-places-list" id="lhp-places-list"></div>
@@ -2320,7 +2320,7 @@ document.addEventListener('click',e=>{
       <div class="settings-body">
         <p class="hint">Enter your Gumroad lifetime license key (1 PC). Find it in your Gumroad purchase email.</p>
         <input type="text" id="license-key-input" placeholder="XXXX-XXXX-XXXX-XXXX" style="width:100%;margin:12px 0;font-family:JetBrains Mono,monospace" />
-        <p id="license-msg" class="hint" style="color:#f59e0b"></p>
+        <p id="license-msg" class="hint" style="color:var(--amber)"></p>
         <button type="button" id="license-activate-btn" class="ghost-action" style="width:100%;background:linear-gradient(135deg,#4f46e5,#3525cd);color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer">Activate License</button>
       </div>
     </div>
@@ -2417,7 +2417,7 @@ document.addEventListener('click',e=>{
         const res=await fetch('/api/license/activate',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
         const data=await res.json();
         if(data.ok){msg.style.color='#10b981';msg.textContent=data.message;window.toast('License activated','ok');setTimeout(hide,1200);}
-        else{msg.style.color='#f59e0b';msg.textContent=data.message||'Activation failed.';window.toast(data.message||'Activation failed','er');}
+        else{msg.style.color='var(--amber)';msg.textContent=data.message||'Activation failed.';window.toast(data.message||'Activation failed','er');}
       }catch(e){msg.textContent='Network error — try again.';}
       btn.disabled=false;
     });
@@ -2500,7 +2500,7 @@ document.addEventListener('click',e=>{
           btn.addEventListener('click',()=>downloadExport(btn.dataset.sid, btn.dataset.fmt, btn.dataset.fmt, btn));
         });
       }catch(e){
-        tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#f59e0b;padding:20px">Could not load hunt history</td></tr>';
+        tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--a);padding:20px">Could not load hunt history</td></tr>';
       }
     }
     openBtn.addEventListener('click',()=>{show();load();});
@@ -2532,7 +2532,7 @@ document.addEventListener('click',e=>{
         ghStatus.style.color='#10b981';
         ghStatus.textContent=data.configured?`Saved: ${data.masked} — hunts use 5,000/hr limit.`:'Token cleared — hunts use the unauthenticated 60/hr limit.';
         window.toast(data.configured?'GitHub token saved':'GitHub token cleared','ok');
-      }catch(e){ghStatus.style.color='#f59e0b';ghStatus.textContent='Network error — try again.';window.toast('Could not save GitHub token','er');}
+      }catch(e){ghStatus.style.color='var(--amber)';ghStatus.textContent='Network error — try again.';window.toast('Could not save GitHub token','er');}
       ghBtn.disabled=false;
     });
     refresh();
@@ -2578,7 +2578,7 @@ document.addEventListener('click',e=>{
         pkStatus.textContent=data.configured?`Saved: ${data.masked} — Google Places source active.`:'Key cleared — Google Places source unavailable.';
         refreshUsage();
         window.toast(data.configured?'Places API key saved':'Places API key cleared','ok');
-      }catch(e){pkStatus.style.color='#f59e0b';pkStatus.textContent='Network error — try again.';window.toast('Could not save Places API key','er');}
+      }catch(e){pkStatus.style.color='var(--amber)';pkStatus.textContent='Network error — try again.';window.toast('Could not save Places API key','er');}
       pkBtn.disabled=false;
     });
     refresh();
@@ -2614,7 +2614,7 @@ document.addEventListener('click',e=>{
         const res=await fetch('/api/scrape/auto-hunt',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
         render(await res.json());
         window.toast('Auto-Hunt settings saved','ok');
-      }catch(e){ahStatus.style.color='#f59e0b';ahStatus.textContent='Network error — try again.';window.toast('Could not save Auto-Hunt settings','er');}
+      }catch(e){ahStatus.style.color='var(--amber)';ahStatus.textContent='Network error — try again.';window.toast('Could not save Auto-Hunt settings','er');}
       ahBtn.disabled=false;
     });
     refresh();

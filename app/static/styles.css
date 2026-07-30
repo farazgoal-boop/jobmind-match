@@ -76,6 +76,23 @@ html[data-theme="light"] {
   --text-secondary: #464555;
   --text-muted: #777587;
   --text-dim: #b0b8cc;
+  /* --accent3 (#a5b4fc, a light lavender tint meant for dark backgrounds)
+     had no light-theme override at all -- 1.99:1 on white, badly fails,
+     and it's used as real text color in 15+ places app-wide. Reuses
+     --accent's own value, same choice the (already-correct) contrast
+     theme override below made for the same reason. */
+  --accent3: #4f46e5;
+  /* #f59e0b (the dark-theme default, still used for --amber's own value
+     above) is 2.15:1 on white -- fails WCAG AA (4.5:1) badly. Real contrast
+     check (computed WCAG relative-luminance ratios, not eyeballed) across
+     all three themes found this as the one severe, actually-broken pair:
+     amber warning text was near-illegible on any light surface. #b45309
+     is 5.02:1 on white. */
+  --amber: #b45309;
+  /* Same failure, same reason: --green (2.28:1 on white) and --red
+     (3.76:1, below the 4.5:1 body-text threshold) were also unthemed. */
+  --green: #15803d;
+  --red: #dc2626;
   --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.07);
   --shadow-glow: 0 0 0 3px rgba(79, 70, 229, 0.15);
   --shadow-accent: 0 8px 24px rgba(79, 70, 229, 0.15);
@@ -99,6 +116,13 @@ html[data-theme="contrast"] {
   --accent2: #3525cd;
   --accent3: #4f46e5;
   --accent-strong: #000000;
+  /* Same real contrast failure as the light theme (see there), same fix,
+     one shade darker (#92400e, 7.09:1 on white) -- "high contrast" should
+     have the largest safety margin of the three themes, not the same
+     amber the other two use. */
+  --amber: #92400e;
+  --green: #166534;
+  --red: #991b1b;
   --shadow-card: none;
   --shadow-glow: 0 0 0 3px rgba(0, 0, 0, 0.3);
   --shadow-accent: none;
@@ -136,6 +160,20 @@ html[data-theme="light"] #lhp {
   --bd2: rgba(0, 0, 0, 0.14);
   --tx: #1a1d2e;
   --mt: #7e8799;
+  /* --p3 and --a were never themed here at all, unlike the rest of this
+     block -- same real contrast failures as --accent3/--amber above
+     (this panel keeps its own local copies of those same colors under
+     different short names), same fix. */
+  --p3: #4f46e5;
+  --a: #b45309;
+  /* .lh-wa-a (the WhatsApp number link in the results table) uses --wa as
+     real text color -- 1.98:1 on white, fails. #15803d is 5.02:1. */
+  --wa: #15803d;
+  /* --g2 (the hunt-log "success" line color, and .lh-cb's copied-state
+     color) is 1.74:1 on white -- the single worst failure found in this
+     whole check. Same fix as --green above. */
+  --g: #15803d;
+  --g2: #15803d;
 }
 
 /* Lead Hunter panel local variables — high-contrast theme */
@@ -148,6 +186,11 @@ html[data-theme="contrast"] #lhp {
   --bd2: #000000;
   --tx: #000000;
   --mt: #333333;
+  --p3: #4f46e5;
+  --a: #92400e;
+  --wa: #15803d;
+  --g: #166534;
+  --g2: #166534;
 }
 
 /* CV upload card — light theme (has its own hardcoded dark gradient) */
