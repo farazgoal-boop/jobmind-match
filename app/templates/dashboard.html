@@ -2329,15 +2329,17 @@ document.addEventListener('click',e=>{
         </div>
 
         <div class="update-section">
-          <p class="hint">GitHub Token (optional) — raises the Lead Hunter's GitHub rate limit from 60/hr to 5,000/hr. Get a free one at github.com/settings/tokens (no scopes needed, public read only).</p>
+          <p class="hint">GitHub Token (optional) — raises the Lead Hunter's GitHub rate limit from 60/hr to 5,000/hr (no scopes needed, public read only).</p>
           <input type="password" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="width:100%;margin:8px 0;font-family:JetBrains Mono,monospace" autocomplete="off" />
+          <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener" class="key-get-link">Get a free key →</a>
           <p id="gh-token-status" class="hint"></p>
           <button type="button" class="ghost-action" data-role="gh-token-save-btn">Save GitHub Token</button>
         </div>
 
         <div class="update-section">
-          <p class="hint">Google Places API Key (optional) — adds real local businesses as a Lead Hunter source (Text Search → Place Details website → the same wa.me/mailto crawl as every other source). Scoped to the free tier: 5,000 search calls + 5,000 details calls per month, tracked below. Calls that would exceed either free allowance are refused, not billed. Get a key at console.cloud.google.com.</p>
+          <p class="hint">Google Places API Key (optional) — adds real local businesses as a Lead Hunter source (Text Search → Place Details website → the same wa.me/mailto crawl as every other source). Scoped to the free tier: 5,000 search calls + 5,000 details calls per month, tracked below. Calls that would exceed either free allowance are refused, not billed.</p>
           <input type="password" id="places-key-input" placeholder="AIza..." style="width:100%;margin:8px 0;font-family:JetBrains Mono,monospace" autocomplete="off" />
+          <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" class="key-get-link">Get a free key →</a>
           <p id="places-key-status" class="hint"></p>
           <button type="button" class="ghost-action" data-role="places-key-save-btn">Save Places API Key</button>
           <p id="places-usage-status" class="hint" style="margin-top:10px"></p>

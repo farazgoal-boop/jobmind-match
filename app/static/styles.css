@@ -3140,6 +3140,21 @@ html.is-mobile-app .mode-shell[data-mode-panel="sell"] .panel.active {
   margin-bottom: 16px;
 }
 
+.key-get-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  margin: -2px 0 4px;
+}
+
+.key-get-link:hover {
+  text-decoration: underline;
+}
+
 .update-section {
   margin-top: 16px;
   padding-top: 16px;
