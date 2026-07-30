@@ -34,4 +34,4 @@ search, briefcase, settings, clipboard-list, file-text, link, bolt,
 users, target, history, x, map-2, brand-github, brand-reddit, brand-x,
 brand-whatsapp, code, brand-medium, brand-stackoverflow, rocket, flag,
 palette, brand-telegram, brand-facebook, world, map-pin, download, trash,
-table-export, braces, mail, brand-youtube, refresh, player-stop.
+table-export, braces, mail, brand-youtube, refresh, player-stop, check.
