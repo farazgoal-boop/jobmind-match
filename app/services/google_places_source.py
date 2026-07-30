@@ -96,20 +96,33 @@ def fetch_places_leads(session: Session, keywords: str, location: str) -> list[d
     (website_crawler.py) unchanged: this module never reads email/whatsapp
     off a webpage itself, it only finds the business + its website.
 
-    Refuses to run at all if: no API key is configured, no query can be
-    built (no keywords and no location — Places search requires at least
-    one), or making the call would exceed either SKU's free-tier
+    Refuses to run at all if: no API key is configured, no location is
+    given, or making the call would exceed either SKU's free-tier
     allowance this month. Every one of these is a silent empty return, by
     design — see _gh_rate_limit_message()'s sibling reasoning in web.py:
     an empty list here must not be confused with 'found nothing', so
     callers needing to distinguish should check get_usage()/get_places_api_key()
-    themselves before calling."""
+    themselves before calling.
+
+    Location is required, keywords are not — confirmed against a real hunt
+    (2026-07-30): running with "Any country" + no city produced a
+    keywords="" location="" call that silently no-op'd (0 leads, 0 API
+    calls, correctly no different from "nothing found"). Places is a real-
+    local-business search; a bare keyword with no place to search near
+    isn't the same kind of query Text/Nearby Search elsewhere in this app
+    run against (those don't need one), and returns geographically
+    meaningless results even when Google accepts it. Requiring location
+    specifically (not "keywords or location") makes that structural, not
+    just a documentation note the UI has to get right on its own — see the
+    location-empty hint next to the Places chip in dashboard.html."""
     api_key = get_places_api_key(session)
     if not api_key:
         return []
-    query = " ".join(part for part in (keywords.strip(), location.strip()) if part)
-    if not query:
+    location = location.strip()
+    if not location:
         return []
+    keywords = keywords.strip()
+    query = f"{keywords} {location}".strip() if keywords else location
 
     if would_exceed_free_tier(session, "search"):
         logger.warning("places: search call skipped — would exceed %s/month free tier", FREE_TIER_MONTHLY_LIMIT)

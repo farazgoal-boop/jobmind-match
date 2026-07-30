@@ -968,6 +968,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.04)}
       <button type="button" class="lhb" id="lhp-map-toggle">🗺️ Pick on map</button>
     </div>
     <div class="lh-loc-chip hidden" id="lhp-loc-chip">📍 <span id="lhp-loc-chip-text"></span><button type="button" id="lhp-loc-clear" title="Clear location">✕</button></div>
+    <p class="hint hidden" id="lhp-places-loc-hint" style="color:#f59e0b;margin-top:6px">📍 Google Places source needs a country or city set above to search — it's currently skipped since location is empty.</p>
     <details class="lh-loc-places hidden" id="lhp-places-details">
       <summary id="lhp-places-summary">0 places in range ▾</summary>
       <div class="lh-loc-places-list" id="lhp-places-list"></div>
@@ -1282,6 +1283,7 @@ function clearHuntLocation(){
   if(LHP_CIRCLE&&LHP_MAP){LHP_MAP.removeLayer(LHP_CIRCLE);LHP_CIRCLE=null;}
   updateLocChip();
   renderPlacesList();
+  updatePlacesLocHint();
 }
 
 function placeLhpMarker(lat,lon){
@@ -1325,10 +1327,20 @@ function initLhpMap(){
 
 document.getElementById('lhp-loc-clear')?.addEventListener('click',clearHuntLocation);
 
+function updatePlacesLocHint(){
+  const hint=document.getElementById('lhp-places-loc-hint');
+  if(!hint)return;
+  const placesChecked=document.querySelector('.lhc[value="places"]')?.checked;
+  const hasLocation=!!(document.getElementById('lhp-country')?.value||document.getElementById('lhp-city')?.value.trim());
+  hint.classList.toggle('hidden',!placesChecked||hasLocation);
+}
+document.querySelector('.lhc[value="places"]')?.addEventListener('change',updatePlacesLocHint);
+
 document.getElementById('lhp-country')?.addEventListener('change',(e)=>{
   HUNT_LOCATION.country=e.target.value;
   HUNT_LOCATION.display_name='';
   updateLocChip();
+  updatePlacesLocHint();
 });
 
 document.getElementById('lhp-radius')?.addEventListener('change',(e)=>{
@@ -1361,6 +1373,7 @@ document.getElementById('lhp-city')?.addEventListener('input',(e)=>{
   HUNT_LOCATION.city=q;
   HUNT_LOCATION.display_name='';
   updateLocChip();
+  updatePlacesLocHint();
   clearTimeout(LHP_CITY_DEBOUNCE);
   const suggestBox=document.getElementById('lhp-city-suggest');
   if(q.length<2){suggestBox.classList.add('hidden');suggestBox.innerHTML='';return;}
@@ -1752,6 +1765,7 @@ window.lhpDismissRecover=function(){
 
 loadRegistry();
 checkForRecoverableSession();
+updatePlacesLocHint();
 
 function toast(msg,cls='ok'){
   const el=document.getElementById('lht');

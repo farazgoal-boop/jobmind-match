@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import time
+from collections import deque
 from pathlib import Path
 from typing import Annotated, Optional
 
@@ -1537,6 +1538,38 @@ def _gh_rate_limit_message() -> str:
         "Add a GITHUB_TOKEN in Settings to raise this to 5000/hour."
     )
 
+# GitHub's Search API (/search/users, /search/repositories) has its own
+# 30 requests/minute limit (10/min unauthenticated) that a GITHUB_TOKEN does
+# NOT raise — it only raises the separate 60/hr -> 5,000/hr *core* limit
+# (per-profile /users/{login} lookups, README fetches, etc). With several
+# concurrent hunt lanes (see dashboard.html's LHP_CONCURRENCY / auto_hunt.py's
+# PLATFORMS_PER_TICK) each capable of hitting a search endpoint at once, 30/min
+# gets exceeded fast even with a token configured and every individual call
+# legitimate — confirmed against a real hunt run repeatedly rate-limited
+# despite a token being set. Shared across every thread hitting either search
+# endpoint, not per-source, since it's GitHub's own limit that's shared too.
+_GH_SEARCH_LOCK = threading.Lock()
+_GH_SEARCH_TIMESTAMPS: deque = deque()
+_GH_SEARCH_MAX_PER_MINUTE = 25
+
+
+def _throttle_github_search() -> None:
+    """Blocks the calling thread until a search-API slot is free, rather
+    than firing anyway and eating a 403 — a hunt paces itself instead of
+    repeatedly tripping the limit. Call this immediately before every
+    request to api.github.com/search/*."""
+    while True:
+        with _GH_SEARCH_LOCK:
+            now = time.monotonic()
+            while _GH_SEARCH_TIMESTAMPS and now - _GH_SEARCH_TIMESTAMPS[0] > 60:
+                _GH_SEARCH_TIMESTAMPS.popleft()
+            if len(_GH_SEARCH_TIMESTAMPS) < _GH_SEARCH_MAX_PER_MINUTE:
+                _GH_SEARCH_TIMESTAMPS.append(now)
+                return
+            wait_s = 60 - (now - _GH_SEARCH_TIMESTAMPS[0]) + 0.05
+        time.sleep(max(wait_s, 0.05))
+
+
 def _valid_email(e: str) -> bool:
     d = e.split('@')[-1].lower()
     tld = d.rsplit('.', 1)[-1]
@@ -1657,6 +1690,7 @@ def _fetch_github_profiles(keyword: str, page: int = 1) -> list[dict]:
     """GitHub user profiles with public emails — page support for 500+ results"""
     leads = []
     try:
+        _throttle_github_search()
         url = f"https://api.github.com/search/users?q={_req.utils.quote(keyword)}&per_page=30&page={page}"
         r = _req.get(url, headers=_gh_headers(), timeout=15)
     except Exception:
@@ -1742,6 +1776,7 @@ def _fetch_github_readme(keyword: str, page: int = 1) -> list[dict]:
     """Search GitHub READMEs for contact info"""
     leads = []
     try:
+        _throttle_github_search()
         q = f"{keyword} email in:readme"
         url = f"https://api.github.com/search/repositories?q={_req.utils.quote(q)}&per_page=20&sort=updated&page={page}"
         r = _req.get(url, headers=_gh_headers(), timeout=15)
@@ -1998,6 +2033,7 @@ def _fetch_github_jobs_rss() -> list[dict]:
     leads = []
     try:
         # GitHub explore feed
+        _throttle_github_search()
         r = _req.get(
             'https://api.github.com/search/issues?q=freelance+email+hire+label:hiring&sort=created&order=desc&per_page=30',
             headers=_gh_headers(),
