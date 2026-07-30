@@ -600,7 +600,7 @@
             <a href="{{ item.job.url }}" target="_blank" rel="noopener">Open Apply Page</a>
           </article>
           {% else %}
-          <p class="hint">No job matches yet. Select profile, upload CV, set your job filters, then run job search.</p>
+          <div class="empty-state"><svg class="icon"><use href="#tabler-search"/></svg><span>No job matches yet. Select profile, upload CV, set your job filters, then run job search.</span></div>
           {% endfor %}
         </div>
         </div>
@@ -671,7 +671,7 @@
             </form>
           </article>
           {% else %}
-          <p class="hint">No tracked applications yet. Save a job from Job Results to build your pipeline.</p>
+          <div class="empty-state"><svg class="icon"><use href="#tabler-clipboard-list"/></svg><span>No tracked applications yet. Save a job from Job Results to build your pipeline.</span></div>
           {% endfor %}
         </div>
       </section>
@@ -824,7 +824,8 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
 
 /* Empty */
 .lh-empty{padding:52px 20px;text-align:center;color:var(--mt)}
-.lh-empty-icon{font-size:44px;margin-bottom:14px}
+.lh-empty-icon{margin-bottom:14px}
+.lh-empty-icon .icon{width:44px;height:44px;color:var(--mt)}
 .lh-empty h3{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:8px}
 .lh-empty p{font-size:12px;max-width:420px;margin:0 auto;line-height:1.7}
 
@@ -1023,12 +1024,12 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
   <div class="lh-export-wrap">
     <button class="lhb lhb-green" id="lhp-xbtn" onclick="lhpToggleExport()" style="display:none"><svg class="icon"><use href="#tabler-download"/></svg> Export ▾</button>
     <div class="lh-export-menu" id="lhp-xmenu">
-      <div class="lh-export-item" onclick="lhpExport('csv')">📄 CSV (Excel, Google Sheets)</div>
-      <div class="lh-export-item" onclick="lhpExport('xls')">📊 XLSX (Excel format)</div>
-      <div class="lh-export-item" onclick="lhpExport('json')">🔧 JSON (for apps)</div>
-      <div class="lh-export-item" onclick="lhpExport('txt_email')">📋 TXT (emails only)</div>
-      <div class="lh-export-item" onclick="lhpExport('txt_wa')">💬 TXT (WhatsApp only)</div>
-      <div class="lh-export-item" onclick="lhpExport('html')">🌐 HTML contact cards</div>
+      <div class="lh-export-item" onclick="lhpExport('csv')"><svg class="icon"><use href="#tabler-file-text"/></svg> CSV (Excel, Google Sheets)</div>
+      <div class="lh-export-item" onclick="lhpExport('xls')"><svg class="icon"><use href="#tabler-table-export"/></svg> XLSX (Excel format)</div>
+      <div class="lh-export-item" onclick="lhpExport('json')"><svg class="icon"><use href="#tabler-braces"/></svg> JSON (for apps)</div>
+      <div class="lh-export-item" onclick="lhpExport('txt_email')"><svg class="icon"><use href="#tabler-clipboard-list"/></svg> TXT (emails only)</div>
+      <div class="lh-export-item" onclick="lhpExport('txt_wa')"><svg class="icon"><use href="#tabler-brand-whatsapp"/></svg> TXT (WhatsApp only)</div>
+      <div class="lh-export-item" onclick="lhpExport('html')"><svg class="icon"><use href="#tabler-world"/></svg> HTML contact cards</div>
     </div>
   </div>
   <button class="lhb lhb-amber" onclick="lhpCopyEmails()"><svg class="icon"><use href="#tabler-clipboard-list"/></svg> Copy All Emails</button>
@@ -1103,7 +1104,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
     <tbody id="lhp-tbody">
       <tr><td colspan="7">
         <div class="lh-empty">
-          <div class="lh-empty-icon">⚡</div>
+          <div class="lh-empty-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></div>
           <h3>Ready to Hunt Globally</h3>
           <p>212+ platforms: GitHub, Reddit, Dev.to, RSS job boards, marketplaces + more. Each email/WhatsApp is saved forever — never hunted twice. Export CSV, XLS, JSON, TXT or HTML.</p>
         </div>
@@ -1592,7 +1593,7 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
 function render(leads){
   const tb=document.getElementById('lhp-tbody');
   if(!leads.length){
-    tb.innerHTML=`<tr><td colspan="7"><div class="lh-empty"><div class="lh-empty-icon">⚡</div><h3>Ready to Hunt</h3><p>212+ platforms with permanent dedup — saved emails &amp; WhatsApp are never searched again. Click Start Hunting!</p></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="7"><div class="lh-empty"><div class="lh-empty-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></div><h3>Ready to Hunt</h3><p>212+ platforms with permanent dedup — saved emails &amp; WhatsApp are never searched again. Click Start Hunting!</p></div></td></tr>`;
     return;
   }
   tb.innerHTML=leads.map((l,i)=>`
@@ -1649,6 +1650,11 @@ async function lhpExport(fmt){
     blob=new Blob([LEADS.filter(l=>l.whatsapp).map(l=>l.whatsapp).join('\n')],{type:'text/plain'});
     ext='whatsapp.txt';
   }else if(fmt==='xls'){
+    // Only export format that's a real server round-trip (openpyxl builds
+    // the workbook) rather than an instant client-side Blob -- the only one
+    // that needs a loading toast at all, everything else finishes before a
+    // user could perceive a gap.
+    toast('Generating Excel file…','in');
     const payload=LEADS.map(l=>({name:l.name||'',designation:l.designation||'',email:l.email||'',whatsapp:l.whatsapp||'',source:l.source||'',url:l.url||'',notes:l.notes||''}));
     try{
       const res=await fetch(`/api/scrape/export?fmt=xlsx&filename=${encodeURIComponent(fname)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -2117,7 +2123,7 @@ document.addEventListener('click',e=>{
             </div>
           </article>
           {% else %}
-          <p class="hint">No client routes generated yet. Keep at least one selling channel selected and run client search again.</p>
+          <div class="empty-state"><svg class="icon"><use href="#tabler-target"/></svg><span>No client routes generated yet. Keep at least one selling channel selected and run client search again.</span></div>
           {% endfor %}
         </div>
         <div class="mode-note-box">
@@ -2194,7 +2200,7 @@ document.addEventListener('click',e=>{
             </form>
           </article>
           {% else %}
-          <p class="hint">No client leads yet — add one to start tracking.</p>
+          <div class="empty-state"><svg class="icon"><use href="#tabler-users"/></svg><span>No client leads yet — add one to start tracking.</span></div>
           {% endfor %}
         </div>
 
@@ -2378,8 +2384,14 @@ document.addEventListener('click',e=>{
     const input=document.getElementById('license-key-input');
     const msg=document.getElementById('license-msg');
     const btn=document.getElementById('license-activate-btn');
-    function show(){modal&&modal.classList.remove('hidden');}
-    function hide(){modal&&modal.classList.add('hidden');}
+    // .settings-modal's actual visibility rule is `.settings-modal:not(.open){display:none}`
+    // (styles.css) -- .hidden alone doesn't override it once removed, since
+    // that rule stops matching regardless of .hidden's own display:none.
+    // The working settings-toggle handler (app.js) toggles both classes
+    // together; this modal shares the settings-modal class so it needs the
+    // same pair or it silently never becomes visible.
+    function show(){modal&&modal.classList.add('open');modal&&modal.classList.remove('hidden');}
+    function hide(){modal&&modal.classList.remove('open');modal&&modal.classList.add('hidden');}
     async function check(){
       try{
         const res=await fetch('/api/license/status');
@@ -2411,15 +2423,18 @@ document.addEventListener('click',e=>{
     const openBtn=document.querySelector('[data-role="history-open"]');
     if(!modal||!tbody||!openBtn)return;
     function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-    function show(){modal.classList.remove('hidden');}
-    function hide(){modal.classList.add('hidden');}
+    // See the license-modal script above for why both classes are needed.
+    function show(){modal.classList.add('open');modal.classList.remove('hidden');}
+    function hide(){modal.classList.remove('open');modal.classList.add('hidden');}
     function fmtDate(iso){
       if(!iso)return '—';
       try{const d=new Date(iso);return d.toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});}catch(e){return iso;}
     }
     const statusEl=document.getElementById('history-status');
-    async function downloadExport(sessionId, fmt, label){
+    async function downloadExport(sessionId, fmt, label, btn){
       if(statusEl)statusEl.textContent='';
+      const prevHtml=btn?btn.innerHTML:null;
+      if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';}
       try{
         const res=await fetch(`/api/scrape/export?fmt=${fmt}&filename=hunt_${sessionId}&session_id=${sessionId}`,{method:'POST'});
         if(!res.ok)throw new Error('export failed');
@@ -2432,6 +2447,7 @@ document.addEventListener('click',e=>{
         a.click();
         URL.revokeObjectURL(a.href);
       }catch(e){if(statusEl)statusEl.textContent=`Export failed: ${label}`;}
+      finally{if(btn){btn.disabled=false;btn.innerHTML=prevHtml;}}
     }
     async function loadPoolHealth(){
       try{
@@ -2447,13 +2463,13 @@ document.addEventListener('click',e=>{
     }
     async function load(){
       loadPoolHealth();
-      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#6666a0;padding:20px">Loading…</td></tr>';
+      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px"><span class="spinner"></span> Loading…</td></tr>';
       try{
         const res=await fetch('/api/scrape/history');
         const data=await res.json();
         const sessions=data.sessions||[];
         if(!sessions.length){
-          tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#6666a0;padding:20px">No past hunts yet</td></tr>';
+          tbody.innerHTML='<tr><td colspan="7" style="padding:20px"><div class="empty-state" style="justify-content:center"><svg class="icon"><use href="#tabler-history"/></svg><span>No past hunts yet — run one from the Lead Hunter panel.</span></div></td></tr>';
           return;
         }
         tbody.innerHTML=sessions.map(s=>`
@@ -2472,7 +2488,7 @@ document.addEventListener('click',e=>{
             </td>
           </tr>`).join('');
         tbody.querySelectorAll('button[data-fmt]').forEach(btn=>{
-          btn.addEventListener('click',()=>downloadExport(btn.dataset.sid, btn.dataset.fmt, btn.dataset.fmt));
+          btn.addEventListener('click',()=>downloadExport(btn.dataset.sid, btn.dataset.fmt, btn.dataset.fmt, btn));
         });
       }catch(e){
         tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#f59e0b;padding:20px">Could not load hunt history</td></tr>';
