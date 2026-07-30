@@ -1462,13 +1462,16 @@ async function dncAdd(btn){
     const res=await fetch('/api/dnc/add',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
     if(res.ok){
       btn.textContent='🚫 Suppressed ✓';
+      toast('Added to do-not-contact list','ok');
     }else{
       btn.textContent=original;
       btn.disabled=false;
+      toast('Could not add to do-not-contact list','er');
     }
   }catch(e){
     btn.textContent=original;
     btn.disabled=false;
+    toast('Could not add to do-not-contact list','er');
   }
 }
 
@@ -1793,6 +1796,12 @@ function toast(msg,cls='ok'){
   el.classList.add('s');
   setTimeout(()=>el.classList.remove('s'),3000);
 }
+// The only toast implementation in the app (fixed position, 3 color
+// states, 3s auto-hide) -- exported so every other script block (Settings,
+// license activation, etc, each their own separate <script> tag/closure)
+// shares this same one instead of inventing their own inline-status-text
+// pattern for a transient "saved!" confirmation.
+window.toast=toast;
 
 // Chip toggle
 document.querySelectorAll('.lh-chip').forEach(chip=>{
@@ -2407,8 +2416,8 @@ document.addEventListener('click',e=>{
         const body=new URLSearchParams({key});
         const res=await fetch('/api/license/activate',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
         const data=await res.json();
-        if(data.ok){msg.style.color='#10b981';msg.textContent=data.message;setTimeout(hide,1200);}
-        else{msg.style.color='#f59e0b';msg.textContent=data.message||'Activation failed.';}
+        if(data.ok){msg.style.color='#10b981';msg.textContent=data.message;window.toast('License activated','ok');setTimeout(hide,1200);}
+        else{msg.style.color='#f59e0b';msg.textContent=data.message||'Activation failed.';window.toast(data.message||'Activation failed','er');}
       }catch(e){msg.textContent='Network error — try again.';}
       btn.disabled=false;
     });
@@ -2522,7 +2531,8 @@ document.addEventListener('click',e=>{
         ghInput.value='';
         ghStatus.style.color='#10b981';
         ghStatus.textContent=data.configured?`Saved: ${data.masked} — hunts use 5,000/hr limit.`:'Token cleared — hunts use the unauthenticated 60/hr limit.';
-      }catch(e){ghStatus.style.color='#f59e0b';ghStatus.textContent='Network error — try again.';}
+        window.toast(data.configured?'GitHub token saved':'GitHub token cleared','ok');
+      }catch(e){ghStatus.style.color='#f59e0b';ghStatus.textContent='Network error — try again.';window.toast('Could not save GitHub token','er');}
       ghBtn.disabled=false;
     });
     refresh();
@@ -2567,7 +2577,8 @@ document.addEventListener('click',e=>{
         pkStatus.style.color='#10b981';
         pkStatus.textContent=data.configured?`Saved: ${data.masked} — Google Places source active.`:'Key cleared — Google Places source unavailable.';
         refreshUsage();
-      }catch(e){pkStatus.style.color='#f59e0b';pkStatus.textContent='Network error — try again.';}
+        window.toast(data.configured?'Places API key saved':'Places API key cleared','ok');
+      }catch(e){pkStatus.style.color='#f59e0b';pkStatus.textContent='Network error — try again.';window.toast('Could not save Places API key','er');}
       pkBtn.disabled=false;
     });
     refresh();
@@ -2602,7 +2613,8 @@ document.addEventListener('click',e=>{
         const body=new URLSearchParams({enabled:ahEnabled.checked?'1':'0',interval_hours:String(ahInterval.value||4)});
         const res=await fetch('/api/scrape/auto-hunt',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
         render(await res.json());
-      }catch(e){ahStatus.style.color='#f59e0b';ahStatus.textContent='Network error — try again.';}
+        window.toast('Auto-Hunt settings saved','ok');
+      }catch(e){ahStatus.style.color='#f59e0b';ahStatus.textContent='Network error — try again.';window.toast('Could not save Auto-Hunt settings','er');}
       ahBtn.disabled=false;
     });
     refresh();
