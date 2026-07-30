@@ -30,6 +30,18 @@
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
+  /* Type scale: 4 tiers, not a size per component. h1/h2 already carried
+     these exact values (fluid clamp()s, unchanged here -- just named).
+     --text-caption absorbed what used to be five near-identical small-text
+     values (0.85/0.86/0.88/0.9/0.92rem, 17 declarations across styles.css,
+     all serving the same "small secondary text" role with no visible
+     distinction between them) onto the one already most established via
+     .hint, the most-used caption-role class in the app. */
+  --text-title: clamp(1.85rem, 4vw, 2.75rem);
+  --text-heading: clamp(1.35rem, 2.4vw, 1.85rem);
+  --text-body: 1rem;
+  --text-caption: 0.92rem;
+
   --radius-card: 8px;
   --radius-pill: 999px;
   --radius-input: 4px;
@@ -192,12 +204,12 @@ h6 {
 }
 
 h1 {
-  font-size: clamp(1.85rem, 4vw, 2.75rem);
+  font-size: var(--text-title);
   line-height: 1.12;
 }
 
 h2 {
-  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  font-size: var(--text-heading);
   line-height: 1.2;
 }
 
@@ -400,7 +412,7 @@ pre,
 }
 
 .section-thumb-icon {
-  font-size: 0.88rem;
+  font-size: var(--text-caption);
   line-height: 1;
   flex-shrink: 0;
 }
@@ -594,7 +606,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   color: var(--text-primary);
   text-decoration: none;
   font-family: var(--font-heading);
-  font-size: 0.88rem;
+  font-size: var(--text-caption);
   font-weight: 500;
   border: none;
   border-left: 2px solid transparent;
@@ -908,7 +920,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   border-radius: var(--radius-sm);
   color: var(--text-primary);
   text-decoration: none;
-  font-size: 0.88rem;
+  font-size: var(--text-caption);
   background: transparent;
   border: none;
   box-shadow: none;
@@ -1056,7 +1068,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 22px;
+  padding: 24px;
   box-shadow: var(--shadow-card);
   min-width: 0;
 }
@@ -1092,7 +1104,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
 
 .hint {
   color: var(--text-muted);
-  font-size: 0.92rem;
+  font-size: var(--text-caption);
 }
 
 /* Designed empty state for a populated-when-there's-data section that
@@ -1105,7 +1117,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   gap: 12px;
   padding: 16px;
   color: var(--text-muted);
-  font-size: 0.92rem;
+  font-size: var(--text-caption);
   background: var(--bg-surface2);
   border: 1px dashed var(--border);
   border-radius: var(--radius-card);
@@ -1145,7 +1157,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
 }
 
 .source {
-  font-size: 0.88rem;
+  font-size: var(--text-caption);
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
@@ -1351,7 +1363,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: var(--text-caption);
   line-height: 1;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
@@ -1439,7 +1451,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
 .mode-summary-card {
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-  padding: 18px;
+  padding: 16px;
   background: var(--bg-surface2);
   opacity: 0.55;
   transition:
@@ -1462,7 +1474,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
 
 .mode-summary-card p {
   color: var(--text-muted);
-  font-size: 0.92rem;
+  font-size: var(--text-caption);
 }
 
 /* --------------------------------------------------------------------------
@@ -1683,7 +1695,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
 .filter-panel-head p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: var(--text-caption);
 }
 
 .filter-grid {
@@ -1757,7 +1769,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   background: var(--bg-surface2);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  font-size: 0.86rem;
+  font-size: var(--text-caption);
   cursor: pointer;
   transition:
     border-color var(--transition-fast),
@@ -1837,7 +1849,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   flex: 1;
   text-align: left;
   color: var(--accent3);
-  font-size: 0.9rem;
+  font-size: var(--text-caption);
   font-weight: 600;
   opacity: 0;
   transition: opacity var(--transition-base);
@@ -1862,7 +1874,7 @@ html[data-theme="contrast"] .section-thumb.active .section-thumb-label {
   background: var(--bg-surface2);
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 0.86rem;
+  font-size: var(--text-caption);
   padding: 8px 14px;
   border-radius: var(--radius-pill);
   cursor: pointer;
@@ -1961,7 +1973,7 @@ textarea {
 
 input[type="file"] {
   padding: 8px;
-  font-size: 0.88rem;
+  font-size: var(--text-caption);
 }
 
 input[type="checkbox"],
@@ -2297,7 +2309,7 @@ button.success:hover:not(:disabled),
   background: rgba(99, 102, 241, 0.08);
   padding: 6px 10px;
   border-radius: var(--radius-sm);
-  font-size: 0.86rem;
+  font-size: var(--text-caption);
   font-weight: 600;
   overflow-wrap: anywhere;
   transition:
@@ -2356,7 +2368,7 @@ button.success:hover:not(:disabled),
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-surface2);
-  padding: 10px;
+  padding: 12px;
   text-align: center;
 }
 
@@ -2390,7 +2402,7 @@ button.success:hover:not(:disabled),
 }
 
 .tracker-row a {
-  font-size: 0.88rem;
+  font-size: var(--text-caption);
 }
 
 .btn-dnc {
@@ -2462,12 +2474,12 @@ button.success:hover:not(:disabled),
 }
 
 .insight-row strong {
-  font-size: 0.88rem;
+  font-size: var(--text-caption);
   color: var(--text-primary);
 }
 
 .insight-row span {
-  font-size: 0.86rem;
+  font-size: var(--text-caption);
   color: var(--text-muted);
 }
 
@@ -2518,7 +2530,7 @@ button.success:hover:not(:disabled),
   justify-content: space-between;
   margin-bottom: 20px;
 }
-.tracker-modal-head h3 { margin: 0; font-size: 16px; }
+.tracker-modal-head h3 { margin: 0; }
 .tracker-modal-close {
   background: none;
   border: none;
