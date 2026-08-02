@@ -2,6 +2,13 @@
 __pycache__/
 *.pyc
 .env
+# License signing private key must NEVER live in the repo. It's generated
+# by scripts/generate_license.py at ~/.jobmind-license-signing/ (outside
+# this tree entirely) -- these patterns are a defensive backstop only, in
+# case that path is ever overridden with --key-path into the project dir.
+.jobmind-license-signing/
+*private_key*.pem
+license_signing_key*
 jobmind.db
 jobmind.db-shm
 jobmind.db-wal

@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import base64
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -33,6 +34,21 @@ from app.services.license_crypto import (  # noqa: E402
 
 def default_key_path() -> Path:
     return Path.home() / ".jobmind-license-signing" / "private_key.pem"
+
+
+def default_ledger_path() -> Path:
+    return Path.home() / ".jobmind-license-signing" / "issued_licenses.log"
+
+
+def _record_issued_license(ledger_path: Path, customer_name: str, request_code: str, activation_code: str) -> None:
+    # Local-only record of who a key was issued to, for the seller's own
+    # reference (support, "did I already send this customer a key",
+    # eventual revocation lists) -- never read by the app itself, never
+    # shipped, lives next to the private key outside the repo.
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now(timezone.utc).isoformat()
+    with ledger_path.open("a", encoding="utf-8") as handle:
+        handle.write(f"{timestamp}\t{customer_name}\t{request_code}\t{activation_code}\n")
 
 
 def init_keys(key_path: Path) -> int:
@@ -65,7 +81,7 @@ def init_keys(key_path: Path) -> int:
     return 0
 
 
-def sign_request_code(key_path: Path, request_code: str) -> int:
+def sign_request_code(key_path: Path, ledger_path: Path, customer_name: str, request_code: str) -> int:
     if not key_path.exists():
         print(f"ERROR: no private key found at {key_path}")
         print("Run with --init-keys first.")
@@ -83,6 +99,7 @@ def sign_request_code(key_path: Path, request_code: str) -> int:
 
     signature = private_key.sign(normalized.encode("utf-8"))
     activation_code = format_activation_code(signature)
+    _record_issued_license(ledger_path, customer_name, request_code, activation_code)
     print(activation_code)
     return 0
 
@@ -90,6 +107,9 @@ def sign_request_code(key_path: Path, request_code: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="JobMind Match seller tool: sign a buyer's request code into an activation code."
+    )
+    parser.add_argument(
+        "customer_name", nargs="?", help="Customer name/email -- recorded in the local issued-licenses ledger only"
     )
     parser.add_argument(
         "request_code", nargs="?", help=f"Buyer request code ({REQUEST_PREFIX}-XXXXX-XXXXX-XXXX)"
@@ -100,18 +120,22 @@ def main() -> int:
     parser.add_argument(
         "--key-path", type=Path, default=None, help="Override the private key path (default: ~/.jobmind-license-signing/private_key.pem)"
     )
+    parser.add_argument(
+        "--ledger-path", type=Path, default=None, help="Override the issued-licenses ledger path (default: ~/.jobmind-license-signing/issued_licenses.log)"
+    )
     args = parser.parse_args()
 
     key_path = args.key_path or default_key_path()
+    ledger_path = args.ledger_path or default_ledger_path()
 
     if args.init_keys:
         return init_keys(key_path)
 
-    if not args.request_code:
+    if not args.customer_name or not args.request_code:
         parser.print_help()
         return 1
 
-    return sign_request_code(key_path, args.request_code)
+    return sign_request_code(key_path, ledger_path, args.customer_name, args.request_code)
 
 
 if __name__ == "__main__":
