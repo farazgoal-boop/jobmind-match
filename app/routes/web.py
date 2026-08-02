@@ -2566,11 +2566,11 @@ async def license_status_api(session: Annotated[Session, Depends(get_session)]):
 @router.post("/api/license/activate")
 async def license_activate_api(
     session: Annotated[Session, Depends(get_session)],
-    key: str = Form(default=""),
+    activation_code: str = Form(default=""),
 ):
     from app.services.license_service import activate_license
 
-    return JSONResponse(activate_license(session, key))
+    return JSONResponse(activate_license(session, activation_code))
 
 
 @router.get("/api/settings/github-token")

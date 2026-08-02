@@ -2289,13 +2289,18 @@ document.addEventListener('click',e=>{
 
   <div class="settings-modal hidden" data-role="license-modal" id="license-modal">
     <div class="settings-backdrop"></div>
-    <div class="settings-box card" style="max-width:420px">
+    <div class="settings-box card" style="max-width:460px">
       <div class="settings-head">
         <h3>Activate Premium License</h3>
       </div>
       <div class="settings-body">
-        <p class="hint">Enter your Gumroad lifetime license key (1 PC). Find it in your Gumroad purchase email.</p>
-        <input type="text" id="license-key-input" placeholder="XXXX-XXXX-XXXX-XXXX" style="width:100%;margin:12px 0;font-family:JetBrains Mono,monospace" />
+        <p class="hint">This computer's request code — send it to the seller to receive your activation code (one-time, bound to this PC).</p>
+        <div style="display:flex;gap:8px;margin:10px 0">
+          <input type="text" id="license-request-code" readonly style="flex:1;font-family:JetBrains Mono,monospace" />
+          <button type="button" id="license-copy-request-btn" class="ghost-action">Copy</button>
+        </div>
+        <p class="hint">Enter the activation code you received back.</p>
+        <input type="text" id="license-activation-input" placeholder="ACT-XXXXX-XXXXX-..." style="width:100%;margin:12px 0;font-family:JetBrains Mono,monospace" />
         <p id="license-msg" class="hint" style="color:var(--amber)"></p>
         <button type="button" id="license-activate-btn" class="ghost-action" style="width:100%;background:linear-gradient(135deg,#4f46e5,#3525cd);color:#fff;border:none;padding:12px;border-radius:8px;cursor:pointer">Activate License</button>
       </div>
@@ -2366,7 +2371,9 @@ document.addEventListener('click',e=>{
   <script>
   (function(){
     const modal=document.getElementById('license-modal');
-    const input=document.getElementById('license-key-input');
+    const requestCodeInput=document.getElementById('license-request-code');
+    const copyBtn=document.getElementById('license-copy-request-btn');
+    const input=document.getElementById('license-activation-input');
     const msg=document.getElementById('license-msg');
     const btn=document.getElementById('license-activate-btn');
     // .settings-modal's actual visibility rule is `.settings-modal:not(.open){display:none}`
@@ -2381,15 +2388,20 @@ document.addEventListener('click',e=>{
       try{
         const res=await fetch('/api/license/status');
         const data=await res.json();
+        if(requestCodeInput&&data.request_code)requestCodeInput.value=data.request_code;
         if(!data.activated)show();
       }catch(e){}
     }
+    copyBtn&&copyBtn.addEventListener('click',async()=>{
+      try{await navigator.clipboard.writeText(requestCodeInput.value);window.toast('Request code copied','ok');}
+      catch(e){requestCodeInput.select();}
+    });
     btn&&btn.addEventListener('click',async()=>{
-      const key=(input&&input.value||'').trim();
-      if(!key){msg.textContent='Enter your license key.';return;}
+      const activationCode=(input&&input.value||'').trim();
+      if(!activationCode){msg.textContent='Enter your activation code.';return;}
       btn.disabled=true;msg.textContent='Activating…';
       try{
-        const body=new URLSearchParams({key});
+        const body=new URLSearchParams({activation_code:activationCode});
         const res=await fetch('/api/license/activate',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
         const data=await res.json();
         if(data.ok){msg.style.color='#10b981';msg.textContent=data.message;window.toast('License activated','ok');setTimeout(hide,1200);}
