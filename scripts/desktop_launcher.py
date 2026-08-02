@@ -97,6 +97,12 @@ def start_server(root: Path) -> None:
     env = os.environ.copy()
     env["PYTHONPATH"] = str(root)
 
+    # Previously stdout/stderr went nowhere -- a real packaged-install test
+    # hit a one-off 500 from the dashboard on first launch, and there was
+    # no traceback anywhere to diagnose it from (uvicorn's own output was
+    # simply discarded). Append (not overwrite) so a crash's traceback
+    # survives across the next launch too, not just the one that hit it.
+    server_log = open(root / "server.log", "a", encoding="utf-8")
     subprocess.Popen(
         [
             str(python_bin),
@@ -113,6 +119,9 @@ def start_server(root: Path) -> None:
         cwd=str(root),
         env=env,
         creationflags=CREATE_NO_WINDOW,
+        stdout=server_log,
+        stderr=server_log,
+        stdin=subprocess.DEVNULL,
     )
 
 
