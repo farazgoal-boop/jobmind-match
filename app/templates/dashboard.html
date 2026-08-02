@@ -2288,7 +2288,7 @@ document.addEventListener('click',e=>{
   </div>
 
   <div class="settings-modal hidden" data-role="license-modal" id="license-modal">
-    <div class="settings-backdrop" data-role="license-close"></div>
+    <div class="settings-backdrop"></div>
     <div class="settings-box card" style="max-width:420px">
       <div class="settings-head">
         <h3>Activate Premium License</h3>
@@ -2397,7 +2397,10 @@ document.addEventListener('click',e=>{
       }catch(e){msg.textContent='Network error — try again.';}
       btn.disabled=false;
     });
-    document.querySelectorAll('[data-role=license-close]').forEach(el=>el.addEventListener('click',hide));
+    // No backdrop/close wiring here on purpose: this modal gates access to
+    // the whole app (Gumroad licensing) -- unlike the Settings modal, it
+    // must only ever close via a real successful activation (see hide()
+    // above, called only from the activate button's success branch).
     check();
   })();
   </script>
