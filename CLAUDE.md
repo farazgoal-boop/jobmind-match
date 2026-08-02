@@ -45,7 +45,13 @@ Single dashboard, two modes, one JS-driven panel system:
 
 ## Testing
 
-There is currently **no automated test suite** anywhere in `app/` (no `pytest`, no `tests/` dir — `requirements-dev.txt` only has `pyinstaller`). If you add tests, add `pytest`/`pytest-playwright` to `requirements-dev.txt` and a `tests/` directory at repo root; there's no existing convention to follow yet.
+There **is** a `pytest` suite at repo root `tests/` (43 tests as of this writing). Run it with `pytest` from repo root (config: `pytest.ini`, `testpaths = tests`); deps are in `requirements-dev.txt` (`pytest`, `httpx`).
+
+- `tests/conftest.py` points `DATABASE_URL` at a temp-file SQLite DB (set **before** any `app.*` import — `app/db.py` builds its engine as a module-level singleton at import time, so this must happen first) and calls `init_db()` once per test session (not per-test) — tests share one DB, so use unique data per test (e.g. unique emails) rather than relying on a clean slate.
+- Two fixtures: `db_session` (a `Session` on the app's engine) and `fresh_engine` (a brand-new engine pointed at the same DB file, for simulating "the process restarted" — used by the hunt-session-persistence/export-recovery tests).
+- Route tests use `with TestClient(app) as client:` — the `with` block matters, it's what fires the real startup/shutdown lifespan (`init_db()`, `start_scheduler()`); `start_scheduler()` only schedules cron/interval jobs, it doesn't run them within a test's lifetime, so this is safe.
+- Tests never hit real networks or the real `.env`: job-source fetchers are monkeypatched (see `test_routes_jobs.py`), and `license_service._env_path()` is monkeypatched to a `tmp_path` in `test_license_service.py`.
+- Not yet covered: `lead_hunter_engine.py`/`lead_hunter_registry.py`/`website_crawler.py`/`google_places_source.py`/`github_client.py`/`assisted_apply.py`/`notifier.py` beyond what `test_export_and_recovery.py` and `test_hunt_session_persistence.py` already exercise — these do real HTTP/SMTP work and would need mocked-network tests as a follow-up.
 
 ## Releases
 
