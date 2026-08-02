@@ -27,6 +27,17 @@ SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=lowest
 ArchitecturesInstallIn64BitMode=x64compatible
+; Belt-and-suspenders for the update flow: the app is supposed to have
+; already closed itself (see app/routes/web.py's install-update PID-wait
+; helper) before this installer ever runs, but a real packaged-install
+; test still hit "DeleteFile failed; code 5" once. CloseApplications lets
+; Inno use the Windows Restart Manager to detect + close JobMindMatch.exe
+; itself if it's somehow still holding the file open when Setup gets here.
+; (ForceCloseApplications isn't a recognized directive in this Inno Setup
+; 6.7.3 — Restart Manager's own close attempt below plus the PrepareToInstall
+; retry loop are the safety net instead.)
+CloseApplications=yes
+RestartApplications=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -54,6 +65,43 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDi
 Filename: "{app}\{#MyAppExeName}"; Parameters: "--quit"; Flags: runhidden waituntilterminated
 
 [Code]
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ExePath, ProbePath: String;
+  Attempts: Integer;
+  Unlocked: Boolean;
+begin
+  { Extra retry-wait directly in front of the file-copy step, on top of
+    CloseApplications/ForceCloseApplications above and the app's own
+    PID-wait helper: a real packaged-install test still hit "DeleteFile
+    failed; code 5" once. A plain read-open (AssignFile/Reset) would give
+    a false "unlocked" reading here — Windows lets a running .exe be
+    opened for shared read while it executes, it only denies delete/
+    rename/write, which is the actual DeleteFile failure mode being
+    guarded against. RenameFile exercises that same sharing restriction,
+    so a successful rename (immediately renamed back) is a true "the old
+    process has fully released this file" signal. Retries for ~5 seconds
+    instead of failing on the very first attempt like the automatic file
+    copy does in silent mode. }
+  Result := '';
+  ExePath := ExpandConstant('{app}\{#MyAppExeName}');
+  ProbePath := ExePath + '.lockcheck';
+  if FileExists(ExePath) then
+  begin
+    Attempts := 0;
+    Unlocked := False;
+    while (Attempts < 25) and (not Unlocked) do
+    begin
+      Unlocked := RenameFile(ExePath, ProbePath);
+      if Unlocked then
+        RenameFile(ProbePath, ExePath)
+      else
+        Sleep(200);
+      Attempts := Attempts + 1;
+    end;
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   ResultCode: Integer;

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 import asyncio
+import ctypes
 import csv
 import io
 import json
@@ -40,7 +41,7 @@ from app.services.source_registry import fetch_jobs_from_sources, free_sources_l
 logger = logging.getLogger("jobmind.leadhunter")
 
 router = APIRouter(tags=["web"])
-from app.paths import templates_dir
+from app.paths import app_root, templates_dir
 
 templates = Jinja2Templates(directory=str(templates_dir()))
 templates.env.globals["static_version"] = settings.asset_version
@@ -2773,6 +2774,63 @@ async def download_progress_api():
         return JSONResponse(dict(_update_download_state))
 
 
+def _resolve_close_target() -> tuple[int, str]:
+    """Which process/.exe the update flow must confirm closed before ever
+    touching the installer. Real packaged-install testing found this route
+    actually executes inside a *uvicorn child process*, spawned by the real
+    Windows launcher (scripts/desktop_launcher.py, a pywebview native-window
+    app) via `subprocess.Popen([bundled_python, "-m", "uvicorn", ...])` —
+    os.getpid()/sys.executable here name that child, never JobMindMatch.exe
+    itself, which stays running (blocked in webview.start()) holding the
+    real lock on its own .exe the whole time. That launcher now writes its
+    own PID to launcher.pid at startup for exactly this reason (see
+    write_launcher_pid/close_running_instance there) — prefer that target
+    when present. Falls back to this process's own PID/exe otherwise, which
+    is correct for the macOS/Linux onedir build (jobmind.spec + the root
+    desktop_launcher.py), where the launcher and the server are the same
+    single process, and is a safe default in any other environment lacking
+    the marker (e.g. running the dev server directly)."""
+    try:
+        launcher_pid = int((app_root() / "launcher.pid").read_text(encoding="utf-8").strip())
+        return launcher_pid, str(app_root() / "JobMindMatch.exe")
+    except (OSError, ValueError):
+        return os.getpid(), sys.executable
+
+
+def _close_window_owned_by(pid: int) -> None:
+    """PostMessage WM_CLOSE to the launcher's own "JobMind Match" pywebview
+    window (ported from close_window_owned_by in scripts/desktop_launcher.py
+    — same technique, needed here too because the wait-loop below only
+    waits for that process to exit, it never asks it to. Without this, an
+    update triggered from the dashboard would wait on the launcher's PID
+    forever: nothing else in this flow tells that separate process to
+    close its window, since (unlike the old single-process assumption)
+    os._exit(0) a few lines down only ends the uvicorn child this route
+    runs in, not the launcher."""
+    if sys.platform != "win32":
+        return
+    try:
+        WM_CLOSE = 0x0010
+        user32 = ctypes.windll.user32
+
+        @ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+        def _enum_cb(hwnd, _lparam):
+            length = user32.GetWindowTextLengthW(hwnd)
+            if length:
+                buf = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(hwnd, buf, length + 1)
+                if buf.value == "JobMind Match":
+                    owner_pid = ctypes.c_ulong()
+                    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner_pid))
+                    if owner_pid.value == pid:
+                        user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+            return True
+
+        user32.EnumWindows(_enum_cb, 0)
+    except Exception:
+        pass
+
+
 def _spawn_update_after_current_process_exits(installer_path: str) -> None:
     """Ported from MessageCannon Pro's update_checker.py, where launching the
     installer and closing the app at essentially the same moment (Popen +
@@ -2783,21 +2841,48 @@ def _spawn_update_after_current_process_exits(installer_path: str) -> None:
     checked for that failure, so it would have looked identical to a
     successful update while silently leaving the user on the old version.
 
-    Fix (same as MessageCannon's): spawn a detached helper that waits for
-    THIS process's own PID to fully exit — guaranteed by Windows' process
-    semantics, not a fixed sleep/guess — before it runs the installer at
-    all. installer/jobmind-match.iss uses PrivilegesRequired=lowest like
+    A first hardening pass here (poll for the PID to disappear instead of a
+    single fallible `Wait-Process` call, then separately poll for the .exe
+    to become exclusively-openable before ever touching the installer —
+    "confirmed closed", not "close requested") still weren't enough: see
+    _resolve_close_target — this route runs inside a different process than
+    the one that actually needs to be closed on the real Windows build.
+    installer/jobmind-match.iss uses PrivilegesRequired=lowest like
     MessageCannon's, so the same silent, unelevated re-run is safe here too.
     `CREATE_NEW_PROCESS_GROUP` alone (no `DETACHED_PROCESS`) is required —
     MessageCannon found DETACHED_PROCESS reliably prevented the helper from
     completing its job."""
-    pid = os.getpid()
+    pid, exe_path = _resolve_close_target()
+    if pid != os.getpid():
+        # Different process (the real launcher) -- ask it to close. When
+        # pid == os.getpid() (no launcher.pid marker found), this route's
+        # own os._exit(0) a moment later is what closes it instead; no
+        # window to close for that case.
+        _close_window_owned_by(pid)
     install_cmd = [installer_path, "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"]
-    escaped_path = install_cmd[0].replace("'", "''")
+    escaped_installer_path = install_cmd[0].replace("'", "''")
+    escaped_exe_path = exe_path.replace("'", "''")
     args_literal = ",".join(f"'{a}'" for a in install_cmd[1:])
     ps_script = (
-        f"Wait-Process -Id {pid} -ErrorAction SilentlyContinue; "
-        f"Start-Process -FilePath '{escaped_path}' -ArgumentList {args_literal}"
+        f"$targetPid = {pid}\n"
+        f"$exePath = '{escaped_exe_path}'\n"
+        "$processDeadline = (Get-Date).AddSeconds(30)\n"
+        "while ((Get-Date) -lt $processDeadline) {\n"
+        "    $proc = Get-Process -Id $targetPid -ErrorAction SilentlyContinue\n"
+        "    if (-not $proc) { break }\n"
+        "    Start-Sleep -Milliseconds 150\n"
+        "}\n"
+        "$fileDeadline = (Get-Date).AddSeconds(10)\n"
+        "while ((Get-Date) -lt $fileDeadline) {\n"
+        "    try {\n"
+        "        $stream = [System.IO.File]::Open($exePath, 'Open', 'ReadWrite', 'None')\n"
+        "        $stream.Close()\n"
+        "        break\n"
+        "    } catch {\n"
+        "        Start-Sleep -Milliseconds 200\n"
+        "    }\n"
+        "}\n"
+        f"Start-Process -FilePath '{escaped_installer_path}' -ArgumentList {args_literal}\n"
     )
     command = ["powershell.exe", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps_script]
     kwargs: dict = {}
@@ -2832,6 +2917,21 @@ async def install_update_api():
         # waits for this exit to complete before touching the installer, so
         # this delay is purely for the HTTP response, not installer safety.
         await asyncio.sleep(0.8)
+        os._exit(0)
+
+    asyncio.create_task(_shutdown_soon())
+    return JSONResponse({"ok": True})
+
+
+@router.post("/api/app/quit")
+async def quit_app_api():
+    """Graceful-close target for desktop_launcher.py's `--quit` (the Start
+    Menu "Quit" shortcut and the installer's [UninstallRun] step both invoke
+    it). No installer to spawn here, so the response-flush delay can be
+    short — the caller is the one polling for this process's PID to
+    actually disappear, same "confirm closed" pattern as the update flow."""
+    async def _shutdown_soon() -> None:
+        await asyncio.sleep(0.3)
         os._exit(0)
 
     asyncio.create_task(_shutdown_soon())

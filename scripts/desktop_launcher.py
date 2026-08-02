@@ -19,6 +19,7 @@ from pathlib import Path
 
 CREATE_NO_WINDOW = 0x08000000
 DASHBOARD_URL = "http://127.0.0.1:8000/dashboard"
+LAUNCHER_PID_FILENAME = "launcher.pid"
 
 
 def app_root() -> Path:
@@ -133,6 +134,109 @@ def stop_server() -> None:
         creationflags=CREATE_NO_WINDOW,
         check=False,
     )
+
+
+def launcher_pid_path(root: Path) -> Path:
+    return root / LAUNCHER_PID_FILENAME
+
+
+def write_launcher_pid(root: Path) -> None:
+    try:
+        launcher_pid_path(root).write_text(str(os.getpid()), encoding="utf-8")
+    except OSError:
+        pass
+
+
+def remove_launcher_pid(root: Path) -> None:
+    try:
+        launcher_pid_path(root).unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def read_launcher_pid(root: Path) -> int | None:
+    try:
+        return int(launcher_pid_path(root).read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return None
+
+
+def pid_is_running(pid: int) -> bool:
+    PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+    STILL_ACTIVE = 259
+    handle = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+    if not handle:
+        return False
+    try:
+        exit_code = ctypes.c_ulong()
+        if not ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+            return False
+        return exit_code.value == STILL_ACTIVE
+    finally:
+        ctypes.windll.kernel32.CloseHandle(handle)
+
+
+def close_window_owned_by(pid: int) -> None:
+    """PostMessage WM_CLOSE to any top-level window titled 'JobMind Match'
+    owned by the given PID. Generalizes close_starting_dialog(), which only
+    ever closed windows owned by ITS OWN process (fine for dismissing its
+    own startup dialog) — --quit and close_running_instance() below both
+    need to close a window owned by a DIFFERENT, already-running process."""
+    try:
+        WM_CLOSE = 0x0010
+        user32 = ctypes.windll.user32
+
+        @ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+        def _enum_cb(hwnd, _lparam):
+            length = user32.GetWindowTextLengthW(hwnd)
+            if length:
+                buf = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(hwnd, buf, length + 1)
+                if buf.value == "JobMind Match":
+                    owner_pid = ctypes.c_ulong()
+                    user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner_pid))
+                    if owner_pid.value == pid:
+                        user32.PostMessageW(hwnd, WM_CLOSE, 0, 0)
+            return True
+
+        user32.EnumWindows(_enum_cb, 0)
+    except Exception:
+        pass
+
+
+def close_running_instance(root: Path) -> None:
+    """Used by both --quit (Start Menu shortcut + [UninstallRun]) and the
+    update flow's PID-wait helper in app/routes/web.py. A real packaged
+    update still hit "DeleteFile failed; code 5" because the previous fix
+    only waited on the uvicorn child process's PID (the one actually
+    running the FastAPI route that triggered the update) — this process,
+    JobMindMatch.exe, stays alive the whole time blocked inside
+    webview.start() and holds the real lock on its own .exe. stop_server()
+    alone (the old --quit behavior) only killed the uvicorn child, never
+    this one. Closes the launcher's window first (graceful), waits for the
+    PID to actually disappear, and force-kills as a last resort so a caller
+    (uninstaller/updater) waiting on this never hangs forever."""
+    stop_server()
+
+    launcher_pid = read_launcher_pid(root)
+    if launcher_pid and pid_is_running(launcher_pid):
+        close_window_owned_by(launcher_pid)
+
+        deadline = time.time() + 15.0
+        while time.time() < deadline and pid_is_running(launcher_pid):
+            time.sleep(0.2)
+
+        if pid_is_running(launcher_pid):
+            subprocess.run(
+                ["taskkill", "/PID", str(launcher_pid), "/F"],
+                capture_output=True,
+                creationflags=CREATE_NO_WINDOW,
+            )
+            deadline = time.time() + 5.0
+            while time.time() < deadline and pid_is_running(launcher_pid):
+                time.sleep(0.2)
+
+    remove_launcher_pid(root)
 
 
 def show_info(message: str) -> None:
@@ -268,7 +372,7 @@ def main() -> int:
     log(root, "Launcher started")
 
     if len(sys.argv) > 1 and sys.argv[1] == "--quit":
-        stop_server()
+        close_running_instance(root)
         log(root, "Launcher quit")
         return 0
 
@@ -280,6 +384,8 @@ def main() -> int:
         )
         return 1
 
+    write_launcher_pid(root)
+
     try:
         start_server(root)
         log(root, "Server start requested")
@@ -289,6 +395,7 @@ def main() -> int:
             "JobMind Match is not fully installed.\n\n"
             "Please run the setup installer again."
         )
+        remove_launcher_pid(root)
         return 1
 
     if not server_up():
@@ -306,6 +413,7 @@ def main() -> int:
             "Try: Start Menu → Open JobMind (if app won't start)\n"
             "Or run setup\\OPEN_JOBMIND.bat from the install folder."
         )
+        remove_launcher_pid(root)
         return 1
 
     try:
@@ -316,11 +424,19 @@ def main() -> int:
         if not open_app_window(root):
             log(root, "UI open failed")
             show_error("JobMind Match could not open its window.")
+            remove_launcher_pid(root)
             return 1
+        # No persistent launcher process to track from here on (this
+        # process is about to exit but the server stays running for the
+        # browser tab) -- remove the marker so the update flow/--quit fall
+        # back to waiting on the uvicorn child instead of a PID that's
+        # about to become stale.
+        remove_launcher_pid(root)
         log(root, "Launcher finished successfully (browser fallback; server left running)")
         return 0
 
     stop_server()
+    remove_launcher_pid(root)
     log(root, "Server stopped after window close")
     log(root, "Launcher finished successfully")
     return 0
