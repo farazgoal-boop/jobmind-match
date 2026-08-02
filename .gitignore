@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 .env
 jobmind.db
+jobmind.db-shm
+jobmind.db-wal
+emails_all_time.txt
+whatsapp_all_time.txt
 write_test.txt
 .vscode/
 *.log
