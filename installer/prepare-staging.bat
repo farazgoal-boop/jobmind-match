@@ -8,8 +8,8 @@ echo.
 echo  Preparing clean staging folder for setup.exe...
 echo.
 
-if not exist "%ROOT%\dist\JobMindMatch.exe" (
-  echo [ERROR] Missing dist\JobMindMatch.exe
+if not exist "%ROOT%\dist\JobMindMatch\JobMindMatch.exe" (
+  echo [ERROR] Missing dist\JobMindMatch\JobMindMatch.exe - run scripts\build_desktop_exe.bat first.
   exit /b 1
 )
 
@@ -31,7 +31,11 @@ for /d /r "%STAGING%\app" %%D in (__pycache__) do @if exist "%%D" rmdir /s /q "%
 
 xcopy /E /I /Y "%ROOT%\installer\runtime\python" "%STAGING%\runtime\python" >nul
 xcopy /E /I /Y "%ROOT%\setup" "%STAGING%\setup" >nul
-copy /Y "%ROOT%\dist\JobMindMatch.exe" "%STAGING%\" >nul
+REM onedir build: dist\JobMindMatch\ is a folder (JobMindMatch.exe plus its
+REM _internal\ support files), not a single exe -- copy the whole folder's
+REM contents into the staging root so JobMindMatch.exe lands at the same
+REM {app}\JobMindMatch.exe path the installer/shortcuts already expect.
+xcopy /E /I /Y "%ROOT%\dist\JobMindMatch\*" "%STAGING%\" >nul
 copy /Y "%ROOT%\VERSION" "%STAGING%\" >nul
 copy /Y "%ROOT%\requirements.txt" "%STAGING%\" >nul
 copy /Y "%ROOT%\.env.example" "%STAGING%\" >nul

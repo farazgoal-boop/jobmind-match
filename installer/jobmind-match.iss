@@ -53,6 +53,13 @@ Type: filesandordirs; Name: "{app}\app"
 Type: filesandordirs; Name: "{app}\setup"
 Type: filesandordirs; Name: "{app}\scripts"
 Type: filesandordirs; Name: "{app}\runtime"
+; onedir build (switched from --onefile to eliminate the per-launch
+; self-extraction that raced Windows Defender's scan and intermittently
+; failed with "Failed to load Python DLL"): JobMindMatch.exe now ships
+; alongside a PyInstaller _internal\ support folder whose exact file set
+; can change between builds -- wipe it like runtime\ above so an upgrade
+; never leaves an orphaned DLL from a previous version behind.
+Type: filesandordirs; Name: "{app}\_internal"
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\app\static\icon.ico"
