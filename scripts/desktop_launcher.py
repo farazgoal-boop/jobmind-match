@@ -328,6 +328,14 @@ def open_native_window(root: Path) -> None:
     stuck with nothing on screen."""
     import webview
 
+    # pywebview's WebView2 backend cancels every download (Content-Disposition
+    # response, <a download> click, blob URL, all of it) unless this is set --
+    # the default is False. Uncancelled, every "Export" button in the app
+    # silently did nothing: the frontend's success toast fires unconditionally
+    # right after triggering the browser-level download, with no signal that
+    # WebView2 immediately vetoed it. Must be set before webview.start().
+    webview.settings['ALLOW_DOWNLOADS'] = True
+
     icon_path = root / "app" / "static" / "icon.ico"
     webview.create_window(
         "JobMind Match",

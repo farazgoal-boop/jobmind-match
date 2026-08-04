@@ -1626,10 +1626,27 @@ async function lhpExport(fmt){
     blob=new Blob([JSON.stringify(LEADS,null,2)],{type:'application/json'});
     ext='json';
   }else if(fmt==='txt_email'){
-    blob=new Blob([LEADS.filter(l=>l.email).map(l=>l.email).join('\n')],{type:'text/plain'});
+    // "low" confidence = matches an obvious placeholder/example pattern
+    // (a@b.com, admin@gmail.com, ...) -- excluded so this stays safe to use
+    // for real outreach. Dedup guards against the rare case where two
+    // concurrent hunt lanes both surface the same contact into LEADS before
+    // either's registry write lands.
+    const seenE=new Set();
+    const emails=LEADS.filter(l=>l.email&&l.confidence!=='low').map(l=>l.email).filter(e=>{
+      const k=e.toLowerCase();
+      if(seenE.has(k))return false;
+      seenE.add(k);return true;
+    });
+    blob=new Blob([emails.join('\n')],{type:'text/plain'});
     ext='emails.txt';
   }else if(fmt==='txt_wa'){
-    blob=new Blob([LEADS.filter(l=>l.whatsapp).map(l=>l.whatsapp).join('\n')],{type:'text/plain'});
+    const E164=/^\+[1-9]\d{6,14}$/;
+    const seenW=new Set();
+    const nums=LEADS.filter(l=>l.whatsapp&&l.confidence!=='low'&&E164.test(l.whatsapp)).map(l=>l.whatsapp).filter(n=>{
+      if(seenW.has(n))return false;
+      seenW.add(n);return true;
+    });
+    blob=new Blob([nums.join('\n')],{type:'text/plain'});
     ext='whatsapp.txt';
   }else if(fmt==='xls'){
     // Only export format that's a real server round-trip (openpyxl builds

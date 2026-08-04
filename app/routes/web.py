@@ -1476,6 +1476,11 @@ from bs4 import BeautifulSoup
 import xml.etree.ElementTree as ET
 
 _EMAIL_RE = re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,7}')
+# Strict E.164: leading +, first digit 1-9 (no leading zero), 7-15 digits
+# total -- used to gate the "WhatsApp only" export down to numbers actually
+# safe to hand to wa.me/, not whatever _WA_RE's looser text-pattern regexes
+# above let through into the registry.
+_E164_RE = re.compile(r'^\+[1-9]\d{6,14}$')
 _WA_RE    = re.compile(
     r'wa\.me/(\d{7,15})'
     r'|whatsapp\.com/send\?phone=(\d{7,15})'
@@ -2991,17 +2996,39 @@ async def export_scraped_leads(
         )
 
     elif fmt == "txt_email":
-        emails = '\n'.join(l.get('email','') for l in leads if l.get('email'))
+        seen: set[str] = set()
+        emails: list[str] = []
+        for l in leads:
+            email = (l.get('email') or '').strip()
+            # "low" = matches an obvious placeholder/example pattern
+            # (is_placeholder_email) -- excluded so this list stays safe to
+            # hand off for real outreach.
+            if not email or l.get('confidence') == 'low':
+                continue
+            key = email.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            emails.append(email)
         return StreamingResponse(
-            iter([emails]),
+            iter(['\n'.join(emails)]),
             media_type='text/plain',
             headers={'Content-Disposition': f'attachment; filename="{fname}_emails.txt"'}
         )
 
     elif fmt == "txt_wa":
-        wa_nums = '\n'.join(l.get('whatsapp','') for l in leads if l.get('whatsapp'))
+        seen_wa: set[str] = set()
+        wa_list: list[str] = []
+        for l in leads:
+            wa = (l.get('whatsapp') or '').strip()
+            if not wa or l.get('confidence') == 'low' or not _E164_RE.match(wa):
+                continue
+            if wa in seen_wa:
+                continue
+            seen_wa.add(wa)
+            wa_list.append(wa)
         return StreamingResponse(
-            iter([wa_nums]),
+            iter(['\n'.join(wa_list)]),
             media_type='text/plain',
             headers={'Content-Disposition': f'attachment; filename="{fname}_whatsapp.txt"'}
         )
