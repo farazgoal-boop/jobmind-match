@@ -41,6 +41,53 @@ def _append_all_time(email: str, whatsapp: str) -> None:
         logger.exception("registry: failed to append to all-time contact files")
 
 
+# Local-parts that show up constantly in blog posts, READMEs, and bios as
+# example/placeholder text rather than a real person's address — syntax- and
+# MX-valid (the domain is genuine), but obviously not a contactable person.
+# Only flagged on a generic free-mail domain: "admin@company.com" or
+# "contact@company.com" is often a real role account, but the same local
+# part on gmail.com/yahoo.com/etc is almost always leftover placeholder text.
+_PLACEHOLDER_LOCAL_PARTS = {
+    "example", "test", "admin", "user", "name", "email", "contact",
+    "your_email", "youremail", "someone", "info", "sample", "demo",
+    "yourname", "firstname", "lastname", "johndoe", "janedoe",
+    "test123", "email123", "noone", "nobody",
+}
+
+_FREE_MAIL_DOMAINS = {
+    "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com",
+    "aol.com", "protonmail.com", "live.com", "msn.com", "mail.com",
+    "yandex.com", "gmx.com", "zoho.com",
+}
+
+_SHORT_LETTERS = re.compile(r"^[a-z]{1,2}$")
+
+
+def is_placeholder_email(email: str) -> bool:
+    """True for obvious placeholder/example addresses that pass syntax and
+    MX checks (the domain is real) but are plainly not a real contact — e.g.
+    "a@b.com", "your_email@gmail.com", "admin@gmail.com". Deliberately a
+    pattern list, not exhaustive — pairs with the "low" confidence tier
+    rather than dropping matches outright, since some will be real people.
+
+    A short (1-2 letter) local-part is NOT flagged by itself — that's a
+    common, legitimate convention for people who own their own short domain
+    (m@morgante.net, k@kay.is, hn@turbines.io are all real addresses seen in
+    this registry). It's only a placeholder signal when the domain name is
+    *also* reduced to 1-2 letters ("a@b.com", "x@yz.com") — that combination
+    is the actual signature of hand-typed example text, not a real domain
+    owner's short address."""
+    local, _, domain = (email or "").strip().lower().partition("@")
+    if not local or not domain:
+        return False
+    sld = domain.split(".", 1)[0]
+    if _SHORT_LETTERS.match(local) and _SHORT_LETTERS.match(sld):
+        return True
+    if local in _PLACEHOLDER_LOCAL_PARTS and domain in _FREE_MAIL_DOMAINS:
+        return True
+    return False
+
+
 def _norm_email(value: str) -> str:
     return (value or "").strip().lower()
 
@@ -136,11 +183,16 @@ def register_leads(session: Session, leads: Iterable[dict], hunt_session_id: int
             if source and source not in seen:
                 seen.append(source)
                 existing.seen_sources = ",".join(seen)
-                if len(seen) >= 2:
+                # A junk placeholder address seen on 2 sources is still junk
+                # (both sightings are probably the same copy-pasted example
+                # text) — don't let cross-source confirmation launder it
+                # into "high".
+                if len(seen) >= 2 and not is_placeholder_email(existing.email):
                     existing.confidence = "high"
                 session.add(existing)
                 session.commit()
             continue
+        confidence = "low" if email and is_placeholder_email(email) else (lead.get("confidence") or "medium")
         session.add(
             HuntedContact(
                 email=email,
@@ -153,7 +205,7 @@ def register_leads(session: Session, leads: Iterable[dict], hunt_session_id: int
                 location=(lead.get("location") or "")[:120],
                 hunt_session_id=hunt_session_id,
                 hunted_at=datetime.utcnow(),
-                confidence=lead.get("confidence") or "medium",
+                confidence=confidence,
                 discovery_method=lead.get("discovery_method") or "text_pattern",
                 seen_sources=source,
             )
@@ -165,6 +217,30 @@ def register_leads(session: Session, leads: Iterable[dict], hunt_session_id: int
         # found so far must already be on disk.
         session.commit()
     return saved
+
+
+def reclassify_placeholder_confidence(session: Session, dry_run: bool = False) -> list[dict]:
+    """One-time cleanup pass: existing registry rows predate the placeholder
+    check in register_leads(), so this re-classifies any of them matching
+    is_placeholder_email() to "low" confidence. Never deletes rows — a
+    flagged contact might still be real, it's just marked as unverified/risky
+    rather than silently sitting at medium alongside genuinely good contacts.
+    Idempotent: re-running it after the first pass is a no-op (already-"low"
+    rows are skipped). Returns the list of rows changed (or, with
+    dry_run=True, that *would* change) as plain dicts for reporting."""
+    changed: list[dict] = []
+    rows = session.exec(select(HuntedContact)).all()
+    for row in rows:
+        if row.confidence == "low":
+            continue
+        if row.email and is_placeholder_email(row.email):
+            changed.append(_contact_to_dict(row))
+            if not dry_run:
+                row.confidence = "low"
+                session.add(row)
+    if not dry_run and changed:
+        session.commit()
+    return changed
 
 
 def registry_stats(session: Session) -> dict:
@@ -248,12 +324,14 @@ def pool_health(session: Session) -> dict:
     cutoff_7d = now - timedelta(days=7)
     cutoff_30d = now - timedelta(days=30)
     high = sum(1 for r in rows if r.confidence == "high")
+    low = sum(1 for r in rows if r.confidence == "low")
     return {
         "total": len(rows),
         "growth_7d": sum(1 for r in rows if r.hunted_at >= cutoff_7d),
         "growth_30d": sum(1 for r in rows if r.hunted_at >= cutoff_30d),
         "confidence_high": high,
-        "confidence_medium": len(rows) - high,
+        "confidence_medium": len(rows) - high - low,
+        "confidence_low": low,
         "emails": sum(1 for r in rows if r.email),
         "whatsapp": sum(1 for r in rows if r.whatsapp),
     }

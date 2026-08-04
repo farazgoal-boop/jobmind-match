@@ -10,6 +10,7 @@ from sqlmodel import Session
 
 from app.services.lead_hunter_registry import (
     filter_new_leads,
+    is_placeholder_email,
     load_dnc_keys,
     load_known_keys,
     register_leads,
@@ -274,10 +275,17 @@ def run_scrape_batch(
     # text) and stays "medium" here — register_leads() below separately
     # elevates a contact to "high" the moment it's confirmed by a 2nd
     # distinct source, regardless of how either sighting was found.
+    # Obvious placeholder/example emails (a@b.com, admin@gmail.com, etc.)
+    # override both of those — they pass syntax/MX checks but aren't a real
+    # contact, so they're capped at "low" rather than shown as medium/high
+    # alongside genuinely good contacts.
     for lead in raw_leads:
         method = lead.get("whatsapp_method") or lead.get("email_method") or "text_pattern"
         lead["discovery_method"] = method
-        lead["confidence"] = "high" if method in ("wa_me_link", "mailto_link") else "medium"
+        if lead.get("email") and is_placeholder_email(lead["email"]):
+            lead["confidence"] = "low"
+        else:
+            lead["confidence"] = "high" if method in ("wa_me_link", "mailto_link") else "medium"
 
     dnc_filtered = 0
     if raw_leads:

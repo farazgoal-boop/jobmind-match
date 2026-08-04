@@ -715,6 +715,7 @@
 .lh-conf-badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;letter-spacing:.3px;margin-top:2px;padding:1px 6px;border-radius:99px;text-transform:uppercase}
 .lh-conf-high{color:#10b981;background:rgba(16,185,129,.12)}
 .lh-conf-medium{color:var(--a);background:rgba(245,158,11,.12)}
+.lh-conf-low{color:#ef4444;background:rgba(239,68,68,.12)}
 .lh-loc-places{margin-top:8px}
 .lh-loc-places>summary{font-size:11px;color:var(--mt);cursor:pointer;list-style:none;user-select:none}
 .lh-loc-places>summary:hover{color:var(--p3)}
@@ -806,7 +807,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
 .lh-empty p{font-size:12px;max-width:420px;margin:0 auto;line-height:1.7}
 
 /* Toast */
-#lht{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+#lht{position:fixed;bottom:24px;right:24px;z-index:9999;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,.4);max-width:360px;line-height:1.45}
 #lht.s{opacity:1;transform:translateY(0)}
 #lht.ok{background:var(--g);color:#062919}
 #lht.er{background:var(--r);color:#fff}
@@ -866,6 +867,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
         <div class="lh-stat"><div class="lh-sn" id="ph-30d">0</div><div class="lh-sl">+ last 30 days</div></div>
         <div class="lh-stat"><div class="lh-sn" id="ph-high">0</div><div class="lh-sl">High confidence</div></div>
         <div class="lh-stat"><div class="lh-sn" id="ph-medium">0</div><div class="lh-sl">Medium confidence</div></div>
+        <div class="lh-stat"><div class="lh-sn" id="ph-low">0</div><div class="lh-sl">Low confidence</div></div>
       </div>
       <p id="history-status" class="hint" style="color:var(--a)"></p>
       <div class="lh-tscroll" style="max-height:50vh">
@@ -1055,10 +1057,11 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
     <option value="email">Email only</option>
     <option value="wa">WhatsApp only</option>
   </select>
-  <select id="lhp-fconf" onchange="lhpFilter()" title="High = found via a real wa.me/mailto link or confirmed by 2+ sources">
+  <select id="lhp-fconf" onchange="lhpFilter()" title="High = found via a real wa.me/mailto link or confirmed by 2+ sources. Low = matches an obvious placeholder/example pattern (a@b.com, admin@gmail.com, etc.)">
     <option value="">All Confidence</option>
     <option value="high">High confidence</option>
     <option value="medium">Medium confidence</option>
+    <option value="low">Low confidence</option>
   </select>
   <span class="lh-fbar-info" id="lhp-fcount" style="color:#6666a0;font-size:11px"></span>
 </div>
@@ -1592,7 +1595,7 @@ function render(leads){
         <svg width="12" height="12" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
         ${esc(l.whatsapp)}</a>`:'<span style="color:#6666a0;font-size:11px">—</span>'}</td>
       <td>${srcTag(l.source)}${l.location?`<div class="lh-loc-badge"><svg class="icon"><use href="#tabler-map-pin"/></svg> ${esc(l.location)}</div>`:''}
-        <span class="lh-conf-badge lh-conf-${esc(l.confidence||'medium')}" title="${l.confidence==='high'?'Found via a real wa.me/mailto link, or confirmed by 2+ sources':'Found via text-pattern match'}">${l.confidence==='high'?'● High':'○ Med'}</span></td>
+        <span class="lh-conf-badge lh-conf-${esc(l.confidence||'medium')}" title="${l.confidence==='high'?'Found via a real wa.me/mailto link, or confirmed by 2+ sources':l.confidence==='low'?'Matches an obvious placeholder/example pattern — verify before contacting':'Found via text-pattern match'}">${l.confidence==='high'?'● High':l.confidence==='low'?'▽ Low':'○ Med'}</span></td>
       <td style="white-space:nowrap">
         ${l.email?`<button class="lh-cb" onclick="lhCopy('${esc(l.email)}',this)" title="Copy email"><svg class="icon"><use href="#tabler-mail"/></svg></button> `:''}
         ${l.whatsapp?`<button class="lh-cb" onclick="lhCopy('${esc(l.whatsapp)}',this)" title="Copy WA"><svg class="icon"><use href="#tabler-brand-whatsapp"/></svg></button> `:''}
@@ -1607,7 +1610,7 @@ function render(leads){
 // server (openpyxl) instead of faking an HTML table with an .xls extension.
 async function lhpExport(fmt){
   document.getElementById('lhp-xmenu').classList.remove('open');
-  if(!LEADS.length){toast('No contacts!','er');return;}
+  if(!LEADS.length){toast('No new contacts from this hunt to export — they\'re likely already in your registry. Re-export a past hunt from Hunt History instead.','er',6000);return;}
   const fname=(document.getElementById('lhp-fname').value.trim()||'leads').replace(/[^\w\-]/g,'_');
   const ts=new Date().toISOString().slice(0,19).replace(/[-:T]/g,'');
   const base=`${fname}_${ts}`;
@@ -1761,7 +1764,7 @@ loadRegistry();
 checkForRecoverableSession();
 updatePlacesLocHint();
 
-function toast(msg,cls='ok'){
+function toast(msg,cls='ok',ms=3000){
   const el=document.getElementById('lht');
   el.textContent=msg;
   Object.assign(el.style,{
@@ -1770,7 +1773,7 @@ function toast(msg,cls='ok'){
     color:cls==='ok'?'#062919':'#fff'
   });
   el.classList.add('s');
-  setTimeout(()=>el.classList.remove('s'),3000);
+  setTimeout(()=>el.classList.remove('s'),ms);
 }
 // The only toast implementation in the app (fixed position, 3 color
 // states, 3s auto-hide) -- exported so every other script block (Settings,
@@ -2458,6 +2461,7 @@ document.addEventListener('click',e=>{
         document.getElementById('ph-30d').textContent=`+${d.growth_30d}`;
         document.getElementById('ph-high').textContent=d.confidence_high;
         document.getElementById('ph-medium').textContent=d.confidence_medium;
+        document.getElementById('ph-low').textContent=d.confidence_low;
         document.getElementById('pool-health-row').style.display='grid';
       }catch(e){}
     }
