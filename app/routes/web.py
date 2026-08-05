@@ -93,6 +93,20 @@ DEFAULT_PROFILE_SEED = {
     "sales_pitch": "I build practical Python, FastAPI, Flask, and automation systems for business workflows and software teams.",
 }
 
+# Set only in the developer's own local .env, never in .env.example and never
+# in a shipped/packaged build's .env -- lets the developer's own dashboard
+# start pre-filled with real testing data (name/email/CV text/social links)
+# instead of blank on a fresh DB. Mirrors license_service.py's
+# JOBMIND_DEV_SKIP_LICENSE. Without this opt-in (the default -- true for
+# every customer install, and for the developer's own machine unless
+# explicitly set), a fresh profile starts genuinely blank: shipping the
+# developer's real identity into a stranger's install is not acceptable for
+# a paid product. Also drops the old per-request backfill that silently
+# overwrote any blank portfolio_url/linkedin_url/upwork_url/fiverr_url with
+# the developer's own links on every dashboard load, even for an existing
+# customer profile.
+DEV_SEED_PROFILE_ENV_VAR = "JOBMIND_DEV_SEED_PROFILE"
+
 CLIENT_SEARCH_MODES = {"sell_services", "sell_products", "direct_clients"}
 
 
@@ -146,24 +160,15 @@ def read_builtin_resume_text(source_key: str) -> str:
 def ensure_seed_profile(session: Session) -> CandidateProfile:
     existing = session.exec(select(CandidateProfile).order_by(CandidateProfile.id.desc())).first()
     if existing:
-        updated = False
-        if not existing.cv_text and build_resume_library():
-            existing.cv_text = read_builtin_resume_text("final-cv")
-            updated = True
-        for field_name in ("portfolio_url", "linkedin_url", "upwork_url", "fiverr_url"):
-            if not getattr(existing, field_name, ""):
-                setattr(existing, field_name, DEFAULT_PROFILE_SEED[field_name])
-                updated = True
-        if updated:
-            session.add(existing)
-            session.commit()
-            session.refresh(existing)
         return existing
 
-    profile = CandidateProfile(
-        **DEFAULT_PROFILE_SEED,
-        cv_text=read_builtin_resume_text("final-cv") if build_resume_library() else "",
-    )
+    if os.environ.get(DEV_SEED_PROFILE_ENV_VAR, "").strip() == "1":
+        profile = CandidateProfile(
+            **DEFAULT_PROFILE_SEED,
+            cv_text=read_builtin_resume_text("final-cv") if build_resume_library() else "",
+        )
+    else:
+        profile = CandidateProfile(full_name="", email="")
     session.add(profile)
     session.commit()
     session.refresh(profile)
