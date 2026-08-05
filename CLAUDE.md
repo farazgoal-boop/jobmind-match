@@ -34,7 +34,10 @@ Single dashboard, two modes, one JS-driven panel system:
 ## Data locations
 
 - Dev: `./jobmind.db`, `./.env` at repo root.
-- Desktop (PyInstaller) build: `desktop_launcher.py` redirects everything to `~/.jobmind-match/` (DB + `.env`), sets `JOBMIND_APP_ROOT`/`APP_ENV=desktop`, starts Uvicorn, opens the OS default browser (no embedded webview).
+- Desktop (PyInstaller) build: redirects everything to `~/.jobmind-match/` (DB + `.env`), sets `JOBMIND_APP_ROOT`/`APP_ENV=desktop`, starts Uvicorn — but **which launcher script actually ships differs by platform**, and `jobmind.spec` is misleading here:
+  - **Windows** (the real installer users get, via `.github/workflows/build-desktop.yml`'s `build-windows` job → `scripts/build_desktop_exe.bat`): built from `scripts/desktop_launcher.py`, which opens the app in a dedicated **pywebview native window** (WebView2-backed, no browser chrome) and only falls back to an OS-browser window if pywebview/WebView2 itself fails. `jobmind.spec` (which points at the root-level launcher below) is **not used** by this build path at all.
+  - **macOS/Linux**, and any manual build actually run via `jobmind.spec`: built from the root-level `desktop_launcher.py`, which starts Uvicorn and opens the OS default browser (no embedded webview) — this is the only launcher `jobmind.spec` references.
+  - Verified 2026-08-06 by downloading and running the real v1.0.11 `JobMind-Match-Setup.exe`: the installed `_internal/webview` package and the `jobmind-launcher.log` line "Native window closed by user" only exist in `scripts/desktop_launcher.py`, confirming that's what the Windows build actually bundles.
 - Android: `JOBMIND_DATA_DIR` env var used instead.
 
 ## Running it
