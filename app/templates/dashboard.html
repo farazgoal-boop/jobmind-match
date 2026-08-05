@@ -1747,7 +1747,12 @@ async function lhpExport(fmt){
   const base=`${fname}_${ts}`;
   const rows=LEADS.map((l,i)=>[i+1,l.name||'',l.designation||'',l.email||'',l.whatsapp||'',l.source||'',l.location||'',l.url||'',l.notes||'']);
   const hdr=['#','Name','Designation','Email','WhatsApp','Source','Location','Profile URL','Notes'];
-  let blob,mt,ext;
+  // doneMsg overrides the generic "Exported N contacts" toast for formats
+  // that write a filtered subset of LEADS (txt_email/txt_wa) rather than
+  // every row -- the toast previously always quoted LEADS.length even for
+  // those, misreporting e.g. "Exported 23 contacts as whatsapp.txt" when
+  // only 2 rows actually had a valid WhatsApp number.
+  let blob,mt,ext,doneMsg=null;
   if(fmt==='csv'){
     const esc=v=>'"'+String(v).replace(/"/g,'""')+'"';
     const csv=[hdr,...rows].map(r=>r.map(esc).join(',')).join('\n');
@@ -1770,6 +1775,7 @@ async function lhpExport(fmt){
     });
     blob=new Blob([emails.join('\n')],{type:'text/plain'});
     ext='emails.txt';
+    doneMsg=`✅ Exported ${emails.length} email${emails.length===1?'':'s'} (from ${LEADS.length} total contacts) as ${ext}`;
   }else if(fmt==='txt_wa'){
     const E164=/^\+[1-9]\d{6,14}$/;
     const seenW=new Set();
@@ -1779,6 +1785,7 @@ async function lhpExport(fmt){
     });
     blob=new Blob([nums.join('\n')],{type:'text/plain'});
     ext='whatsapp.txt';
+    doneMsg=`✅ Exported ${nums.length} WhatsApp number${nums.length===1?'':'s'} (from ${LEADS.length} total contacts) as ${ext}`;
   }else if(fmt==='xls'){
     // Only export format that's a real server round-trip (openpyxl builds
     // the workbook) rather than an instant client-side Blob -- the only one
@@ -1807,7 +1814,7 @@ async function lhpExport(fmt){
   a.download=`${base}.${ext}`;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast(`✅ Exported ${LEADS.length} contacts as ${ext}`,'ok');
+  toast(doneMsg||`✅ Exported ${LEADS.length} contacts as ${ext}`,'ok');
 }
 
 // Globals
