@@ -798,14 +798,18 @@
 .lh-fbar-info{font-size:11px;color:var(--mt);display:flex;align-items:center;margin-left:auto}
 
 /* Table */
-.lh-tscroll{overflow-x:auto}
+/* Bounded, independently-scrolling table body -- NOT viewport-relative
+   stickiness. #lhp (the whole panel) has overflow:hidden for its rounded
+   corners, which breaks position:sticky's viewport-relative offset: the
+   header ended up pinned at y=0 instead of below the app header, hidden
+   behind it (app-header z-index 100 > th's z-index 5). Verified live in
+   browser -- rect.top stayed 0 while scrolling instead of tracking
+   --header-height. Giving this wrapper its own scroll context makes the
+   header's nearest scrolling ancestor .lh-tscroll itself, so `top:0` sticks
+   reliably regardless of #lhp's overflow. */
+.lh-tscroll{overflow-x:auto;overflow-y:auto;max-height:600px}
 table.lht{width:100%;border-collapse:collapse;font-size:12px}
-/* Sticky header: sits right below the fixed app header (--header-height) as
-   the page scrolls through a long result set -- the table itself has no
-   bounded height of its own (the whole page scrolls), so the header pins
-   relative to the viewport the same way .app-sidebar/.section-thumbnails
-   already do, not relative to an inner scroll container. */
-table.lht th{position:sticky;top:var(--header-height);z-index:5;text-align:left;padding:8px 12px;font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:.8px;font-weight:700;border-bottom:1px solid var(--bd);background:var(--s2);white-space:nowrap;line-height:16px;cursor:default;user-select:none}
+table.lht th{position:sticky;top:0;z-index:5;text-align:left;padding:8px 12px;font-size:9px;color:var(--mt);text-transform:uppercase;letter-spacing:.8px;font-weight:700;border-bottom:1px solid var(--bd);background:var(--s2);white-space:nowrap;line-height:16px;cursor:default;user-select:none}
 table.lht th[data-sort-key]{cursor:pointer}
 table.lht th[data-sort-key]:hover{color:var(--p3)}
 table.lht th .lh-sort-arrow{display:inline-block;width:8px;font-size:8px;color:var(--p3);opacity:0}
