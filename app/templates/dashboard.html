@@ -764,6 +764,20 @@
 .lh-log{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mt);max-height:56px;overflow-y:auto;line-height:2;background:var(--bg);padding:6px 10px;border-radius:6px}
 .lh-log .ok{color:var(--g2)}.lh-log .info{color:var(--p3)}.lh-log .warn{color:var(--a)}
 
+/* Quick filter presets */
+.lh-presets{display:flex;align-items:center;gap:7px;padding:12px 28px 0;flex-wrap:wrap}
+.lh-preset-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--bd2);background:var(--s2);color:var(--mt);transition:all .15s;font-family:inherit}
+.lh-preset-btn:hover{border-color:var(--p2);color:var(--p3)}
+.lh-preset-btn.active{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:var(--p3)}
+
+/* Active filter chips */
+.lh-active-chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 28px 0;align-items:center}
+.lh-fchip{display:inline-flex;align-items:center;gap:6px;padding:4px 6px 4px 11px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:var(--p3)}
+.lh-fchip button{background:transparent;border:none;color:var(--mt);cursor:pointer;font-size:11px;padding:2px 4px;line-height:1;border-radius:50%;transition:all .1s;font-family:inherit}
+.lh-fchip button:hover{color:var(--tx);background:rgba(255,255,255,.08)}
+.lh-fchip-clearall{background:transparent;border:none;color:var(--mt);font-size:11px;cursor:pointer;text-decoration:underline;padding:4px 4px;font-family:inherit}
+.lh-fchip-clearall:hover{color:var(--p3)}
+
 /* Filter bar */
 .lh-fbar{display:flex;gap:8px;padding:12px 28px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
 .lh-fbar input,.lh-fbar select{background:var(--s2);border:1px solid var(--bd2);border-radius:8px;color:var(--tx);font-size:12px;padding:8px 12px;outline:none;font-family:inherit}
@@ -833,6 +847,8 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
   .lh-chips{padding:10px 12px}
   .lh-actions{padding:10px 12px;gap:6px}
   .lh-actions .lhb{font-size:11px;padding:8px 10px}
+  .lh-presets{padding:10px 12px 0}
+  .lh-active-chips{padding:8px 12px 0}
   .lh-fbar{flex-direction:column;padding:10px 12px}
   .lh-fbar input,.lh-fbar select{width:100%}
   .lh-prog{padding:10px 12px}
@@ -1041,6 +1057,17 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
   <div class="lh-log" id="lhp-plog"></div>
 </div>
 
+<!-- Quick filter presets -->
+<div class="lh-presets">
+  <span class="lh-chip-lbl">Quick filters:</span>
+  <button type="button" class="lh-preset-btn" data-preset="high" onclick="lhpPreset('high')">🟢 High confidence only</button>
+  <button type="button" class="lh-preset-btn" data-preset="wa" onclick="lhpPreset('wa')">💬 WhatsApp available</button>
+  <button type="button" class="lh-preset-btn" data-preset="highwa" onclick="lhpPreset('highwa')">🎯 High confidence + WhatsApp</button>
+</div>
+
+<!-- Active filter chips: removable tags mirroring whatever the filter bar below is set to -->
+<div class="lh-active-chips" id="lhp-active-chips" style="display:none"></div>
+
 <!-- Filter bar -->
 <div class="lh-fbar">
   <input type="text" id="lhp-fsearch" placeholder="🔍 Search name, email, WhatsApp, designation…" oninput="lhpFilter()">
@@ -1065,9 +1092,9 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
   </select>
   <select id="lhp-fconf" onchange="lhpFilter()" title="High = found via a real wa.me/mailto link or confirmed by 2+ sources. Low = matches an obvious placeholder/example pattern (a@b.com, admin@gmail.com, etc.)">
     <option value="">All Confidence</option>
-    <option value="high">High confidence</option>
-    <option value="medium">Medium confidence</option>
-    <option value="low">Low confidence</option>
+    <option value="high">🟢 High confidence</option>
+    <option value="medium">🟡 Medium confidence</option>
+    <option value="low">🔴 Low confidence</option>
   </select>
   <span class="lh-fbar-info" id="lhp-fcount" style="color:#6666a0;font-size:11px"></span>
 </div>
@@ -1753,7 +1780,57 @@ window.lhpFilter=function(){
     if(show)v++;
   });
   document.getElementById('lhp-fcount').textContent=`${v} shown`;
+  renderActiveChips();
 };
+
+// Preset combos map to the same select/input fields the manual filter bar
+// uses, so a preset click is just "set these fields, then filter" — no
+// separate filter code path to keep in sync.
+const LHP_PRESETS={
+  high:{fconf:'high',ftype:''},
+  wa:{fconf:'',ftype:'wa'},
+  highwa:{fconf:'high',ftype:'wa'}
+};
+window.lhpPreset=function(name){
+  const p=LHP_PRESETS[name];
+  if(!p)return;
+  document.getElementById('lhp-fsearch').value='';
+  document.getElementById('lhp-fsrc').value='';
+  document.getElementById('lhp-fconf').value=p.fconf;
+  document.getElementById('lhp-ftype').value=p.ftype;
+  lhpFilter();
+};
+
+const LHP_FILTER_LABELS={type:{both:'Both Email+WA',email:'Email only',wa:'WhatsApp only'},conf:{high:'High confidence',medium:'Medium confidence',low:'Low confidence'}};
+function renderActiveChips(){
+  const wrap=document.getElementById('lhp-active-chips');
+  const qEl=document.getElementById('lhp-fsearch'),sEl=document.getElementById('lhp-fsrc'),tEl=document.getElementById('lhp-ftype'),cEl=document.getElementById('lhp-fconf');
+  const q=qEl.value,s=sEl.value,t=tEl.value,c=cEl.value;
+  const chips=[];
+  if(q)chips.push({label:`Search: "${q}"`,clear:()=>{qEl.value='';}});
+  if(s)chips.push({label:`Source: ${sEl.options[sEl.selectedIndex].text}`,clear:()=>{sEl.value='';}});
+  if(t)chips.push({label:`Type: ${LHP_FILTER_LABELS.type[t]||t}`,clear:()=>{tEl.value='';}});
+  if(c)chips.push({label:`Confidence: ${LHP_FILTER_LABELS.conf[c]||c}`,clear:()=>{cEl.value='';}});
+  if(!chips.length){
+    wrap.style.display='none';
+    wrap.innerHTML='';
+  }else{
+    wrap.style.display='flex';
+    wrap.innerHTML=chips.map((ch,i)=>`<span class="lh-fchip">${esc(ch.label)}<button type="button" data-chip-idx="${i}" title="Remove filter">✕</button></span>`).join('')
+      +'<button type="button" class="lh-fchip-clearall" id="lhp-clear-all-filters">Clear all</button>';
+    chips.forEach((ch,i)=>{
+      wrap.querySelector(`[data-chip-idx="${i}"]`).addEventListener('click',()=>{ch.clear();lhpFilter();});
+    });
+    document.getElementById('lhp-clear-all-filters').addEventListener('click',()=>{
+      qEl.value='';sEl.value='';tEl.value='';cEl.value='';lhpFilter();
+    });
+  }
+  document.querySelectorAll('.lh-preset-btn').forEach(btn=>{
+    const p=LHP_PRESETS[btn.dataset.preset];
+    const match=p&&!q&&!s&&c===p.fconf&&t===p.ftype;
+    btn.classList.toggle('active',!!match);
+  });
+}
 window.lhCopy=function(txt,btn){
   navigator.clipboard.writeText(txt).then(()=>{
     const prev=btn.innerHTML;
