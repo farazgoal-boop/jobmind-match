@@ -1511,9 +1511,12 @@ _SKIP_DOMAINS = {
     'yourcompany.com','acme.com','foo.com','bar.com','company.com',
 }
 
-# RFC 2606 reserved TLDs — always example/placeholder, never real registrable mail.
-# Catches tutorial/doc addresses like "alice@a.test" regardless of the domain name.
-_RESERVED_TLDS = {'test', 'example', 'invalid', 'localhost'}
+# RFC 2606 reserved TLDs (test/example/invalid/localhost) plus RFC 6762's
+# ".local" (reserved for mDNS/link-local resolution) — always example/
+# placeholder or a non-routable internal hostname, never real registrable
+# mail. Catches tutorial/doc addresses like "alice@a.test" and internal-only
+# addresses like "idp-only-user@eclipsvault.local" regardless of domain name.
+_RESERVED_TLDS = {'test', 'example', 'invalid', 'localhost', 'local'}
 
 _HDRS = [
     {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'},

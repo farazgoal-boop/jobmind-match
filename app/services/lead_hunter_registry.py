@@ -62,13 +62,24 @@ _FREE_MAIL_DOMAINS = {
 
 _SHORT_LETTERS = re.compile(r"^[a-z]{1,2}$")
 
+# Same reserved-TLD family as web.py's _RESERVED_TLDS (RFC 2606 test/example/
+# invalid/localhost + RFC 6762's .local for mDNS/link-local) -- duplicated
+# here rather than imported since web.py imports FROM this module, and
+# registry rows collected before a TLD was added to that hard-reject filter
+# can still be sitting in the DB at medium/high. Lets
+# reclassify_placeholder_confidence() sweep those out to "low" without
+# deleting them.
+_RESERVED_TLDS = {"test", "example", "invalid", "localhost", "local"}
+
 
 def is_placeholder_email(email: str) -> bool:
     """True for obvious placeholder/example addresses that pass syntax and
     MX checks (the domain is real) but are plainly not a real contact — e.g.
-    "a@b.com", "your_email@gmail.com", "admin@gmail.com". Deliberately a
-    pattern list, not exhaustive — pairs with the "low" confidence tier
-    rather than dropping matches outright, since some will be real people.
+    "a@b.com", "your_email@gmail.com", "admin@gmail.com", or an address on a
+    reserved TLD like "user@host.local" (never real, routable mail).
+    Deliberately a pattern list, not exhaustive — pairs with the "low"
+    confidence tier rather than dropping matches outright, since some will
+    be real people.
 
     A short (1-2 letter) local-part is NOT flagged by itself — that's a
     common, legitimate convention for people who own their own short domain
@@ -84,6 +95,8 @@ def is_placeholder_email(email: str) -> bool:
     if _SHORT_LETTERS.match(local) and _SHORT_LETTERS.match(sld):
         return True
     if local in _PLACEHOLDER_LOCAL_PARTS and domain in _FREE_MAIL_DOMAINS:
+        return True
+    if domain.rsplit(".", 1)[-1] in _RESERVED_TLDS:
         return True
     return False
 
