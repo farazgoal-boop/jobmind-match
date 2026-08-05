@@ -722,8 +722,20 @@
 .lh-loc-places>summary::-webkit-details-marker{display:none}
 .lh-loc-places-list{display:flex;flex-wrap:wrap;gap:6px;padding-top:8px}
 .lh-loc-place-chip{font-size:11px;padding:4px 9px;border-radius:999px;background:var(--s2);border:1px solid var(--bd2);color:var(--mt)}
-/* Stats empty state */
-.lh-stats-empty{padding:12px 28px;border-bottom:1px solid var(--bd);font-size:12px;color:var(--mt)}
+/* Action-first empty state (Part 3) */
+.lh-hero{padding:22px 28px;border-bottom:1px solid var(--bd);display:none}
+.lh-hero-primary{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.lh-hero-copy h3{font-size:16px;font-weight:700;color:var(--tx);margin:0 0 4px}
+.lh-hero-copy p{font-size:12px;color:var(--mt);margin:0;max-width:460px;line-height:1.6}
+.lh-hero-cta{flex-shrink:0;font-size:14px;padding:12px 22px}
+/* Pool-health: supporting context around the CTA, not the dominant element -- deliberately smaller type than the hero heading */
+.lh-hero-pool{display:none;align-items:center;gap:16px;margin-top:16px;padding:10px 14px;border-radius:10px;background:var(--s2);border:1px solid var(--bd);font-size:11px;color:var(--mt);flex-wrap:wrap}
+.lh-hero-pool-item strong{color:var(--tx);font-size:13px;font-weight:700;margin-right:4px}
+.lh-hero-pool-growth{color:var(--g2);font-weight:600}
+.lh-hero-secondary{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.lh-hero-action{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--bd2);background:var(--s2);color:var(--mt);transition:all .15s;font-family:inherit}
+.lh-hero-action:hover:not(:disabled){border-color:var(--p2);color:var(--p3)}
+.lh-hero-action:disabled{opacity:.4;cursor:not-allowed}
 
 /* Platform chips */
 .lh-chips{padding:14px 28px;border-bottom:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:7px;align-items:center}
@@ -849,6 +861,9 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
   .lh-actions .lhb{font-size:11px;padding:8px 10px}
   .lh-presets{padding:10px 12px 0}
   .lh-active-chips{padding:8px 12px 0}
+  .lh-hero{padding:16px 12px}
+  .lh-hero-primary{flex-direction:column;align-items:stretch}
+  .lh-hero-cta{width:100%;justify-content:center}
   .lh-fbar{flex-direction:column;padding:10px 12px}
   .lh-fbar input,.lh-fbar select{width:100%}
   .lh-prog{padding:10px 12px}
@@ -913,7 +928,43 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
   <div class="lh-stat"><div class="lh-sn" id="lhs-known">0</div><div class="lh-sl">Saved (never re-hunt)</div></div>
   <div class="lh-stat"><div class="lh-sn" id="lhs-dup">0</div><div class="lh-sl">Skipped this run</div></div>
 </div>
-<div class="lh-stats-empty" id="lhp-stats-empty">No hunt data yet — press <strong style="color:var(--accent3)">Start Hunting</strong> to begin</div>
+<!-- Action-first empty state: one primary action (Start Hunting), 2-3
+     secondary quick actions, pool-health stats as supporting context rather
+     than the dominant element. Shown only when idle (no active hunt / no
+     leads loaded in this view) -- see updateHeroVisibility(). -->
+<div class="lh-hero" id="lhp-hero">
+  <div class="lh-hero-primary">
+    <div class="lh-hero-copy">
+      <h3>Ready to hunt globally</h3>
+      <p>212+ platforms with permanent dedup — every contact is saved forever and never re-hunted. Set your target below, then go.</p>
+    </div>
+    <button type="button" class="lhb lhb-primary lh-hero-cta" onclick="lhpScrollToStart()">
+      <svg class="icon"><use href="#tabler-rocket"/></svg> Start Hunting
+    </button>
+  </div>
+  <div class="lh-hero-pool" id="lhp-hero-pool">
+    <span class="lh-hero-pool-item"><strong id="lhp-hero-pool-total">0</strong> leads in your pool</span>
+    <span class="lh-hero-pool-item"><strong id="lhp-hero-pool-wa">0</strong> with WhatsApp</span>
+    <span class="lh-hero-pool-item lh-hero-pool-growth" id="lhp-hero-pool-growth"></span>
+  </div>
+  <div class="lh-hero-secondary">
+    <button type="button" class="lh-hero-action" id="lhp-hero-resume" onclick="lhpResumeLastLocation()" disabled title="No previous hunt found yet">
+      <svg class="icon"><use href="#tabler-map-pin"/></svg> Resume last hunt location
+    </button>
+    <button type="button" class="lh-hero-action" onclick="document.querySelector('[data-role=history-open]').click()">
+      <svg class="icon"><use href="#tabler-history"/></svg> View Hunt History
+    </button>
+    <div class="lh-export-wrap">
+      <button type="button" class="lh-hero-action" onclick="lhpToggleHeroExport()">
+        <svg class="icon"><use href="#tabler-download"/></svg> Export all-time registry <span style="font-size:9px">▾</span>
+      </button>
+      <div class="lh-export-menu" id="lhp-hero-export-menu">
+        <a class="lh-export-item" href="/api/scrape/all-time/emails" download><svg class="icon"><use href="#tabler-mail"/></svg> All emails (.txt)</a>
+        <a class="lh-export-item" href="/api/scrape/all-time/whatsapp" download><svg class="icon"><use href="#tabler-brand-whatsapp"/></svg> All WhatsApp (.txt)</a>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Controls -->
 <div class="lh-ctrl">
@@ -1118,8 +1169,7 @@ table.lht tbody tr:hover td{background:rgba(99,102,241,.07)}
       <tr><td colspan="8">
         <div class="lh-empty">
           <div class="lh-empty-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></div>
-          <h3>Ready to Hunt Globally</h3>
-          <p>212+ platforms: GitHub, Reddit, Dev.to, RSS job boards, marketplaces + more. Each email/WhatsApp is saved forever — never hunted twice. Export CSV, XLS, JSON, TXT or HTML.</p>
+          <p>Results will appear here once a hunt is running.</p>
         </div>
       </td></tr>
     </tbody>
@@ -1156,9 +1206,15 @@ function updStats(){
   document.getElementById('lhs-dup').textContent=DUPS;
   const hasData=LEADS.length||DUPS;
   const row=document.getElementById('lhp-stats-row');
-  const empty=document.getElementById('lhp-stats-empty');
   if(row)row.style.display=hasData?'grid':'none';
-  if(empty)empty.style.display=hasData?'none':'';
+  updateHeroVisibility();
+}
+
+function updateHeroVisibility(){
+  const hero=document.getElementById('lhp-hero');
+  if(!hero)return;
+  const idle=!RUNNING&&LEADS.length===0&&DUPS===0;
+  hero.style.display=idle?'block':'none';
 }
 
 async function loadRegistry(){
@@ -1645,7 +1701,7 @@ window.lhpSort=function(key){
 function render(leads){
   const tb=document.getElementById('lhp-tbody');
   if(!leads.length){
-    tb.innerHTML=`<tr><td colspan="8"><div class="lh-empty"><div class="lh-empty-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></div><h3>Ready to Hunt</h3><p>212+ platforms with permanent dedup — saved emails &amp; WhatsApp are never searched again. Click Start Hunting!</p></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="8"><div class="lh-empty"><div class="lh-empty-icon"><svg class="icon"><use href="#tabler-bolt"/></svg></div><p>Results will appear here once a hunt is running.</p></div></td></tr>`;
     return;
   }
   const ordered=sortedLeads(leads);
@@ -1760,6 +1816,7 @@ window.lhpHalt=function(){
   if(LEADS.length>0)document.getElementById('lhp-xbtn').style.display='';
   if(LEADS.length>0)document.getElementById('lhp-export-bar').style.display='flex';
   endHuntSession('stopped');
+  updateHeroVisibility();
   toast('Stopped — export available','in');
 };
 window.lhpToggleExport=function(){document.getElementById('lhp-xmenu').classList.toggle('open');};
@@ -1866,13 +1923,53 @@ async function checkForRecoverableSession(){
     const res=await fetch('/api/scrape/session/latest');
     if(!res.ok)return;
     const data=await res.json();
-    if(!data.id||!data.lead_count)return;
+    if(!data.id)return;
     RECOVERABLE_SESSION=data;
+    if(data.target||data.location){
+      const resumeBtn=document.getElementById('lhp-hero-resume');
+      if(resumeBtn){resumeBtn.disabled=false;resumeBtn.title='Restore this hunt\'s target + location into the form below';}
+    }
+    if(!data.lead_count)return;
     const started=new Date(data.started_at).toLocaleString();
     document.getElementById('lhp-recover-text').textContent=
       `A previous hunt (started ${started}, status: ${data.status}) has ${data.lead_count} contact(s) saved on disk that aren't loaded in this view.`;
     document.getElementById('lhp-recover-bar').style.display='flex';
   }catch(e){/* recovery is best-effort */}
+}
+
+// Hero quick actions (Part 3 — action-first empty state)
+window.lhpScrollToStart=function(){
+  const ctrl=document.querySelector('#lhp .lh-ctrl');
+  if(ctrl)ctrl.scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('lhp-tgt')?.focus({preventScroll:true});
+};
+window.lhpResumeLastLocation=function(){
+  if(!RECOVERABLE_SESSION)return;
+  const{target,keywords,location}=RECOVERABLE_SESSION;
+  if(target)document.getElementById('lhp-tgt').value=target;
+  if(keywords)document.getElementById('lhp-kw').value=keywords;
+  if(location){
+    HUNT_LOCATION.display_name=location;
+    HUNT_LOCATION.city='';HUNT_LOCATION.country='';
+    updateLocChip();
+  }
+  lhpScrollToStart();
+  toast('Resumed last hunt\'s target + location — review, then press Start Hunting','in');
+};
+window.lhpToggleHeroExport=function(){document.getElementById('lhp-hero-export-menu').classList.toggle('open');};
+
+async function loadHeroPoolHealth(){
+  try{
+    const res=await fetch('/api/scrape/pool-health');
+    if(!res.ok)return;
+    const d=await res.json();
+    if(!d.total)return;
+    document.getElementById('lhp-hero-pool-total').textContent=d.total;
+    document.getElementById('lhp-hero-pool-wa').textContent=d.whatsapp||0;
+    const g=d.growth_7d||0;
+    document.getElementById('lhp-hero-pool-growth').textContent=g>0?`+${g} in the last 7 days`:'';
+    document.getElementById('lhp-hero-pool').style.display='flex';
+  }catch(e){/* supporting context is best-effort */}
 }
 
 window.lhpRecover=async function(){
@@ -1900,7 +1997,9 @@ window.lhpDismissRecover=function(){
 
 loadRegistry();
 checkForRecoverableSession();
+loadHeroPoolHealth();
 updatePlacesLocHint();
+updateHeroVisibility();
 
 function toast(msg,cls='ok',ms=3000){
   const el=document.getElementById('lht');
@@ -1929,10 +2028,12 @@ document.querySelectorAll('.lh-chip').forEach(chip=>{
   });
 });
 
-// Close export menu
+// Close export menu(s)
 document.addEventListener('click',e=>{
-  if(!e.target.closest('.lh-export-wrap'))
+  if(!e.target.closest('.lh-export-wrap')){
     document.getElementById('lhp-xmenu').classList.remove('open');
+    document.getElementById('lhp-hero-export-menu')?.classList.remove('open');
+  }
 });
 })();
 </script>
